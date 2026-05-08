@@ -1,0 +1,18 @@
+{
+  "name": "dark-nexus-hub",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:nexus": "npm --workspace=apps/dark-nexus run dev",
+    "dev:defend": "npm --workspace=apps/dark-defend run dev",
+    "dev:splaining": "npm --workspace=apps/dark-splaining run dev",
+    "dev:challenge": "npm run dev -w dark-challenges",
+    "dev": "concurrently \"npm run dev:nexus\" \"npm run dev:defend\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}

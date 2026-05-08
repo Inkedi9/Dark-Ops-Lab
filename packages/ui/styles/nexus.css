@@ -1,0 +1,247 @@
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: #070b16;
+  color: #f8fafc;
+  font-family: var(--font-sans);
+}
+
+::selection {
+  background: rgba(34, 211, 238, 0.25);
+  color: #ffffff;
+}
+
+button,
+a,
+input,
+textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid rgba(34, 211, 238, 0.65);
+  outline-offset: 3px;
+}
+
+/* Motion */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pageIn {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+    filter: blur(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+@keyframes rewardPop {
+  0% {
+    transform: scale(0.96);
+    opacity: 0;
+  }
+
+  60% {
+    transform: scale(1.03);
+    opacity: 1;
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes softPulse {
+  0%,
+  100% {
+    opacity: 0.7;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+.ui-enter {
+  animation: fadeInUp 0.35s ease-out both;
+}
+
+.ui-soft-pulse {
+  animation: softPulse 2.4s ease-in-out infinite;
+}
+
+.motion-page {
+  animation: pageIn 0.42s ease-out both;
+}
+
+.motion-reward {
+  animation: rewardPop 0.45s ease-out both;
+}
+
+.motion-hover {
+  transition:
+    transform 240ms ease,
+    box-shadow 240ms ease,
+    background-color 240ms ease,
+    border-color 240ms ease;
+}
+
+.motion-hover:hover {
+  transform: translateY(-2px);
+}
+
+/* Focus */
+.focus-ring {
+  outline: none;
+}
+
+.focus-ring:focus-visible {
+  box-shadow: 0 0 0 2px rgba(34, 211, 238, 0.35);
+}
+
+/* Terminal */
+.terminal-scanline {
+  background-image: linear-gradient(
+    rgba(255, 255, 255, 0.06) 1px,
+    transparent 1px
+  );
+  background-size: 100% 4px;
+}
+
+@keyframes terminal-blink {
+  0%,
+  45% {
+    opacity: 1;
+  }
+
+  46%,
+  100% {
+    opacity: 0;
+  }
+}
+
+.terminal-cursor::after {
+  content: "▌";
+  margin-left: 4px;
+  color: rgb(103 232 249);
+  animation: terminal-blink 1s steps(2, start) infinite;
+}
+
+/* Scans */
+@keyframes scanSweep {
+  0% {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+
+  30% {
+    opacity: 0.35;
+  }
+
+  100% {
+    transform: translateY(300%);
+    opacity: 0;
+  }
+}
+
+.ui-scan-sweep::after {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    rgba(34, 211, 238, 0.08),
+    transparent
+  );
+  animation: scanSweep 3.2s ease-in-out infinite;
+}
+
+@keyframes nexus-scanline {
+  0% {
+    transform: translateY(-12vh);
+    opacity: 0;
+  }
+
+  18% {
+    opacity: 0.55;
+  }
+
+  100% {
+    transform: translateY(112vh);
+    opacity: 0;
+  }
+}
+
+.nexus-scanline {
+  animation: nexus-scanline 7s ease-in-out infinite;
+}
+
+/* Progress / rewards */
+@keyframes progress-glow {
+  0% {
+    box-shadow: 0 0 0 rgba(16, 185, 129, 0);
+  }
+
+  50% {
+    box-shadow: 0 0 18px rgba(16, 185, 129, 0.55);
+  }
+
+  100% {
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.28);
+  }
+}
+
+@keyframes reward-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.96) translateY(8px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.progress-glow {
+  animation: progress-glow 900ms ease-out;
+}
+
+.reward-pop {
+  animation: reward-pop 300ms ease-out;
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.001ms !important;
+  }
+}

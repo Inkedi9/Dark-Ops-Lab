@@ -1,0 +1,147 @@
+@import "../../../packages/ui/styles/fonts.css";
+@import "tailwindcss";
+@import "../../../packages/ui/styles/nexus.css";
+
+@source "../../../packages/ui";
+@source "./";
+
+@theme {
+  --font-sans: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0.25;
+  }
+}
+
+.dark-shell {
+  position: relative;
+  isolation: isolate;
+}
+
+.terminal-cursor {
+  animation: blink 1s infinite;
+}
+
+@keyframes rotateSlow {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes rotateReverse {
+  to {
+    transform: rotate(-360deg);
+  }
+}
+
+@keyframes pulseGlow {
+  0%,
+  100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 18px rgba(0, 229, 255, 0.35));
+  }
+  50% {
+    transform: scale(1.035);
+    filter: drop-shadow(0 0 45px rgba(57, 255, 20, 0.35));
+  }
+}
+
+@keyframes nodePulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.72;
+  }
+  50% {
+    transform: scale(1.25);
+    opacity: 1;
+  }
+}
+
+@keyframes drawLine {
+  0% {
+    stroke-dashoffset: 900;
+    opacity: 0.15;
+  }
+  45%,
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+}
+
+.dn-line {
+  stroke-dasharray: 900;
+  stroke-dashoffset: 900;
+  animation: drawLine 3.2s ease-in-out infinite;
+}
+
+.dn-node {
+  transform-origin: center;
+  animation: nodePulse 2.3s ease-in-out infinite;
+}
+
+@keyframes gridMove {
+  from { transform: translateY(0); }
+  to { transform: translateY(44px); }
+}
+
+@keyframes socScan {
+    0% {
+        transform: translateY(-10%);
+        opacity: 0;
+    }
+
+    10% {
+        opacity: 1;
+    }
+
+    100% {
+        transform: translateY(100vh);
+        opacity: 0;
+    }
+}
+
+.phish-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(34, 211, 238, 0.28) rgba(2, 6, 17, 0.45);
+}
+
+.phish-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.phish-scroll::-webkit-scrollbar-track {
+  background: rgba(255,255,255,0.03);
+  border-radius: 999px;
+}
+
+.phish-scroll::-webkit-scrollbar-thumb {
+  background: rgba(56,189,248,0.18);
+  border-radius: 999px;
+}
+
+.phish-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(56,189,248,0.32);
+}

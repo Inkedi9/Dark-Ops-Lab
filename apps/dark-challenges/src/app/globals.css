@@ -1,0 +1,82 @@
+@import "../../../../packages/ui/styles/fonts.css";
+@import "tailwindcss";
+@import "../../../../packages/ui/styles/nexus.css";
+
+@source "../../../../packages/ui";
+@source "../";
+
+@theme {
+  --font-sans: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+}
+
+@keyframes rotateSlow {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes rotateReverse {
+  to {
+    transform: rotate(-360deg);
+  }
+}
+
+@keyframes pulseGlow {
+  0%,
+  100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 18px rgba(0, 229, 255, 0.35));
+  }
+  50% {
+    transform: scale(1.035);
+    filter: drop-shadow(0 0 45px rgba(57, 255, 20, 0.35));
+  }
+}
+
+@keyframes nodePulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.72;
+  }
+  50% {
+    transform: scale(1.25);
+    opacity: 1;
+  }
+}
+
+@keyframes drawLine {
+  0% {
+    stroke-dashoffset: 900;
+    opacity: 0.15;
+  }
+  45%,
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+}
+
+.dn-line {
+  stroke-dasharray: 900;
+  stroke-dashoffset: 900;
+  animation: drawLine 3.2s ease-in-out infinite;
+}
+
+.dn-node {
+  transform-origin: center;
+  animation: nodePulse 2.3s ease-in-out infinite;
+}
+
+@keyframes toastIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}

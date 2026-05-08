@@ -1,0 +1,10 @@
+{
+  "name": "@dark/profile",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./profileService": "./src/profileService.ts",
+    "./types": "./src/types.ts"
+  }
+}
