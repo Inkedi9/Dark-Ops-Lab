@@ -10,6 +10,7 @@ import {
     Terminal,
     ShieldAlert,
     UserCheck,
+    BarChart3,
 } from "lucide-react";
 import Header from "../components/Header";
 import { PhishPanel } from "@/components/ui/PhishPanel";
@@ -95,6 +96,12 @@ export default function Home() {
                                     Security check
                                 </PhishButton>
                             </Link>
+
+                            <Link to="/defense-profile">
+                                <PhishButton tone="slate">
+                                    Defense Profile
+                                </PhishButton>
+                            </Link>
                         </div>
                     </div>
 
@@ -177,7 +184,7 @@ export default function Home() {
                     />
                 </section>
 
-                <section className="mt-8 grid gap-5 md:grid-cols-2">
+                <section className="mt-8 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
                     <DefenseModeCard
                         icon={ShieldAlert}
                         label="SOC Mode"
@@ -194,6 +201,15 @@ export default function Home() {
                         text="Answer practical questions and receive a risk score with targeted recommendations."
                         to="/security-check"
                         tone="green"
+                    />
+
+                    <DefenseModeCard
+                        icon={BarChart3}
+                        label="Defense Profile"
+                        title="View your consolidated human-layer defense posture."
+                        text="Combine phishing training, SOC incidents and posture diagnostics into one operator view."
+                        to="/defense-profile"
+                        tone="blue"
                     />
                 </section>
 

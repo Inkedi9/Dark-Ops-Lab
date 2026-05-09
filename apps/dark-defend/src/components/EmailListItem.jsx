@@ -1,4 +1,5 @@
 import { CheckCircle2, FileWarning, Paperclip, ShieldAlert } from "lucide-react";
+import MailBrandIcon from "@/components/mail/MailBrandIcon";
 
 function getAvatar(email) {
     return (
@@ -37,15 +38,10 @@ export default function EmailListItem({
             ].join(" ")}
         >
             <div className="flex gap-3">
-                <div className="relative shrink-0">
-                    <div className="grid h-11 w-11 place-items-center rounded-xl border border-blue-300/15 bg-black/45 font-mono text-xs font-black text-blue-100">
-                        {getAvatar(email)}
-                    </div>
-
-                    {email.unread !== false && !completed && (
-                        <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-blue-300 shadow-[0_0_12px_rgba(96,165,250,.65)]" />
-                    )}
-                </div>
+                <MailBrandIcon
+                    brand={email.brand}
+                    label={getAvatar(email)}
+                />
 
                 <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-3">

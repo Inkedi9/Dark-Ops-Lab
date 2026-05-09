@@ -1,32 +1,28 @@
 import { cn } from "@/lib/utils";
+import { getDefendTone } from "@/lib/defend/uiTokens";
 
 export function PhishCard({
     children,
     active = false,
+    disabled = false,
     tone = "default",
+    hover = true,
     className = "",
     ...props
 }) {
-    const tones = {
-        default:
-            "border-white/[0.055] bg-[#03070c]/72 hover:border-blue-300/20 hover:bg-white/[0.035]",
-        teal:
-            "border-blue-300/30 bg-blue-400/[0.075] shadow-[0_0_18px_rgba(96,165,250,0.08)]",
-        threat:
-            "border-red-400/30 bg-red-400/[0.08] shadow-[0_0_18px_rgba(248,113,113,0.08)]",
-        success:
-            "border-emerald-300/25 bg-emerald-400/[0.07] shadow-[0_0_18px_rgba(52,211,153,0.07)]",
-        warning:
-            "border-amber-300/25 bg-amber-400/[0.075] shadow-[0_0_18px_rgba(251,191,36,0.07)]",
-    };
+    const selectedTone = getDefendTone(tone);
 
     return (
         <div
             className={cn(
-                "rounded-2xl border p-4 transition-all duration-200",
-                "hover:-translate-y-0.5",
-                tones[tone] || tones.default,
-                active && "border-blue-300/55 shadow-[0_0_24px_rgba(96,165,250,0.16)]",
+                "relative overflow-hidden rounded-xl border p-4 transition-all duration-200",
+                selectedTone.border,
+                selectedTone.bg,
+                selectedTone.text,
+                selectedTone.glow,
+                hover && !disabled && "hover:-translate-y-0.5 hover:border-blue-300/22 hover:bg-white/[0.035]",
+                active && "border-blue-300/35 bg-blue-400/[0.085] shadow-[0_0_28px_rgba(96,165,250,0.09)]",
+                disabled && "opacity-50",
                 className
             )}
             {...props}

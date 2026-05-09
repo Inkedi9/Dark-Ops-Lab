@@ -1,22 +1,21 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { createElement, useMemo, useState } from "react";
 import {
     AlertTriangle,
     CheckCircle2,
     Eye,
-    FileSearch,
     Inbox,
     Radio,
     ShieldAlert,
-    ShieldCheck,
 } from "lucide-react";
 import PanelCard from "@dark/ui/components/PanelCard";
 import AppBadge from "@dark/ui/components/AppBadge";
-import AppButton from "@dark/ui/components/AppButton";
 import { socAlerts } from "@/data/socAlerts";
 import SocLayout from "../components/soc/layout/SocLayout";
 import { getIncidents, mapIncidentToSocAlert } from "@/lib/defend/incidentService";
+import SocAlertDetail from "@/components/soc/SocAlertDetail";
+import SocResponseActions from "@/components/soc/SocResponseActions";
 
 function severityVariant(severity) {
     if (severity === "Critical" || severity === "High") return "danger";
@@ -24,13 +23,20 @@ function severityVariant(severity) {
     return "blue";
 }
 
+function bridgeVariant(label) {
+    if (label === "Generated") return "danger";
+    if (label === "Escalated") return "amber";
+    if (label === "Legit false positive") return "blue";
+    if (label === "Correct analyst detection") return "emerald";
+    return "blue";
+}
+
 export default function SocPage() {
-    const generatedAlerts = getIncidents().map(mapIncidentToSocAlert);
-    const allAlerts = [...generatedAlerts, ...socAlerts];
+    const generatedAlerts = useMemo(() => getIncidents().map(mapIncidentToSocAlert), []);
+    const allAlerts = useMemo(() => [...generatedAlerts, ...socAlerts], [generatedAlerts]);
 
     const [selectedId, setSelectedId] = useState(allAlerts[0]?.id);
     const [verdicts, setVerdicts] = useState({});
-    const [showFeedback, setShowFeedback] = useState(false);
 
     const selectedAlert = useMemo(
         () => allAlerts.find((alert) => alert.id === selectedId) ?? allAlerts[0],
@@ -44,11 +50,9 @@ export default function SocPage() {
             ...current,
             [selectedAlert.id]: verdict,
         }));
-        setShowFeedback(true);
     }
 
-    const selectedVerdict = verdicts[selectedAlert.id];
-    const isCorrect = selectedVerdict === selectedAlert.expectedVerdict;
+    const selectedVerdict = selectedAlert ? verdicts[selectedAlert.id] : null;
 
     return (
         <SocLayout>
@@ -100,12 +104,6 @@ export default function SocPage() {
                             </p>
                             <AppBadge variant="emerald">Live</AppBadge>
                         </div>
-                        {alert.generated && (
-                            <AppBadge variant="danger">
-                                Generated
-                            </AppBadge>
-                        )}
-
                         <div className="space-y-3">
                             {allAlerts.map((alert) => {
                                 const active = alert.id === selectedAlert.id;
@@ -116,7 +114,6 @@ export default function SocPage() {
                                         key={alert.id}
                                         onClick={() => {
                                             setSelectedId(alert.id);
-                                            setShowFeedback(false);
                                         }}
                                         className={[
                                             "w-full rounded-2xl border p-4 text-left transition",
@@ -134,142 +131,22 @@ export default function SocPage() {
                                             </AppBadge>
                                         </div>
 
-                                        <h3 className="font-black text-white">{alert.rule}</h3>
-                                        <p className="mt-2 text-sm text-slate-500">{alert.type} · {alert.timestamp}</p>
+                                        <h3 className="font-black text-white">{alert.title}</h3>
+                                        <p className="mt-2 text-sm text-slate-500">{alert.category} · {alert.timestamp}</p>
+                                        {alert.generated && (
+                                            <div className="mt-3">
+                                                <AppBadge variant={bridgeVariant(alert.bridgeLabel)}>
+                                                    {alert.bridgeLabel}
+                                                </AppBadge>
+                                            </div>
+                                        )}
                                     </button>
                                 );
                             })}
                         </div>
                     </PanelCard>
 
-                    <PanelCard variant="darkNexusHero" accent="blue">
-                        <div className="mb-6 flex items-start justify-between gap-4">
-                            <div>
-                                <p className="font-mono text-xs uppercase tracking-[0.35em] text-blue-200">
-                                    Assigned alert
-                                </p>
-                                <h2 className="mt-2 text-3xl font-black text-white">
-                                    {selectedAlert.title}
-                                </h2>
-                            </div>
-
-                            <AppBadge variant={severityVariant(selectedAlert.severity)}>
-                                {selectedAlert.severity}
-                            </AppBadge>
-                        </div>
-
-                        <div className="grid gap-3 md:grid-cols-3">
-                            <Meta label="Type" value={selectedAlert.type} />
-                            <Meta label="Datasource" value={selectedAlert.datasource} />
-                            <Meta label="Direction" value={selectedAlert.direction} />
-                        </div>
-
-                        <div className="mt-6 rounded-2xl border border-white/[0.07] bg-black/30 p-5">
-                            <p className="font-mono text-xs uppercase tracking-[0.28em] text-slate-500">
-                                Artifact
-                            </p>
-
-                            <div className="mt-4 grid gap-3 text-sm leading-6 text-slate-300 md:grid-cols-[160px_1fr]">
-                                <p className="text-slate-500">Subject</p>
-                                <p className="font-bold text-white">{selectedAlert.artifact.subject}</p>
-
-                                <p className="text-slate-500">Sender</p>
-                                <p>{selectedAlert.artifact.sender}</p>
-
-                                <p className="text-slate-500">Recipient</p>
-                                <p>{selectedAlert.artifact.recipient}</p>
-
-                                <p className="text-slate-500">Attachment</p>
-                                <p>{selectedAlert.artifact.attachment}</p>
-
-                                <p className="text-slate-500">Content</p>
-                                <pre className="whitespace-pre-wrap rounded-xl border border-white/[0.07] bg-black/35 p-4 font-mono text-xs leading-6 text-slate-300">
-                                    {selectedAlert.artifact.content}
-                                </pre>
-                            </div>
-                        </div>
-
-                        <div className="mt-6 grid gap-5 xl:grid-cols-2">
-                            <PanelCard variant="darkNexus" accent="blue">
-                                <p className="mb-4 font-mono text-xs uppercase tracking-[0.3em] text-blue-200">
-                                    Investigation timeline
-                                </p>
-
-                                <div className="space-y-3">
-                                    {selectedAlert.timeline.map((item) => (
-                                        <div
-                                            key={`${item.time}-${item.event}`}
-                                            className="flex gap-3 rounded-xl border border-white/[0.07] bg-white/[0.03] p-3"
-                                        >
-                                            <span className="font-mono text-xs text-blue-300">
-                                                {item.time}
-                                            </span>
-
-                                            <p className="text-sm leading-5 text-slate-300">
-                                                {item.event}
-                                            </p>
-                                        </div>
-                                    ))}
-                                </div>
-                            </PanelCard>
-
-                            <PanelCard variant="darkNexus" accent="amber">
-                                <p className="mb-4 font-mono text-xs uppercase tracking-[0.3em] text-amber-200">
-                                    Indicators
-                                </p>
-
-                                <div className="space-y-3">
-                                    {selectedAlert.indicators.map((ioc) => (
-                                        <div
-                                            key={`${ioc.type}-${ioc.value}`}
-                                            className="rounded-xl border border-white/[0.07] bg-white/[0.03] p-3"
-                                        >
-                                            <div className="mb-2 flex items-center justify-between gap-3">
-                                                <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-slate-500">
-                                                    {ioc.type}
-                                                </span>
-
-                                                <AppBadge
-                                                    variant={
-                                                        ioc.verdict === "malicious"
-                                                            ? "danger"
-                                                            : ioc.verdict === "suspicious"
-                                                                ? "amber"
-                                                                : "emerald"
-                                                    }
-                                                >
-                                                    {ioc.verdict}
-                                                </AppBadge>
-                                            </div>
-
-                                            <p className="break-all font-mono text-xs text-slate-300">
-                                                {ioc.value}
-                                            </p>
-                                        </div>
-                                    ))}
-                                </div>
-                            </PanelCard>
-                        </div>
-
-                        {showFeedback && selectedVerdict && (
-                            <div
-                                className={[
-                                    "mt-5 rounded-2xl border p-5",
-                                    isCorrect
-                                        ? "border-emerald-300/25 bg-blue-400/[0.08]"
-                                        : "border-red-300/25 bg-red-400/[0.08]",
-                                ].join(" ")}
-                            >
-                                <p className={isCorrect ? "font-black text-emerald-200" : "font-black text-red-200"}>
-                                    {isCorrect ? "Correct classification" : "Incorrect classification"}
-                                </p>
-
-                                <p className="mt-2 text-sm leading-6 text-slate-300">
-                                    Expected verdict: <span className="font-bold text-white">{selectedAlert.expectedVerdict}</span>
-                                </p>
-                            </div>
-                        )}
-                    </PanelCard>
+                    <SocAlertDetail alert={selectedAlert} />
 
                     <aside className="space-y-6">
                         <PanelCard variant="darkNexus" accent="emerald">
@@ -292,44 +169,11 @@ export default function SocPage() {
                             </div>
                         </PanelCard>
 
-                        <PanelCard variant="darkNexus" accent="amber">
-                            <div className="mb-4 flex items-center gap-2 text-amber-200">
-                                <FileSearch size={18} />
-                                <p className="font-mono text-xs uppercase tracking-[0.3em]">
-                                    Triage
-                                </p>
-                            </div>
-
-                            <div className="space-y-3">
-                                {["Benign", "Suspicious", "Malicious"].map((verdict) => (
-                                    <button
-                                        key={verdict}
-                                        onClick={() => submitVerdict(verdict)}
-                                        className={[
-                                            "w-full rounded-xl border px-4 py-3 text-left font-bold transition",
-                                            selectedVerdict === verdict
-                                                ? "border-amber-300/30 bg-amber-400/[0.08] text-white"
-                                                : "border-white/[0.07] bg-white/[0.035] text-slate-300 hover:bg-white/[0.055] hover:text-white",
-                                        ].join(" ")}
-                                    >
-                                        Classify as {verdict}
-                                    </button>
-                                ))}
-                            </div>
-                        </PanelCard>
-
-                        <PanelCard variant="darkNexus" accent="blue">
-                            <div className="mb-4 flex items-center gap-2 text-blue-200">
-                                <ShieldCheck size={18} />
-                                <p className="font-mono text-xs uppercase tracking-[0.3em]">
-                                    Recommended response
-                                </p>
-                            </div>
-
-                            <p className="text-sm leading-6 text-slate-300">
-                                {selectedAlert.recommendedAction}
-                            </p>
-                        </PanelCard>
+                        <SocResponseActions
+                            alert={selectedAlert}
+                            selectedVerdict={selectedVerdict}
+                            onVerdict={submitVerdict}
+                        />
 
                         <PanelCard variant="darkNexus" accent="violet">
                             <div className="mb-4 flex items-center gap-2 text-indigo-200">
@@ -341,7 +185,7 @@ export default function SocPage() {
 
                             <textarea
                                 placeholder="Document your reasoning..."
-                                className="min-h-28 w-full resize-none rounded-xl border border-white/[0.08] bg-black/35 px-4 py-3 text-sm text-white outline-none placeholder:text-slate-600 focus:border-emerald-300/40"
+                                className="min-h-20 w-full resize-none rounded-xl border border-slate-300/10 bg-black/35 px-3 py-2 text-sm text-white outline-none placeholder:text-slate-600 focus:border-blue-300/35"
                             />
                         </PanelCard>
                     </aside>
@@ -351,10 +195,10 @@ export default function SocPage() {
     );
 }
 
-function Stat({ label, value, icon: Icon }) {
+function Stat({ label, value, icon }) {
     return (
         <PanelCard variant="default" accent="blue">
-            <Icon className="mb-3 text-blue-200" size={20} />
+            {createElement(icon, { className: "mb-3 text-blue-200", size: 20 })}
 
             <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-slate-500">
                 {label}
@@ -374,6 +218,19 @@ function Meta({ label, value }) {
                 {label}
             </p>
             <p className="mt-1 font-bold text-white">{value}</p>
+        </div>
+    );
+}
+
+function IntelRow({ label, value }) {
+    return (
+        <div className="rounded-xl border border-white/[0.07] bg-white/[0.035] p-4">
+            <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-slate-500">
+                {label}
+            </p>
+            <p className="mt-2 break-words text-sm font-bold text-white">
+                {value}
+            </p>
         </div>
     );
 }

@@ -7,6 +7,7 @@ import {
     FileText,
     Inbox,
     LayoutDashboard,
+    Radar,
     ShieldCheck,
 } from "lucide-react";
 import DefendBackground from "../../defend/DefendBackground";
@@ -14,6 +15,7 @@ import DefendBackground from "../../defend/DefendBackground";
 const navItems = [
     { to: "/soc", label: "Dashboard", icon: LayoutDashboard },
     { to: "/soc/alerts", label: "Alert queue", icon: Inbox },
+    { to: "/soc/intel", label: "Intel", icon: Radar },
     { to: "/soc/playbooks", label: "Playbooks", icon: BookOpen },
     { to: "/soc/reports", label: "Case reports", icon: FileText },
     { to: "/", label: "Back to Defend", icon: ShieldCheck },

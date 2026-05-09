@@ -5,8 +5,15 @@ export function getIncidents() {
   return stored ? JSON.parse(stored) : [];
 }
 
-export function createIncidentFromScenario({ email, result, mode }) {
-  if (!email || result?.isCorrect) return null;
+export function createIncidentFromScenario({
+  email,
+  result,
+  mode,
+  forced = false,
+}) {
+  if (!email) return null;
+
+  if (result?.isCorrect && !forced) return null;
 
   const incident = {
     id: `INC-${Date.now()}`,
@@ -21,11 +28,18 @@ export function createIncidentFromScenario({ email, result, mode }) {
     status: "open",
     createdAt: new Date().toISOString(),
     mode,
+    forced,
+    reason: forced
+      ? "Analyst manually escalated this artifact to SOC."
+      : "Missed phishing decision generated automatic SOC review.",
     artifact: {
       sender: email.senderEmail,
       subject: email.subject,
       attachment: email.attachment || "None",
       url: email.linkUrl || "None",
+      brand: email.brand || "default",
+      avatar:
+        email.avatar || email.senderName?.slice(0, 2).toUpperCase() || "EM",
     },
     signals: email.redFlags || [],
     recommendedAction:
@@ -49,14 +63,15 @@ export function mapIncidentToSocAlert(incident) {
     status: incident.status,
     timestamp: new Date(incident.createdAt).toLocaleString(),
     direction: "inbound",
-    description:
-      "Generated from a missed phishing simulator decision. Requires analyst review.",
+    description: incident.reason,
 
     artifact: {
       subject: incident.artifact.subject,
       sender: incident.artifact.sender,
       recipient: "soc@darkdefend.local",
       attachment: incident.artifact.attachment,
+      brand: incident.artifact.brand || "default",
+      avatar: incident.artifact.avatar || "EM",
       content: `Missed simulator decision detected.\n\nSubject: ${incident.artifact.subject}\nSender: ${incident.artifact.sender}\nURL: ${incident.artifact.url}`,
     },
 
@@ -78,7 +93,9 @@ export function mapIncidentToSocAlert(incident) {
           hour: "2-digit",
           minute: "2-digit",
         }),
-        event: "Simulator generated missed-decision incident",
+        event: incident.forced
+          ? "Analyst manually escalated artifact"
+          : "Simulator generated missed-decision incident",
       },
       {
         time: new Date(incident.createdAt).toLocaleTimeString([], {

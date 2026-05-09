@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { Shield, User } from "lucide-react";
+import { Radar, Shield, User } from "lucide-react";
 
 export default function Header() {
     const navClass = ({ isActive }) =>
@@ -58,6 +58,14 @@ export default function Header() {
                         <span>AES-256</span>
                         <span>Connected</span>
                     </div>
+
+                    <NavLink
+                        to="/defense-profile"
+                        aria-label="Open defense profile"
+                        className={profileClass}
+                    >
+                        <Radar className="h-5 w-5" />
+                    </NavLink>
 
                     <NavLink
                         to="/profile"

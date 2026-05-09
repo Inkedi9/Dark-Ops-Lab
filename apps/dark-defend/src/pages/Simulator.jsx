@@ -20,7 +20,6 @@ import {
     Trophy,
     FileSearch,
 } from "lucide-react";
-import { PhishLayout } from "@/components/ui/PhishLayout";
 import { PhishPanel } from "@/components/ui/PhishPanel";
 import { PhishHeader } from "@/components/ui/PhishHeader";
 import { PhishBadge } from "@/components/ui/PhishBadge";
@@ -28,6 +27,34 @@ import { PhishButton } from "@/components/ui/PhishButton";
 import { PhishProgress } from "@/components/ui/PhishProgress";
 import { getDarkProfile, recordDefendScenario } from "@/lib/defend/defendProgressService";
 import { createIncidentFromScenario } from "@/lib/defend/incidentService";
+import { PhishCard } from "@/components/ui/PhishCard";
+
+const SLA_INITIAL_SECONDS = 180;
+const MODES = ["beginner", "analyst"];
+
+const INBOX_FILTERS = [
+    ["all", "All"],
+    ["open", "Open"],
+    ["completed", "Done"],
+    ["high-risk", "High risk"],
+    ["attachments", "Files"],
+    ["links", "Links"],
+];
+
+function safeParseArray(key) {
+    try {
+        const stored = localStorage.getItem(key);
+        const parsed = stored ? JSON.parse(stored) : [];
+        return Array.isArray(parsed) ? parsed : [];
+    } catch {
+        return [];
+    }
+}
+
+function safeParseNumber(key, fallback = 0) {
+    const value = Number(localStorage.getItem(key));
+    return Number.isFinite(value) ? value : fallback;
+}
 
 export default function Simulator() {
     const [selectedEmail, setSelectedEmail] = useState(scenarios[0]);
@@ -39,15 +66,21 @@ export default function Simulator() {
     const [mode, setMode] = useState(() => localStorage.getItem("darkdefend-mode") || "beginner");
     const [streak, setStreak] = useState(0);
     const [bestStreak, setBestStreak] = useState(() =>
-        Number(localStorage.getItem("darkdefend-best-streak") || 0)
+        safeParseNumber("darkdefend-best-streak", 0)
     );
-    const [results, setResults] = useState(() => {
-        const stored = localStorage.getItem("phishscope-results");
-        return stored ? JSON.parse(stored) : [];
-    });
+    const [results, setResults] = useState(() =>
+        safeParseArray("phishscope-results")
+    );
     const [inboxFilter, setInboxFilter] = useState("all");
+    const [confidence, setConfidence] = useState("medium");
+    const [analystReasoning, setAnalystReasoning] = useState("");
+    const [slaSeconds, setSlaSeconds] = useState(SLA_INITIAL_SECONDS);
+    const [escalateToSoc, setEscalateToSoc] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [submitError, setSubmitError] = useState("");
 
     const completedIds = useMemo(() => results.map((r) => r.scenarioId), [results]);
+    const selectedCompleted = completedIds.includes(selectedEmail?.id);
     const selectedPath = phishingPath.find((path) => path.id === selectedEmail?.pathId);
     const selectedIndex = scenarios.findIndex((scenario) => scenario.id === selectedEmail?.id);
     const riskTone = selectedEmail?.riskLevel === "Critical" || selectedEmail?.riskLevel === "High" ? "red" : "blue";
@@ -86,88 +119,105 @@ export default function Simulator() {
 
     const isSimulationComplete = results.length === scenarios.length;
 
+    function resetAnalysisState() {
+        setVerdict("");
+        setSelectedFlags([]);
+        setCurrentResult(null);
+        setLastXpAwarded(0);
+        setConfidence("medium");
+        setAnalystReasoning("");
+        setSlaSeconds(SLA_INITIAL_SECONDS);
+        setEscalateToSoc(false);
+        setSubmitError("");
+    }
+
     const goToNextEmail = (currentEmailId) => {
         const currentIndex = scenarios.findIndex((email) => email.id === currentEmailId);
         const nextEmail = scenarios[currentIndex + 1];
 
         if (nextEmail) {
             setSelectedEmail(nextEmail);
-            setVerdict("");
-            setSelectedFlags([]);
-            setCurrentResult(null);
-            setLastXpAwarded(0);
+            resetAnalysisState();
         }
     };
 
     const handleSubmit = async () => {
-        if (!selectedEmail || !verdict) return;
+        if (!selectedEmail || !verdict || isSubmitting) return;
 
         const alreadyDone = completedIds.includes(selectedEmail.id);
         if (alreadyDone) return;
 
-        const scoreData = calculateEmailScore(selectedEmail, verdict, selectedFlags, mode);
-        const generatedIncident = createIncidentFromScenario({
-            email: selectedEmail,
-            result: scoreData,
-            mode,
-        });
-        const nextStreak = scoreData.isCorrect ? streak + 1 : 0;
-        const nextBestStreak = Math.max(bestStreak, nextStreak);
+        setIsSubmitting(true);
+        setSubmitError("");
 
-        const resultEntry = {
-            scenarioId: selectedEmail.id,
-            verdict,
-            expectedType: selectedEmail.type,
-            score: scoreData.score,
-            isCorrect: scoreData.isCorrect,
-            matchedFlags: scoreData.matchedFlags,
-            missedFlags: scoreData.missedFlags,
-            mode,
-            incidentId: generatedIncident?.id || null,
-        };
+        try {
+            const scoreData = calculateEmailScore(selectedEmail, verdict, selectedFlags, mode);
+            const generatedIncident = createIncidentFromScenario({
+                email: selectedEmail,
+                result: scoreData,
+                mode,
+                forced: escalateToSoc,
+            });
+            const nextStreak = scoreData.isCorrect ? streak + 1 : 0;
+            const nextBestStreak = Math.max(bestStreak, nextStreak);
 
-        const updatedResults = [...results, resultEntry];
+            const resultEntry = {
+                scenarioId: selectedEmail.id,
+                verdict,
+                expectedType: selectedEmail.type,
+                score: scoreData.score,
+                isCorrect: scoreData.isCorrect,
+                matchedFlags: scoreData.matchedFlags,
+                missedFlags: scoreData.missedFlags,
+                mode,
+                confidence,
+                analystReasoning,
+                incidentId: generatedIncident?.id || null,
+                escalatedToSoc: Boolean(generatedIncident),
+            };
 
-        const defendProgress = await recordDefendScenario({
-            scenarioId: selectedEmail.id,
-            result: scoreData,
-            totalScenarios: scenarios.length,
-            mode,
-            streak: nextStreak,
-        });
+            const updatedResults = [...results, resultEntry];
 
-        setCurrentResult({
-            ...scoreData,
-            incidentId: generatedIncident?.id || null,
-        });
-        setProfile(defendProgress.profile);
-        setLastXpAwarded(defendProgress.xpAwarded);
-        setStreak(nextStreak);
-        setBestStreak(nextBestStreak);
-        localStorage.setItem("darkdefend-best-streak", String(nextBestStreak));
-        setResults(updatedResults);
-        localStorage.setItem("phishscope-results", JSON.stringify(updatedResults));
+            const defendProgress = await recordDefendScenario({
+                scenarioId: selectedEmail.id,
+                result: scoreData,
+                totalScenarios: scenarios.length,
+                mode,
+                streak: nextStreak,
+            });
+
+            setCurrentResult({
+                ...scoreData,
+                incidentId: generatedIncident?.id || null,
+            });
+            setProfile(defendProgress.profile);
+            setLastXpAwarded(defendProgress.xpAwarded);
+            setStreak(nextStreak);
+            setBestStreak(nextBestStreak);
+            localStorage.setItem("darkdefend-best-streak", String(nextBestStreak));
+            setResults(updatedResults);
+            localStorage.setItem("phishscope-results", JSON.stringify(updatedResults));
+        } catch (error) {
+            console.error("Unable to submit phishing analysis", error);
+            setSubmitError("Unable to submit analysis. Please retry.");
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     const handleSelect = (email) => {
         setSelectedEmail(email);
-        setVerdict("");
-        setSelectedFlags([]);
-        setCurrentResult(null);
-        setLastXpAwarded(0);
-
+        resetAnalysisState();
     };
 
     const handleRestartSession = () => {
+        if (!window.confirm("Restart this session and clear current phishing results?")) return;
+
         localStorage.removeItem("phishscope-results");
         setResults([]);
         setSelectedEmail(scenarios[0]);
-        setVerdict("");
-        setSelectedFlags([]);
-        setCurrentResult(null);
-        setLastXpAwarded(0);
         setStreak(0);
-
+        resetAnalysisState();
     };
 
     useEffect(() => {
@@ -175,21 +225,29 @@ export default function Simulator() {
     }, []);
 
     function resetPhishScopeEnvironment() {
-        localStorage.removeItem("phishscope-results");
+        if (!window.confirm("Reset the phishing lab and clear current results?")) return;
 
+        localStorage.removeItem("phishscope-results");
         setResults([]);
         setSelectedEmail(scenarios[0]);
-        setVerdict("");
-        setSelectedFlags([]);
-        setCurrentResult(null);
-        setLastXpAwarded(0);
         setStreak(0);
+        resetAnalysisState();
     }
 
     const handleModeChange = (nextMode) => {
         setMode(nextMode);
         localStorage.setItem("darkdefend-mode", nextMode);
     };
+
+    useEffect(() => {
+        if (selectedCompleted) return;
+
+        const timer = window.setInterval(() => {
+            setSlaSeconds((current) => Math.max(0, current - 1));
+        }, 1000);
+
+        return () => window.clearInterval(timer);
+    }, [selectedEmail?.id, selectedCompleted]);
 
     return (
         <>
@@ -312,9 +370,12 @@ export default function Simulator() {
                             </div>
                         </PhishPanel>
 
-                        <div className="grid gap-6 xl:h-[620px] xl:grid-cols-[360px_1fr_400px]">
-                            <div className="min-h-0 xl:h-full">
-                                <div className="flex h-[520px] min-h-0 flex-col overflow-hidden rounded-2xl border border-blue-400/15 bg-black/25 p-5 xl:h-full">
+                        <div className="grid gap-6 xl:grid-cols-[340px_minmax(0,1.35fr)_380px]">
+                            <div className="min-h-0">
+                                <PhishPanel
+                                    variant="card"
+                                    className="flex h-[1080px] min-h-0 flex-col overflow-hidden p-5 [&>div.relative]:flex [&>div.relative]:h-full [&>div.relative]:min-h-0 [&>div.relative]:flex-col"
+                                >
                                     <div className="mb-4 flex shrink-0 items-center justify-between">
                                         <div>
                                             <p className="font-mono text-xs uppercase tracking-[0.22em] text-blue-300">
@@ -329,14 +390,7 @@ export default function Simulator() {
                                     </div>
 
                                     <div className="mb-4 flex shrink-0 flex-wrap gap-2">
-                                        {[
-                                            ["all", "All"],
-                                            ["open", "Open"],
-                                            ["completed", "Done"],
-                                            ["high-risk", "High risk"],
-                                            ["attachments", "Files"],
-                                            ["links", "Links"],
-                                        ].map(([value, label]) => (
+                                        {INBOX_FILTERS.map(([value, label]) => (
                                             <button
                                                 key={value}
                                                 type="button"
@@ -353,18 +407,63 @@ export default function Simulator() {
                                         ))}
                                     </div>
 
-                                    <div className="min-h-0 flex-1 overflow-y-auto pr-2 phish-scroll">
+                                    <div className="mb-4 grid grid-cols-3 gap-2">
+                                        <InboxMiniStat
+                                            label="Priority"
+                                            value={filteredEmails.filter((email) => email.mailbox === "Priority").length}
+                                            tone="red"
+                                        />
+
+                                        <InboxMiniStat
+                                            label="Open"
+                                            value={filteredEmails.filter((email) => !completedIds.includes(email.id)).length}
+                                            tone="blue"
+                                        />
+
+                                        <InboxMiniStat
+                                            label="Done"
+                                            value={filteredEmails.filter((email) => completedIds.includes(email.id)).length}
+                                            tone="green"
+                                        />
+                                    </div>
+
+                                    <div className="mb-4 grid gap-2">
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                const nextOpen = filteredEmails.find(
+                                                    (email) => !completedIds.includes(email.id)
+                                                );
+
+                                                if (nextOpen) handleSelect(nextOpen);
+                                            }}
+                                            className="rounded-xl border border-blue-300/15 bg-blue-400/[0.055] px-4 py-3 text-left font-mono text-xs font-bold uppercase tracking-[0.18em] text-blue-200 transition hover:border-blue-300/25 hover:bg-blue-400/[0.08]"
+                                        >
+                                            Open next unresolved →
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            onClick={() => setInboxFilter("high-risk")}
+                                            className="rounded-xl border border-red-300/15 bg-red-400/[0.045] px-4 py-3 text-left font-mono text-xs font-bold uppercase tracking-[0.18em] text-red-200 transition hover:border-red-300/25 hover:bg-red-400/[0.075]"
+                                        >
+                                            Focus high-risk queue →
+                                        </button>
+                                    </div>
+
+                                    <div className="min-h-0 flex-1 overflow-y-scroll pr-3 phish-scroll [scrollbar-gutter:stable]">
                                         <InboxList
                                             emails={filteredEmails}
                                             selectedEmail={selectedEmail}
                                             onSelect={handleSelect}
                                             completedIds={completedIds}
+                                            groupByMailbox
                                         />
                                     </div>
-                                </div>
+                                </PhishPanel>
                             </div>
 
-                            <div className="min-h-0 min-w-0 space-y-4 overflow-y-auto pr-2 phish-scroll xl:h-full">
+                            <div className="min-w-0 space-y-4">
                                 <PhishPanel variant="card">
                                     <EmailViewer email={selectedEmail} mode={mode} />
                                 </PhishPanel>
@@ -384,11 +483,15 @@ export default function Simulator() {
                                     onNext={() => goToNextEmail(selectedEmail?.id)}
                                     isLastEmail={scenarios[scenarios.length - 1]?.id === selectedEmail?.id}
                                 />
-
                             </div>
 
-                            <div className="min-h-0 space-y-4 overflow-y-auto pr-2 phish-scroll xl:h-full">
-                                <ThreatIntelPanel email={selectedEmail} selectedPath={selectedPath} mode={mode} />
+                            <div className="sticky top-4 space-y-4 self-start">
+                                <ThreatIntelPanel
+                                    email={selectedEmail}
+                                    selectedPath={selectedPath}
+                                    mode={mode}
+                                    slaSeconds={slaSeconds}
+                                />
 
                                 <PhishPanel variant="card">
                                     <div className="mb-4 flex items-center gap-3">
@@ -406,6 +509,12 @@ export default function Simulator() {
                                         </div>
                                     </div>
 
+                                    {submitError && (
+                                        <div className="mb-4 rounded-xl border border-red-300/20 bg-red-400/[0.08] px-4 py-3 text-sm text-red-100">
+                                            {submitError}
+                                        </div>
+                                    )}
+
                                     <AnalysisPanel
                                         email={selectedEmail}
                                         mode={mode}
@@ -413,8 +522,14 @@ export default function Simulator() {
                                         setVerdict={setVerdict}
                                         selectedFlags={selectedFlags}
                                         setSelectedFlags={setSelectedFlags}
+                                        confidence={confidence}
+                                        setConfidence={setConfidence}
+                                        analystReasoning={analystReasoning}
+                                        setAnalystReasoning={setAnalystReasoning}
+                                        escalateToSoc={escalateToSoc}
+                                        setEscalateToSoc={setEscalateToSoc}
                                         onSubmit={handleSubmit}
-                                        disabled={completedIds.includes(selectedEmail?.id)}
+                                        disabled={selectedCompleted || isSubmitting}
                                     />
                                 </PhishPanel>
                             </div>
@@ -436,7 +551,6 @@ export default function Simulator() {
                                 </Link>
                             </PhishPanel>
                         )}
-
                     </div>
                 </main>
             </div>
@@ -477,7 +591,7 @@ function SimulatorActionBar({
 
                 <div className="flex flex-wrap gap-2">
                     <div className="flex rounded-xl border border-blue-400/20 bg-black/30 p-1">
-                        {["beginner", "analyst"].map((option) => (
+                        {MODES.map((option) => (
                             <button
                                 key={option}
                                 type="button"
@@ -515,6 +629,13 @@ function SimulatorActionBar({
                         </Link>
                     )}
 
+                    <Link to="/soc">
+                        <PhishButton tone="slate">
+                            Open SOC
+                            <ArrowRight className="h-4 w-4" />
+                        </PhishButton>
+                    </Link>
+
                     <PhishButton tone="slate" onClick={onRestartSession}>
                         <RotateCcw className="h-4 w-4" />
                         Restart
@@ -540,11 +661,11 @@ function MissionBriefing({
     mode,
     streak,
 }) {
-
     const briefingText =
         mode === "analyst"
             ? "Analyst mode hides obvious guidance. Inspect sender context, message intent, authentication traces and business logic before classification."
             : "Beginner mode highlights the defensive workflow. Inspect sender, links, attachments and intent before choosing a verdict.";
+
     return (
         <PhishPanel variant="glow" className="p-5">
             <div className="grid gap-4 lg:grid-cols-[1fr_360px] lg:items-center">
@@ -578,7 +699,7 @@ function MissionBriefing({
     );
 }
 
-function ThreatIntelPanel({ email, selectedPath, mode }) {
+function ThreatIntelPanel({ email, selectedPath, mode, slaSeconds }) {
     const hasLink = Boolean(email?.linkUrl);
     const hasAttachment = Boolean(email?.attachment);
     const signals = [
@@ -615,13 +736,12 @@ function ThreatIntelPanel({ email, selectedPath, mode }) {
 
             <div className="space-y-3">
                 {signals.map((signal) => (
-                    <div
-                        key={signal.label}
-                        className="flex items-center justify-between gap-3 rounded-xl border border-blue-400/15 bg-black/25 px-3 py-2 font-mono text-xs"
-                    >
-                        <span className="text-slate-400">{signal.label}</span>
-                        <span className={`text-right ${signal.tone}`}>{signal.value}</span>
-                    </div>
+                    <PhishCard key={signal.label} tone="slate" hover={false} className="p-3">
+                        <div className="flex items-center justify-between gap-3 font-mono text-xs">
+                            <span className="text-slate-400">{signal.label}</span>
+                            <span className={`text-right ${signal.tone}`}>{signal.value}</span>
+                        </div>
+                    </PhishCard>
                 ))}
             </div>
 
@@ -647,77 +767,61 @@ function ThreatIntelPanel({ email, selectedPath, mode }) {
             </div>
 
             <div className="mt-4 grid grid-cols-2 gap-3">
-                <ImmersiveStat icon={Clock} label="SLA" value="03:00" />
+                <ImmersiveStat
+                    icon={Clock}
+                    label="SLA"
+                    value={formatSla(slaSeconds)}
+                    danger={slaSeconds <= 30}
+                />
                 <ImmersiveStat icon={ShieldAlert} label="Impact" value={email?.riskLevel || "Low"} />
             </div>
         </PhishPanel>
     );
 }
 
-function ImmersiveStat({ icon: Icon, label, value }) {
+function ImmersiveStat({ icon: Icon, label, value, danger = false }) {
     return (
-        <div className="rounded-xl border border-blue-400/15 bg-black/25 p-3">
-            <div className="flex items-center justify-between gap-2 text-blue-300">
+        <PhishCard tone={danger ? "threat" : "blue"} hover={false} className="p-3">
+            <div className="flex items-center justify-between gap-2">
                 <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-slate-500">
                     {label}
                 </span>
-                {createElement(Icon, { className: "h-4 w-4" })}
+
+                {createElement(Icon, {
+                    className: danger ? "h-4 w-4 text-red-300" : "h-4 w-4 text-blue-300",
+                })}
             </div>
-            <p className="mt-2 font-mono text-sm font-bold text-white">{value}</p>
-        </div>
+
+            <p className={danger ? "mt-2 font-mono text-sm font-bold text-red-200" : "mt-2 font-mono text-sm font-bold text-white"}>
+                {value}
+            </p>
+        </PhishCard>
     );
 }
 
-function PathStrip({ pathProgress, selectedEmail, completedIds, onSelect }) {
+function formatSla(seconds) {
+    const min = String(Math.floor(seconds / 60)).padStart(2, "0");
+    const sec = String(seconds % 60).padStart(2, "0");
+    return `${min}:${sec}`;
+}
+
+function InboxMiniStat({ label, value, tone = "blue" }) {
+    const tones = {
+        blue: "border-blue-300/12 bg-blue-400/[0.045] text-blue-200",
+        green: "border-emerald-300/12 bg-emerald-400/[0.045] text-emerald-200",
+        red: "border-red-300/12 bg-red-400/[0.045] text-red-200",
+        amber: "border-amber-300/12 bg-amber-400/[0.045] text-amber-200",
+    };
+
     return (
-        <PhishPanel variant="card" className="p-3">
-            <div className="flex gap-3 overflow-x-auto pb-1">
-                {pathProgress.map((path) => (
-                    <button
-                        key={path.id}
-                        type="button"
-                        onClick={() => {
-                            const nextScenario =
-                                scenarios.find(
-                                    (scenario) =>
-                                        scenario.pathId === path.id &&
-                                        !completedIds.includes(scenario.id)
-                                ) ||
-                                scenarios.find((scenario) => scenario.pathId === path.id);
+        <div className={`rounded-xl border p-3 ${tones[tone] || tones.blue}`}>
+            <p className="font-mono text-[9px] font-bold uppercase tracking-[0.18em] text-slate-500">
+                {label}
+            </p>
 
-                            if (nextScenario) onSelect(nextScenario);
-                        }}
-                        className={[
-                            "min-w-[220px] rounded-xl border px-4 py-3 text-left transition",
-                            selectedEmail?.pathId === path.id
-                                ? "border-blue-300/40 bg-blue-400/10"
-                                : "border-blue-400/15 bg-black/25 hover:border-blue-300/30",
-                        ].join(" ")}
-                    >
-                        <div className="flex items-center justify-between gap-3">
-                            <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-blue-300">
-                                {path.label}
-                            </p>
-                            <span className="font-mono text-xs text-slate-500">
-                                {path.completed}/{path.total}
-                            </span>
-                        </div>
-
-                        <h3 className="mt-1 line-clamp-1 font-bold text-white">
-                            {path.title}
-                        </h3>
-
-                        <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-blue-950/40">
-                            <div
-                                className="h-full rounded-full bg-blue-300"
-                                style={{
-                                    width: `${Math.round((path.completed / path.total) * 100)}%`,
-                                }}
-                            />
-                        </div>
-                    </button>
-                ))}
-            </div>
-        </PhishPanel>
+            <p className="mt-1 text-lg font-black text-white">
+                {value}
+            </p>
+        </div>
     );
 }

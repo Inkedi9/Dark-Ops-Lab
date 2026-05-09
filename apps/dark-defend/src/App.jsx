@@ -10,6 +10,8 @@ import SocAlertsPage from "./pages/SocAlertsPage";
 import SocPlaybooksPage from "./pages/SocPlaybooksPage";
 import SocReportsPage from "./pages/SocReportsPage";
 import SecurityCheckPage from "./pages/SecurityCheckPage";
+import SocIntelPage from "./pages/SocIntelPage";
+import DefenseProfilePage from "./pages/DefenseProfilePage";
 import PhishFooter from "./components/layout/PhishFooter";
 
 export default function App() {
@@ -26,8 +28,10 @@ export default function App() {
           <Route path="/about" element={<About />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/security-check" element={<SecurityCheckPage />} />
+          <Route path="/defense-profile" element={<DefenseProfilePage />} />
           <Route path="/soc" element={<SocPage />} />
           <Route path="/soc/alerts" element={<SocAlertsPage />} />
+          <Route path="/soc/intel" element={<SocIntelPage />} />
           <Route path="/soc/playbooks" element={<SocPlaybooksPage />} />
           <Route path="/soc/reports" element={<SocReportsPage />} />
         </Routes>

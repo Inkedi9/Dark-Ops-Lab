@@ -1,3 +1,4 @@
+import { useState } from "react";
 import RiskBadge from "./RiskBadge";
 import {
     Server,
@@ -17,8 +18,18 @@ import {
     ExternalLink,
     Paperclip,
 } from "lucide-react";
+import { PhishCard } from "@/components/ui/PhishCard";
+import DynamicBrandFavicon from "./mail/DynamicBrandFavicon";
+import MitreBadge from "./threat/MitreBadge";
+import ThreatActorAvatar from "./threat/ThreatActorAvatar";
 
 export default function EmailViewer({ email, mode = "beginner" }) {
+    const [showIntel, setShowIntel] = useState(true);
+    const [showTimeline, setShowTimeline] = useState(false);
+    const [showIoc, setShowIoc] = useState(false);
+    const [showThread, setShowThread] = useState(false);
+    const [showMitre, setShowMitre] = useState(false);
+
     if (!email) {
         return (
             <div className="rounded-2xl border border-blue-400/20 bg-black/30 p-6 text-muted">
@@ -39,15 +50,14 @@ export default function EmailViewer({ email, mode = "beginner" }) {
     const isAnalyst = mode === "analyst";
 
     return (
-
         <div className="overflow-hidden rounded-2xl border border-blue-400/20 bg-black/25">
-
             <div className="border-b border-blue-400/15 bg-black/30 px-6 py-5">
                 <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
                     <div className="min-w-0">
-                        <div className="grid h-12 w-12 place-items-center rounded-2xl border border-blue-300/15 bg-blue-400/[0.07] font-mono text-sm font-black text-blue-100">
-                            {email.avatar || email.senderName?.slice(0, 2).toUpperCase() || "EM"}
-                        </div>
+                        <DynamicBrandFavicon
+                            brand={email.brand}
+                            label={email.avatar || email.senderName?.slice(0, 2).toUpperCase() || "EM"}
+                        />
                         <h2 className="mt-2 text-2xl font-black text-white">{email.subject}</h2>
 
                         <div className="mt-4 space-y-1 font-mono text-sm text-slate-300">
@@ -100,25 +110,31 @@ export default function EmailViewer({ email, mode = "beginner" }) {
                 </button>
             </div>
 
-            {email.badge !== "Internal" && mode !== "analyst" && (
-                <div className="mb-5 rounded-2xl border border-amber-300/20 bg-amber-400/[0.08] px-4 py-3">
-                    <div className="flex items-start gap-3">
-                        <div className="mt-0.5 h-2.5 w-2.5 rounded-full bg-amber-300 shadow-[0_0_12px_rgba(252,211,77,.55)]" />
+            <div className="px-6 py-6">
+                {email?.type === "phishing" && (
+                    <div className="mb-5">
+                        <ThreatActorAvatar email={email} />
+                    </div>
+                )}
 
-                        <div>
-                            <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-amber-200">
-                                External Sender
-                            </p>
+                {email.badge !== "Internal" && mode !== "analyst" && (
+                    <div className="mb-5 rounded-2xl border border-amber-300/20 bg-amber-400/[0.08] px-4 py-3">
+                        <div className="flex items-start gap-3">
+                            <div className="mt-0.5 h-2.5 w-2.5 rounded-full bg-amber-300 shadow-[0_0_12px_rgba(252,211,77,.55)]" />
 
-                            <p className="mt-1 text-sm leading-6 text-amber-100/90">
-                                Use caution with links, attachments, and credential requests.
-                            </p>
+                            <div>
+                                <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-amber-200">
+                                    External Sender
+                                </p>
+
+                                <p className="mt-1 text-sm leading-6 text-amber-100/90">
+                                    Use caution with links, attachments, and credential requests.
+                                </p>
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )}
 
-            <div className="px-6 py-6">
                 {mode === "beginner" && (email.learningObjective || email.beginnerTip) && (
                     <div className="mb-5 grid gap-3 md:grid-cols-2">
                         {email.learningObjective && (
@@ -145,121 +161,46 @@ export default function EmailViewer({ email, mode = "beginner" }) {
                     </div>
                 )}
 
-                <div className="mb-5 grid gap-3 lg:grid-cols-3">
-                    <IntelTile
-                        icon={<Server className="h-4 w-4" />}
-                        label="Sender Domain"
-                        value={senderDomain}
-                        tone={email.badge === "External" ? "amber" : "green"}
-                    />
-                    <IntelTile
-                        icon={<Fingerprint className="h-4 w-4" />}
-                        label="Auth Trace"
-                        value={mode === "beginner" ? `SPF/DKIM: ${authStatus}` : "SPF/DKIM: Hidden"}
-                        tone={authStatus === "Pass" ? "green" : "amber"}
-                    />
-                    <IntelTile
-                        icon={email.attachment ? <FileWarning className="h-4 w-4" /> : <Link2 className="h-4 w-4" />}
-                        label={email.attachment ? "Attachment" : "URL Domain"}
-                        value={email.attachment || linkDomain || "None"}
-                        tone={email.attachment || linkDomain ? "amber" : "slate"}
-                    />
-                    <IntelTile
-                        icon={<Radio className="h-4 w-4" />}
-                        label="Delivery"
-                        value={email.delivery}
-                        tone="blue"
-                    />
+                <div className="mx-auto max-w-4xl">
+                    <div className="mb-4 flex flex-wrap gap-2">
+                        <MailPill
+                            label={email.badge === "Internal" ? "Internal sender" : "External sender"}
+                            tone={email.badge === "Internal" ? "green" : "amber"}
+                        />
 
-                    <IntelTile
-                        icon={<ShieldAlert className="h-4 w-4" />}
-                        label="Attack Technique"
-                        value={email.attackTechnique}
-                        tone={email.type === "phishing" ? "amber" : "blue"}
-                    />
+                        <MailPill
+                            label={email.redFlags?.length ? "Signals detected" : "No obvious signals"}
+                            tone={email.redFlags?.length ? "amber" : "blue"}
+                        />
 
-                    <IntelTile
-                        icon={<Crosshair className="h-4 w-4" />}
-                        label="Trust Level"
-                        value={email.trustLevel}
-                        tone={
-                            email.trustLevel === "high"
-                                ? "green"
-                                : email.trustLevel === "medium"
-                                    ? "amber"
-                                    : "red"
-                        }
-                    />
-                </div>
+                        <MailPill
+                            label={email.linkUrl ? "Contains link" : "No link"}
+                            tone={email.linkUrl ? "amber" : "slate"}
+                        />
 
-                <div className="mt-5 grid gap-3 md:grid-cols-3">
-                    <MetaPill
-                        icon={<ShieldCheck className="h-4 w-4" />}
-                        label="Sender Type"
-                        value={email.badge === "Internal" ? "Internal" : "External"}
-                        tone={email.badge === "Internal" ? "green" : "amber"}
-                    />
-
-                    <MetaPill
-                        icon={<AlertTriangle className="h-4 w-4" />}
-                        label="Risk Level"
-                        value={email.riskLevel}
-                        tone={
-                            email.riskLevel === "High" || email.riskLevel === "Critical"
-                                ? "red"
-                                : "blue"
-                        }
-                    />
-
-                    <MetaPill
-                        icon={<Fingerprint className="h-4 w-4" />}
-                        label="Auth Trace"
-                        value={isAnalyst ? "Hidden — inspect manually" : `SPF/DKIM: ${authStatus}`}
-                        tone={isAnalyst ? "slate" : authStatus === "Pass" ? "green" : "amber"}
-                    />
-                </div>
-
-                {mode === "beginner" && email.analystNotes && (
-                    <div className="mb-5 rounded-2xl border border-blue-400/15 bg-blue-400/[0.045] p-4">
-                        <div className="flex items-center gap-2 font-mono text-xs uppercase tracking-[0.22em] text-blue-200">
-                            <FileSearch className="h-4 w-4" />
-                            Analyst Notes
-                        </div>
-
-                        <p className="mt-3 text-sm leading-6 text-slate-300">
-                            {email.analystNotes}
-                        </p>
+                        <MailPill
+                            label={email.attachment ? "Attachment present" : "No attachment"}
+                            tone={email.attachment ? "red" : "slate"}
+                        />
                     </div>
-                )}
 
-                {mode === "beginner" && email.timeline?.length > 0 && (
-                    <div className="mb-5 rounded-2xl border border-white/[0.07] bg-white/[0.025] p-4">
-                        <div className="mb-4 flex items-center gap-2 font-mono text-xs uppercase tracking-[0.22em] text-slate-400">
-                            <Clock3 className="h-4 w-4 text-blue-200" />
-                            Message Timeline
-                        </div>
+                    <div className="rounded-3xl border border-white/[0.07] bg-[#08111d]/80 p-7 shadow-[inset_0_0_24px_rgba(96,165,250,.025)]">
+                        <pre className="whitespace-pre-wrap font-sans text-[15px] leading-8 text-slate-200">
+                            {email.body}
+                        </pre>
 
-                        <div className="space-y-3">
-                            {email.timeline.map((event, index) => (
-                                <div
-                                    key={`${event}-${index}`}
-                                    className="flex gap-3 rounded-xl border border-white/[0.06] bg-black/25 p-3"
-                                >
-                                    <span className="font-mono text-xs text-blue-300">
-                                        0{index + 1}
-                                    </span>
+                        {email.linkUrl && (
+                            <UrlPreview email={email} />
+                        )}
 
-                                    <p className="text-sm leading-5 text-slate-300">
-                                        {event}
-                                    </p>
-                                </div>
-                            ))}
-                        </div>
+                        {email.attachment && (
+                            <AttachmentCard name={email.attachment} />
+                        )}
                     </div>
-                )}
+                </div>
 
                 {mode === "analyst" && (
-                    <div className="mb-5 rounded-2xl border border-white/[0.07] bg-black/25 p-4">
+                    <div className="mt-5 rounded-2xl border border-white/[0.07] bg-black/25 p-4">
                         <p className="font-mono text-xs uppercase tracking-[0.22em] text-slate-500">
                             Analyst mode
                         </p>
@@ -270,85 +211,220 @@ export default function EmailViewer({ email, mode = "beginner" }) {
                     </div>
                 )}
 
+                <div className="mt-6 space-y-4">
+                    {email?.mitreTechniques?.length > 0 && (
+                        <div>
+                            <SectionToggle
+                                label="MITRE mapping"
+                                open={showMitre}
+                                onClick={() => setShowMitre((value) => !value)}
+                            />
+
+                            {showMitre && (
+                                <div className="mb-5 flex flex-wrap gap-2">
+                                    {email.mitreTechniques.map((technique) => (
+                                        <MitreBadge key={technique} technique={technique} />
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    <div>
+                        <SectionToggle
+                            label="Threat intelligence"
+                            open={showIntel}
+                            onClick={() => setShowIntel((value) => !value)}
+                        />
+
+                        {showIntel && (
+                            <>
+                                <div className="animate-in fade-in slide-in-from-top-1 duration-300">
+                                    <IntelTile
+                                        icon={<Server className="h-4 w-4" />}
+                                        label="Sender Domain"
+                                        value={senderDomain}
+                                        tone={email.badge === "External" ? "amber" : "green"}
+                                    />
+                                    <IntelTile
+                                        icon={<Fingerprint className="h-4 w-4" />}
+                                        label="Auth Trace"
+                                        value={mode === "beginner" ? `SPF/DKIM: ${authStatus}` : "SPF/DKIM: Hidden"}
+                                        tone={authStatus === "Pass" ? "green" : "amber"}
+                                    />
+                                    <IntelTile
+                                        icon={email.attachment ? <FileWarning className="h-4 w-4" /> : <Link2 className="h-4 w-4" />}
+                                        label={email.attachment ? "Attachment" : "URL Domain"}
+                                        value={email.attachment || linkDomain || "None"}
+                                        tone={email.attachment || linkDomain ? "amber" : "slate"}
+                                    />
+                                    <IntelTile
+                                        icon={<Radio className="h-4 w-4" />}
+                                        label="Delivery"
+                                        value={email.delivery}
+                                        tone="blue"
+                                    />
+
+                                    <IntelTile
+                                        icon={<ShieldAlert className="h-4 w-4" />}
+                                        label="Attack Technique"
+                                        value={email.attackTechnique}
+                                        tone={email.type === "phishing" ? "amber" : "blue"}
+                                    />
+
+                                    <IntelTile
+                                        icon={<Crosshair className="h-4 w-4" />}
+                                        label="Trust Level"
+                                        value={email.trustLevel}
+                                        tone={
+                                            email.trustLevel === "high"
+                                                ? "green"
+                                                : email.trustLevel === "medium"
+                                                    ? "amber"
+                                                    : "red"
+                                        }
+                                    />
+                                </div>
+
+                                <div className="mb-5 grid gap-3 md:grid-cols-3">
+                                    <MetaPill
+                                        icon={<ShieldCheck className="h-4 w-4" />}
+                                        label="Sender Type"
+                                        value={email.badge === "Internal" ? "Internal" : "External"}
+                                        tone={email.badge === "Internal" ? "green" : "amber"}
+                                    />
+
+                                    <MetaPill
+                                        icon={<AlertTriangle className="h-4 w-4" />}
+                                        label="Risk Level"
+                                        value={email.riskLevel}
+                                        tone={
+                                            email.riskLevel === "High" || email.riskLevel === "Critical"
+                                                ? "red"
+                                                : "blue"
+                                        }
+                                    />
+
+                                    <MetaPill
+                                        icon={<Fingerprint className="h-4 w-4" />}
+                                        label="Auth Trace"
+                                        value={isAnalyst ? "Hidden - inspect manually" : `SPF/DKIM: ${authStatus}`}
+                                        tone={isAnalyst ? "slate" : authStatus === "Pass" ? "green" : "amber"}
+                                    />
+                                </div>
+
+                                {mode === "beginner" && email.analystNotes && (
+                                    <div className="mb-5 rounded-2xl border border-blue-400/15 bg-blue-400/[0.045] p-4">
+                                        <div className="flex items-center gap-2 font-mono text-xs uppercase tracking-[0.22em] text-blue-200">
+                                            <FileSearch className="h-4 w-4" />
+                                            Analyst Notes
+                                        </div>
+
+                                        <p className="mt-3 text-sm leading-6 text-slate-300">
+                                            {email.analystNotes}
+                                        </p>
+                                    </div>
+                                )}
+                            </>
+                        )}
+                    </div>
+                </div>
+
                 {email.ioc && (
-                    <div className="mb-5 rounded-2xl border border-blue-400/12 bg-blue-400/[0.035] p-4">
-                        <div className="mb-4 flex items-center gap-2 font-mono text-xs uppercase tracking-[0.22em] text-blue-200">
-                            <Globe2 className="h-4 w-4" />
-                            Indicator Context
-                        </div>
+                    <div>
+                        <SectionToggle
+                            label="Indicator context"
+                            open={showIoc}
+                            onClick={() => setShowIoc((value) => !value)}
+                        />
 
-                        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-                            <IocTile
-                                icon={<Clock3 className="h-4 w-4" />}
-                                label="Domain Age"
-                                value={email.ioc.domainAge}
-                                suspicious={email.ioc.domainAge !== "known"}
-                            />
+                        {showIoc && (
+                            <div className="mb-5 rounded-2xl border border-blue-400/12 bg-blue-400/[0.035] p-4">
+                                <div className="mb-4 flex items-center gap-2 font-mono text-xs uppercase tracking-[0.22em] text-blue-200">
+                                    <Globe2 className="h-4 w-4" />
+                                    Indicator Context
+                                </div>
 
-                            <IocTile
-                                icon={<MapPin className="h-4 w-4" />}
-                                label="Geo"
-                                value={email.ioc.geo}
-                                suspicious={email.ioc.geo !== "internal"}
-                            />
+                                <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                                    <IocTile
+                                        icon={<Clock3 className="h-4 w-4" />}
+                                        label="Domain Age"
+                                        value={email.ioc.domainAge}
+                                        suspicious={email.ioc.domainAge !== "known"}
+                                    />
 
-                            <IocTile
-                                icon={<KeyRound className="h-4 w-4" />}
-                                label="Auth Fail"
-                                value={email.ioc.authFail ? "Yes" : "No"}
-                                suspicious={email.ioc.authFail}
-                            />
+                                    <IocTile
+                                        icon={<MapPin className="h-4 w-4" />}
+                                        label="Geo"
+                                        value={email.ioc.geo}
+                                        suspicious={email.ioc.geo !== "internal"}
+                                    />
 
-                            <IocTile
-                                icon={<ExternalLink className="h-4 w-4" />}
-                                label="Link Mismatch"
-                                value={email.ioc.linkMismatch ? "Yes" : "No"}
-                                suspicious={email.ioc.linkMismatch}
-                            />
-                        </div>
+                                    <IocTile
+                                        icon={<KeyRound className="h-4 w-4" />}
+                                        label="Auth Fail"
+                                        value={email.ioc.authFail ? "Yes" : "No"}
+                                        suspicious={email.ioc.authFail}
+                                    />
+
+                                    <IocTile
+                                        icon={<ExternalLink className="h-4 w-4" />}
+                                        label="Link Mismatch"
+                                        value={email.ioc.linkMismatch ? "Yes" : "No"}
+                                        suspicious={email.ioc.linkMismatch}
+                                    />
+                                </div>
+                            </div>
+                        )}
                     </div>
                 )}
 
-                <div className="px-6 py-6">
-                    <div className="mx-auto max-w-4xl">
-                        <div className="mb-4 flex flex-wrap gap-2">
-                            <MailPill
-                                label={email.badge === "Internal" ? "Internal sender" : "External sender"}
-                                tone={email.badge === "Internal" ? "green" : "amber"}
-                            />
+                {mode === "beginner" && email.timeline?.length > 0 && (
+                    <div>
+                        <SectionToggle
+                            label="Message timeline"
+                            open={showTimeline}
+                            onClick={() => setShowTimeline((value) => !value)}
+                        />
 
-                            <MailPill
-                                label={email.redFlags?.length ? "Signals detected" : "No obvious signals"}
-                                tone={email.redFlags?.length ? "amber" : "blue"}
-                            />
+                        {showTimeline && (
+                            <div className="mb-5 rounded-2xl border border-white/[0.07] bg-white/[0.025] p-4">
+                                <div className="mb-4 flex items-center gap-2 font-mono text-xs uppercase tracking-[0.22em] text-slate-400">
+                                    <Clock3 className="h-4 w-4 text-blue-200" />
+                                    Message Timeline
+                                </div>
 
-                            <MailPill
-                                label={email.linkUrl ? "Contains link" : "No link"}
-                                tone={email.linkUrl ? "amber" : "slate"}
-                            />
+                                <div className="space-y-3">
+                                    {email.timeline.map((event, index) => (
+                                        <div
+                                            key={`${event}-${index}`}
+                                            className="flex gap-3 rounded-xl border border-white/[0.06] bg-black/25 p-3"
+                                        >
+                                            <span className="font-mono text-xs text-blue-300">
+                                                0{index + 1}
+                                            </span>
 
-                            <MailPill
-                                label={email.attachment ? "Attachment present" : "No attachment"}
-                                tone={email.attachment ? "red" : "slate"}
-                            />
-                        </div>
+                                            <p className="text-sm leading-5 text-slate-300">
+                                                {event}
+                                            </p>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                )}
 
-                        <div className="rounded-3xl border border-white/[0.07] bg-[#08111d]/80 p-7 shadow-[inset_0_0_24px_rgba(96,165,250,.025)]">
-                            <pre className="whitespace-pre-wrap font-sans text-[15px] leading-8 text-slate-200">
-                                {email.body}
-                            </pre>
+                {email.threadMessages?.length > 0 && (
+                    <div>
+                        <SectionToggle
+                            label="Conversation thread"
+                            open={showThread}
+                            onClick={() => setShowThread((value) => !value)}
+                        />
 
-                            {email.linkUrl && (
-                                <UrlPreview email={email} />
-                            )}
-
-                            {email.attachment && (
-                                <AttachmentCard name={email.attachment} />
-                            )}
-
-                        </div>
-                        {email.threadMessages?.length > 0 && (
-                            <div className="mt-6 rounded-2xl border border-white/[0.07] bg-white/[0.025] p-4">
+                        {showThread && (
+                            <div className="rounded-2xl border border-white/[0.07] bg-white/[0.025] p-4">
                                 <p className="mb-4 font-mono text-xs uppercase tracking-[0.22em] text-blue-200">
                                     Conversation Thread
                                 </p>
@@ -384,30 +460,47 @@ export default function EmailViewer({ email, mode = "beginner" }) {
                             </div>
                         )}
                     </div>
-                </div>
+                )}
             </div>
         </div>
     );
 }
 
-function IntelTile({ icon, label, value, tone = "slate" }) {
-    const tones = {
-        green: "border-green-300/20 bg-green-400/5 text-green-300",
-        amber: "border-amber-300/20 bg-amber-400/5 text-amber-300",
-        slate: "border-blue-400/15 bg-black/25 text-slate-300",
-        blue: "border-blue-400/15 bg-blue-400/[0.05] text-blue-100",
-        red: "border-red-300/20 bg-black/25 text-red-300",
-
-    };
-
+function SectionToggle({ label, open, onClick }) {
     return (
-        <div className={`rounded-2xl border p-4 ${tones[tone]}`}>
-            <div className="flex items-center gap-2 font-mono text-xs uppercase tracking-[0.18em]">
-                {icon}
+        <button
+            type="button"
+            onClick={onClick}
+            className="mb-3 flex w-full items-center justify-between rounded-xl border border-white/[0.07] bg-white/[0.025] px-4 py-3 text-left transition hover:border-blue-300/20"
+        >
+            <span className="font-mono text-xs font-bold uppercase tracking-[0.2em] text-slate-300">
                 {label}
+            </span>
+
+            <span className="font-mono text-xs text-blue-300">
+                {open ? "Hide" : "Show"}
+            </span>
+        </button>
+    );
+}
+
+function IntelTile({ icon, label, value, tone = "blue" }) {
+    return (
+        <PhishCard tone={tone} hover={false}>
+            <div className="mb-3 flex items-center justify-between gap-3">
+                <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-slate-500">
+                    {label}
+                </p>
+
+                <div className="grid h-8 w-8 place-items-center rounded-lg border border-white/[0.08] bg-black/25">
+                    {icon}
+                </div>
             </div>
-            <p className="mt-2 break-all font-mono text-xs text-slate-200">{value}</p>
-        </div>
+
+            <p className="line-clamp-2 break-all text-sm font-bold leading-5 text-white">
+                {value}
+            </p>
+        </PhishCard>
     );
 }
 
@@ -451,14 +544,7 @@ function MetaPill({ icon, label, value, tone = "blue" }) {
 
 function IocTile({ icon, label, value, suspicious = false }) {
     return (
-        <div
-            className={[
-                "rounded-xl border p-3",
-                suspicious
-                    ? "border-amber-300/18 bg-amber-400/[0.055] text-amber-100"
-                    : "border-emerald-300/14 bg-emerald-400/[0.045] text-emerald-100",
-            ].join(" ")}
-        >
+        <PhishCard tone={suspicious ? "warning" : "success"} hover={false} className="p-3">
             <div className="mb-2 flex items-center justify-between gap-2">
                 <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500">
                     {label}
@@ -470,7 +556,7 @@ function IocTile({ icon, label, value, suspicious = false }) {
             <p className="break-all text-sm font-bold text-white">
                 {value}
             </p>
-        </div>
+        </PhishCard>
     );
 }
 
@@ -523,7 +609,7 @@ function UrlPreview({ email }) {
     }
 
     return (
-        <div className="mt-6 rounded-2xl border border-amber-300/15 bg-amber-400/[0.045] p-4">
+        <PhishCard tone="warning" hover={false} className="mt-6">
             <div className="mb-3 flex items-center gap-2 font-mono text-xs uppercase tracking-[0.2em] text-amber-200">
                 <ExternalLink className="h-4 w-4" />
                 URL Preview
@@ -539,7 +625,7 @@ function UrlPreview({ email }) {
                 <span className="text-slate-500">Domain</span>
                 <span className="font-mono text-white">{domain}</span>
             </div>
-        </div>
+        </PhishCard>
     );
 }
 
@@ -547,7 +633,7 @@ function AttachmentCard({ name }) {
     const extension = name?.split(".").pop()?.toUpperCase() || "FILE";
 
     return (
-        <div className="mt-6 rounded-2xl border border-red-300/15 bg-red-400/[0.045] p-4">
+        <PhishCard tone="threat" hover={false} className="mt-6">
             <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
                     <div className="grid h-12 w-12 place-items-center rounded-xl border border-red-300/20 bg-black/35 text-red-200">
@@ -567,6 +653,6 @@ function AttachmentCard({ name }) {
                     inspect
                 </span>
             </div>
-        </div>
+        </PhishCard>
     );
 }

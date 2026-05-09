@@ -39,6 +39,17 @@ export default function Results() {
     const stats = getFinalStats(storedResults);
     const analystCalls = storedResults.filter((result) => result.mode === "analyst").length;
     const perfectCalls = storedResults.filter((result) => result.score >= 100).length;
+    const socEscalations = storedResults.filter((result) => result.escalatedToSoc || result.incidentId).length;
+
+    const reasoningCount = storedResults.filter((result) =>
+        result.analystReasoning?.trim()
+    ).length;
+
+    const confidenceBreakdown = {
+        low: storedResults.filter((result) => result.confidence === "low").length,
+        medium: storedResults.filter((result) => result.confidence === "medium").length,
+        high: storedResults.filter((result) => result.confidence === "high").length,
+    };
     const chartData = [
         { name: "Phishing Caught", value: stats.phishingCaught },
         { name: "False Positives", value: stats.falsePositives },
@@ -143,6 +154,9 @@ export default function Results() {
                                 <PhishMetric label="Phishing Caught" value={stats.phishingCaught} tone="red" />
                                 <PhishMetric label="False Positives" value={stats.falsePositives} tone="amber" />
                                 <PhishMetric label="False Negatives" value={stats.falseNegatives} tone="red" />
+                                <PhishMetric label="SOC Escalations" value={socEscalations} tone="red" />
+                                <PhishMetric label="Reasoned Decisions" value={reasoningCount} tone="blue" />
+                                <PhishMetric label="High Confidence" value={confidenceBreakdown.high} tone="green" />
                             </div>
 
                             <div className="grid gap-6 xl:grid-cols-2">
@@ -206,6 +220,26 @@ export default function Results() {
                                         </PieChart>
                                     </ResponsiveContainer>
                                 </PhishPanel>
+
+                                <PhishPanel variant="card">
+                                    <p className="font-mono text-xs uppercase tracking-[0.22em] text-blue-300">
+                                        Analyst Workflow
+                                    </p>
+
+                                    <h3 className="mt-2 text-2xl font-black text-white">
+                                        Decision Discipline
+                                    </h3>
+
+                                    <div className="mt-5 grid gap-4 md:grid-cols-3">
+                                        <WorkflowTile label="Low confidence" value={confidenceBreakdown.low} tone="slate" />
+                                        <WorkflowTile label="Medium confidence" value={confidenceBreakdown.medium} tone="amber" />
+                                        <WorkflowTile label="High confidence" value={confidenceBreakdown.high} tone="green" />
+                                    </div>
+
+                                    <p className="mt-5 text-sm leading-7 text-slate-400">
+                                        Strong analysts do not only classify correctly — they document reasoning, manage confidence, and escalate uncertain artifacts into the SOC workflow.
+                                    </p>
+                                </PhishPanel>
                             </div>
 
                             <PhishPanel variant="card">
@@ -264,5 +298,27 @@ export default function Results() {
             </div>
 
         </>
+    );
+}
+
+function WorkflowTile({ label, value, tone = "blue" }) {
+    const tones = {
+        blue: "border-blue-300/15 bg-blue-400/[0.055] text-blue-200",
+        green: "border-emerald-300/15 bg-emerald-400/[0.055] text-emerald-200",
+        amber: "border-amber-300/15 bg-amber-400/[0.055] text-amber-200",
+        red: "border-red-300/15 bg-red-400/[0.055] text-red-200",
+        slate: "border-white/[0.07] bg-white/[0.035] text-slate-300",
+    };
+
+    return (
+        <div className={`rounded-2xl border p-4 ${tones[tone] || tones.blue}`}>
+            <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-slate-500">
+                {label}
+            </p>
+
+            <p className="mt-2 text-3xl font-black text-white">
+                {value}
+            </p>
+        </div>
     );
 }

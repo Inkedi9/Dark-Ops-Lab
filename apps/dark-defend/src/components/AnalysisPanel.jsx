@@ -1,16 +1,23 @@
 import { useState } from "react";
 import { ChevronDown, ChevronRight, CheckCircle2, Eye, MousePointerClick, Send } from "lucide-react";
 import { phishingFlags } from "../data/scenarios";
+import { PhishCard } from "@/components/ui/PhishCard";
 
 export default function AnalysisPanel({
     email,
-    mode = "beginner",
+    mode,
     verdict,
     setVerdict,
     selectedFlags,
     setSelectedFlags,
+    confidence,
+    setConfidence,
+    analystReasoning,
+    setAnalystReasoning,
     onSubmit,
     disabled,
+    escalateToSoc,
+    setEscalateToSoc,
 }) {
     const [flagsOpen, setFlagsOpen] = useState(false);
 
@@ -122,6 +129,70 @@ export default function AnalysisPanel({
                     </div>
                 )}
             </div>
+
+            <PhishCard tone="blue" hover={false} className="mt-4 p-3">
+                <p className="mb-3 font-mono text-xs uppercase tracking-[0.22em] text-blue-200">
+                    Analyst Confidence
+                </p>
+
+
+                <div className="grid gap-2">
+                    {["low", "medium", "high"].map((level) => (
+                        <button
+                            key={level}
+                            type="button"
+                            onClick={() => setConfidence(level)}
+                            className={[
+                                "rounded-xl border px-4 py-3 text-left font-mono text-xs font-bold uppercase tracking-[0.16em] transition",
+                                confidence === level
+                                    ? "border-blue-300/25 bg-blue-400/[0.10] text-blue-100"
+                                    : "border-white/[0.07] bg-white/[0.025] text-slate-500 hover:text-blue-200",
+                            ].join(" ")}
+                        >
+                            {level} confidence
+                        </button>
+                    ))}
+                </div>
+            </PhishCard>
+
+            <PhishCard tone="slate" hover={false} className="mmt-4 p-3">
+                <p className="mb-3 font-mono text-xs uppercase tracking-[0.22em] text-slate-400">
+                    Analyst Reasoning
+                </p>
+
+                <textarea
+                    value={analystReasoning}
+                    onChange={(event) => setAnalystReasoning(event.target.value)}
+                    placeholder="Document your decision logic..."
+                    className="min-h-28 w-full resize-none rounded-xl border border-white/[0.08] bg-black/35 px-4 py-3 text-sm leading-6 text-white outline-none placeholder:text-slate-600 focus:border-blue-300/35"
+                />
+            </PhishCard>
+
+            <PhishCard tone="threat" hover={false} className="mt-4 p-3">
+                <div className="mb-3 flex items-center justify-between gap-3">
+                    <div>
+                        <p className="font-mono text-xs uppercase tracking-[0.22em] text-red-200">
+                            SOC Escalation
+                        </p>
+                        <p className="mt-1 text-sm text-slate-400">
+                            Mark this artifact for SOC analyst review after submission.
+                        </p>
+                    </div>
+
+                    <button
+                        type="button"
+                        onClick={() => setEscalateToSoc(!escalateToSoc)}
+                        className={[
+                            "rounded-xl border px-3 py-2 font-mono text-xs font-bold uppercase tracking-[0.16em] transition",
+                            escalateToSoc
+                                ? "border-red-300/25 bg-red-400/[0.10] text-red-100"
+                                : "border-white/[0.07] bg-white/[0.025] text-slate-500 hover:text-red-200",
+                        ].join(" ")}
+                    >
+                        {escalateToSoc ? "Escalate" : "Off"}
+                    </button>
+                </div>
+            </PhishCard>
 
             <button
                 onClick={onSubmit}

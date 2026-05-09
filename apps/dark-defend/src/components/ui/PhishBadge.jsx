@@ -4,12 +4,14 @@ export function PhishBadge({ children, tone = "teal" }) {
     const variants = {
         blue: "blue",
         teal: "blue",
-        slate: "slate",
+        slate: "default",
         red: "danger",
         danger: "danger",
         orange: "amber",
+        emerald: "emerald",
         green: "emerald",
         amber: "amber",
+        violet: "blue",
     };
 
     return (
