@@ -11,7 +11,16 @@ import { useLessonProgress } from "../hooks/useLessonProgress";
 import QuizCard from "../components/quiz/QuizCard";
 import TrackCompletionBadge from "../components/tracks/TrackCompletionBadge";
 import { radius, spacing, typography } from "../styles/ui";
-import HeroTitle from "../../../../packages/ui/components/HeroTitle";
+import HeroTitle from "@dark/ui/components/HeroTitle";
+import {
+    ArrowRight,
+    BrainCircuit,
+    CheckCircle2,
+    Code2,
+    FlaskConical,
+    GraduationCap,
+    ShieldCheck,
+} from "lucide-react";
 
 const learningSteps = [
     {
@@ -46,6 +55,57 @@ const homeQuiz = {
     correctAnswer: "String concatenation with user input",
     explanation: "Correct! User input is directly concatenated.",
 };
+
+const learningPaths = [
+    {
+        icon: GraduationCap,
+        label: "Beginner",
+        title: "Start with web security",
+        description:
+            "Follow guided tracks that explain attacks in plain language before you touch a lab.",
+        to: "/tracks",
+        accent: "emerald",
+    },
+    {
+        icon: Code2,
+        label: "Builder",
+        title: "Learn how to fix flaws",
+        description:
+            "Compare vulnerable code with safer patterns so the lesson sticks in real projects.",
+        to: "/lessons",
+        accent: "blue",
+    },
+    {
+        icon: FlaskConical,
+        label: "Challenger",
+        title: "Practice labs and quizzes",
+        description:
+            "Use safe mocked exercises and quick checks to build confidence step by step.",
+        to: "/resources",
+        accent: "violet",
+    },
+];
+
+const domains = [
+    {
+        label: "WEB",
+        title: "Web Security",
+        description: "SQL injection, XSS, auth flaws and secure coding basics.",
+        accent: "blue",
+    },
+    {
+        label: "IDENTITY",
+        title: "Identity & MFA",
+        description: "OAuth, SSO, MFA fatigue, passkeys and account protection.",
+        accent: "violet",
+    },
+    {
+        label: "SOC",
+        title: "Detection & Triage",
+        description: "Alerts, indicators, incident response and analyst thinking.",
+        accent: "emerald",
+    },
+];
 
 export default function HomePage() {
     const featuredLessons = lessons.filter((lesson) => lesson.featured);
@@ -89,7 +149,7 @@ export default function HomePage() {
 
     return (
         <>
-            <section className="relative grid gap-10 overflow-hidden py-16 md:grid-cols-[1.1fr_0.9fr] md:items-center md:py-24">
+            <section className="relative grid gap-10 overflow-hidden py-14 md:grid-cols-[1.1fr_0.9fr] md:items-center md:py-20">
                 <div className="pointer-events-none absolute inset-0 -z-10">
                     <div className="absolute left-1/3 top-[-10%] h-[500px] w-[500px] -translate-x-1/2 rounded-full bg-blue-500/10 blur-[120px]" />
                     <div className="absolute right-0 top-[20%] h-[400px] w-[400px] rounded-full bg-violet-500/10 blur-[120px]" />
@@ -115,14 +175,24 @@ export default function HomePage() {
                         through interactive mocked labs.
                     </p>
 
+                    <div className="mt-5 flex flex-wrap gap-2">
+                        <AppBadge variant="blue">guided tracks</AppBadge>
+                        <AppBadge variant="violet">mocked exploits</AppBadge>
+                        <AppBadge variant="emerald">fix-first mindset</AppBadge>
+                    </div>
+
                     <div className="mt-9 flex flex-wrap gap-3">
                         <AppButton to="/tracks" variant="violet">
                             Start learning
-                            <span className="ml-2">→</span>
+                            <ArrowRight className="ml-1 h-4 w-4" />
                         </AppButton>
 
                         <AppButton to="/resources" variant="secondary">
                             Explore resources
+                        </AppButton>
+
+                        <AppButton to="/command-basics" variant="secondary">
+                            Practice command basics
                         </AppButton>
                     </div>
                 </div>
@@ -135,7 +205,55 @@ export default function HomePage() {
                 </div>
             </section>
 
-            <section className="pb-16">
+            <section className="pb-12">
+                <div className="grid gap-4 md:grid-cols-3">
+                    {[
+                        {
+                            icon: BrainCircuit,
+                            title: "Understand attacks",
+                            description:
+                                "Learn how vulnerabilities, phishing and identity attacks actually work.",
+                            accent: "blue",
+                        },
+                        {
+                            icon: ShieldCheck,
+                            title: "Think like a defender",
+                            description:
+                                "See how analysts detect, triage and respond to modern threats.",
+                            accent: "emerald",
+                        },
+                        {
+                            icon: FlaskConical,
+                            title: "Practice safely",
+                            description:
+                                "Everything runs in mocked and educational environments only.",
+                            accent: "violet",
+                        },
+                    ].map((item) => (
+                        <PanelCard
+                            key={item.title}
+                            variant="subtle"
+                            accent={item.accent}
+                            hover
+                            className="p-5"
+                        >
+                            <div className="mb-4 grid h-11 w-11 place-items-center rounded-xl border border-white/10 bg-white/[0.04] text-blue-200">
+                                <item.icon className="h-5 w-5" />
+                            </div>
+
+                            <h3 className="text-lg font-bold text-white">
+                                {item.title}
+                            </h3>
+
+                            <p className="mt-3 text-sm leading-6 text-slate-400">
+                                {item.description}
+                            </p>
+                        </PanelCard>
+                    ))}
+                </div>
+            </section>
+
+            <section className="pb-12">
                 <div className="grid gap-4 sm:grid-cols-3">
                     {stats.map((stat) => (
                         <PanelCard
@@ -157,11 +275,70 @@ export default function HomePage() {
                 </div>
             </section>
 
-            <section id="how-it-works" className="scroll-mt-24 pb-16">
+            <section className="pb-12">
+                <SectionHeader
+                    eyebrow="Choose your path"
+                    title="Pick the route that fits today"
+                    accent="violet"
+                    action={
+                        <Link
+                            to="/tracks"
+                            className="text-sm font-bold text-violet-300 transition hover:text-violet-200"
+                        >
+                            Browse all paths →
+                        </Link>
+                    }
+                />
+
+                <div className="grid gap-4 md:grid-cols-3">
+                    {learningPaths.map((path) => (
+                        <PanelCard
+                            key={path.title}
+                            variant="elevated"
+                            accent={path.accent}
+                            hover
+                            className="p-5"
+                        >
+                            <div className="mb-5 flex items-start justify-between gap-4">
+                                <div className="grid h-12 w-12 place-items-center rounded-xl border border-white/10 bg-white/[0.04] text-blue-200">
+                                    <path.icon className="h-5 w-5" />
+                                </div>
+
+                                <AppBadge variant={path.accent}>
+                                    {path.label}
+                                </AppBadge>
+                            </div>
+
+                            <h3 className="text-xl font-extrabold tracking-tight text-white">
+                                {path.title}
+                            </h3>
+
+                            <p className="mt-3 text-sm leading-6 text-slate-400">
+                                {path.description}
+                            </p>
+
+                            <AppButton to={path.to} variant="secondary" className="mt-5">
+                                Open path
+                                <ArrowRight className="ml-1 h-4 w-4" />
+                            </AppButton>
+                        </PanelCard>
+                    ))}
+                </div>
+            </section>
+
+            <section id="how-it-works" className="scroll-mt-24 pb-12">
                 <SectionHeader
                     eyebrow="How lessons work"
                     title="Learn one concept at a time"
                     accent="emerald"
+                    action={
+                        <Link
+                            to="/lessons"
+                            className="text-sm font-bold text-emerald-300 transition hover:text-emerald-200"
+                        >
+                            View lesson library →
+                        </Link>
+                    }
                 />
 
                 <div className="grid gap-4 md:grid-cols-3">
@@ -189,13 +366,14 @@ export default function HomePage() {
                 </div>
             </section>
 
-            <section className="pb-16">
-                <div className={`mt-16 overflow-hidden ${radius.hero} border border-white/10 bg-slate-950/60 ${spacing.card} shadow-2xl shadow-black/30 backdrop-blur`}>
+            <section className="pb-12">
+                <div className={`mt-10 overflow-hidden ${radius.hero} border border-white/10 bg-slate-950/60 ${spacing.card} shadow-2xl shadow-black/30 backdrop-blur`}>
                     <div className="grid gap-8 md:grid-cols-[0.9fr_1.1fr] md:items-center">
                         <div>
-                            <p className={`${typography.meta} text-emerald-300`}>
-                                Your first mission
-                            </p>
+                            <div className="mb-4 flex flex-wrap gap-2">
+                                <AppBadge variant="emerald">Your first mission</AppBadge>
+                                <AppBadge variant="blue">Beginner friendly</AppBadge>
+                            </div>
 
                             <h2 className={`mt-4 ${typography.heroTitle}`}>
                                 Bypass the login. Then secure it.
@@ -216,7 +394,12 @@ export default function HomePage() {
                         </div>
 
                         <div className={`${radius.panel} border border-white/10 bg-black/30 p-4 font-mono text-sm text-slate-300`}>
-                            <p className="text-slate-500">Mock query</p>
+                            <div className="mb-3 flex items-center justify-between gap-3">
+                                <p className="text-slate-500">Mock query</p>
+                                <span className="rounded-lg border border-red-300/20 bg-red-400/10 px-2 py-1 text-[10px] uppercase tracking-[0.18em] text-red-200">
+                                    vulnerable query detected
+                                </span>
+                            </div>
                             <pre className="mt-3 overflow-x-auto whitespace-pre-wrap text-blue-200">
                                 {`SELECT * FROM users 
                                 WHERE username = '' OR '1'='1' 
@@ -224,9 +407,19 @@ export default function HomePage() {
                             </pre>
 
                             <div className={`mt-5 ${radius.card} border border-emerald-300/20 bg-emerald-300/10 p-4`}>
-                                <p className="text-emerald-300">✓ Lesson unlocked</p>
+                                <p className="flex items-center gap-2 text-emerald-300">
+                                    <CheckCircle2 className="h-4 w-4" />
+                                    Lesson unlocked
+                                </p>
                                 <p className="mt-2 text-xs leading-6 text-slate-400">
                                     You found the flaw. Now learn how prepared statements stop it.
+                                </p>
+                            </div>
+
+                            <div className={`mt-3 ${radius.card} border border-blue-300/20 bg-blue-300/10 p-4`}>
+                                <p className="text-blue-200">Fix preview</p>
+                                <p className="mt-2 text-xs leading-6 text-slate-400">
+                                    Replace string concatenation with parameterized queries and validate intent before execution.
                                 </p>
                             </div>
                         </div>
@@ -235,9 +428,9 @@ export default function HomePage() {
 
             </section>
 
-            <section className="pb-16">
+            <section className="pb-12">
                 <SectionHeader
-                    eyebrow="Featured tracks"
+                    eyebrow="Featured tracks • guided path"
                     title="Follow a guided learning path"
                     accent="violet"
                     action={
@@ -317,9 +510,41 @@ export default function HomePage() {
                 </div>
             </section>
 
-            <section className="pb-16">
+            <section className="pb-12">
                 <SectionHeader
-                    eyebrow="Fundamentals"
+                    eyebrow="Learning domains"
+                    title="Explore modern cyber concepts"
+                    accent="blue"
+                />
+
+                <div className="grid gap-4 md:grid-cols-3">
+                    {domains.map((domain) => (
+                        <PanelCard
+                            key={domain.title}
+                            variant="default"
+                            accent={domain.accent}
+                            hover
+                            className="p-5"
+                        >
+                            <p className="font-mono text-xs uppercase tracking-[0.22em] text-slate-500">
+                                {domain.label}
+                            </p>
+
+                            <h3 className="mt-3 text-lg font-bold text-white">
+                                {domain.title}
+                            </h3>
+
+                            <p className="mt-3 text-sm leading-6 text-slate-400">
+                                {domain.description}
+                            </p>
+                        </PanelCard>
+                    ))}
+                </div>
+            </section>
+
+            <section className="pb-12">
+                <SectionHeader
+                    eyebrow="Fundamentals • single lessons"
                     title="Start with the essentials"
                     accent="blue"
                     action={
@@ -339,13 +564,16 @@ export default function HomePage() {
                 </div>
             </section>
 
-            <section className="grid gap-8 pb-16 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
+            <section className="grid gap-8 pb-12 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
                 <QuizCard {...homeQuiz} />
 
                 <div className="text-center lg:text-left">
-                    <span className="inline-flex rounded-md border border-white/10 bg-white/[0.04] px-3 py-2 font-mono text-xs text-slate-400">
-                        04
-                    </span>
+                    <div className="flex flex-wrap justify-center gap-2 lg:justify-start">
+                        <span className="inline-flex rounded-md border border-white/10 bg-white/[0.04] px-3 py-2 font-mono text-xs text-slate-400">
+                            04
+                        </span>
+                        <AppBadge variant="blue">knowledge check</AppBadge>
+                    </div>
 
                     <h2 className="mt-5 text-3xl font-extrabold tracking-tight text-white md:text-4xl">
                         Test yourself. Track progress.
@@ -355,6 +583,15 @@ export default function HomePage() {
                         Short quizzes after each lesson reinforce what you learned and help you
                         build confidence step by step.
                     </p>
+
+                    <div className="mt-6 flex flex-wrap justify-center gap-3 lg:justify-start">
+                        <AppButton to="/lessons" variant="secondary">
+                            Browse lessons
+                        </AppButton>
+                        <AppButton to="/analytics" variant="blue">
+                            View progress
+                        </AppButton>
+                    </div>
                 </div>
             </section>
         </>

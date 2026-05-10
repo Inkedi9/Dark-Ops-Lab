@@ -1,37 +1,22 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { getAllChallenges } from "@/challenges/registry";
 import { getAllProgress } from "@/store/progress-store";
 import { getGlobalProgress } from "@/store/global-progress";
-import { StatusBadge } from "@/components/dc-ui/StatusBadge";
-import { StatCard } from "@/components/dc-ui/StatCard";
-import AppBadge from "@dark/ui/components/AppBadge";
-import { ProfileButton } from "@/components/layout/ProfileButton";
 import { AppShell } from "@/components/layout/AppShell";
-import AppButton from "@dark/ui/components/AppButton";
-import { ProgressBar } from "@/components/dc-ui/ProgressBar";
 import { NexusHero } from "@/components/home/NexusHero";
 import PanelCard from "@dark/ui/components/PanelCard";
 
 export default function HomePage() {
   const challenges = getAllChallenges();
 
-  const [progress, setProgress] = useState<ReturnType<typeof getAllProgress>>(
-    []
+  const [progress] = useState<ReturnType<typeof getAllProgress>>(
+    () => getAllProgress()
   );
 
-  const [global, setGlobal] = useState({
-    totalXp: 0,
-    level: 1,
-    rank: "novice",
-  });
-
-  useEffect(() => {
-    setProgress(getAllProgress());
-    setGlobal(getGlobalProgress());
-  }, []);
+  const [global] = useState(() => getGlobalProgress());
 
   const solvedCount = progress.filter((item) => item.solved).length;
   const totalChallenges = challenges.length;

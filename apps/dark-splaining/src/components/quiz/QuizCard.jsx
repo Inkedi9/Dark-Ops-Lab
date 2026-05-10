@@ -11,7 +11,6 @@ export default function QuizCard({
 }) {
     const [selectedAnswer, setSelectedAnswer] = useState(null);
     const [hasScored, setHasScored] = useState(false);
-    const [showXpPulse, setShowXpPulse] = useState(false);
 
     const hasAnswered = selectedAnswer !== null;
     const isCorrect = selectedAnswer === correctAnswer;
@@ -57,7 +56,7 @@ export default function QuizCard({
                         className={`rounded-md bg-black/70 px-4 py-3 ring-1 transition ${hasScored
                             ? "ring-emerald-300/[0.35]"
                             : "ring-white/[0.08]"
-                            } ${showXpPulse ? "motion-reward" : ""}`}
+                            }`}
                     >
                         <p className="text-[10px] uppercase tracking-[0.24em] text-slate-500">
                             reward

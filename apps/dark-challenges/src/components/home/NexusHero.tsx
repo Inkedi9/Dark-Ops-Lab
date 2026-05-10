@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Shield, Terminal, Flag, RadioTower } from "lucide-react";
+import { Terminal, Flag, RadioTower } from "lucide-react";
 import AppButton from "@dark/ui/components/AppButton";
 import AppBadge from "@dark/ui/components/AppBadge";
 import PanelCard from "@dark/ui/components/PanelCard";
@@ -192,7 +192,12 @@ function NexusOrb() {
     );
 }
 
-function TargetBriefing({ nextMission, global, completion }) {
+function TargetBriefing({
+    nextMission,
+    global,
+    completion,
+}: Required<Pick<NexusHeroProps, "nextMission">> &
+    Pick<NexusHeroProps, "global" | "completion">) {
     return (
         <div className="mt-7 w-full rounded-2xl border border-red-300/14 bg-black/35 p-4 text-left">
             <p className="font-mono text-xs uppercase tracking-[0.3em] text-red-200">

@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { StatusBadge } from "@/components/dc-ui/StatusBadge";
 import PanelCard from "@dark/ui/components/PanelCard";
 import AppBadge from "@dark/ui/components/AppBadge";
 import ProgressBar from "@dark/ui/components/ProgressBar";

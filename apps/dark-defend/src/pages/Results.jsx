@@ -106,11 +106,12 @@ export default function Results() {
                     </PhishHeader>
 
                     <div className="mt-6 flex flex-wrap justify-end gap-3">
-                        <Link to="/simulator">
-                            <PhishButton tone="slate">
-                                <ArrowLeft className="h-4 w-4" />
-                                Back to Simulator
-                            </PhishButton>
+                        <Link
+                            to="/simulator"
+                            className="inline-flex items-center gap-2 font-mono text-sm text-slate-400 transition hover:text-blue-300"
+                        >
+                            <ArrowLeft className="h-4 w-4" />
+                            Back to Simulator
                         </Link>
 
                         <PhishButton tone="red" onClick={handleReset}>

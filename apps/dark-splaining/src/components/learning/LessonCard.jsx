@@ -36,6 +36,7 @@ export default function LessonCard({ lesson, index }) {
             className={`group relative overflow-hidden p-5 ${isDisabled ? "opacity-60" : ""
                 }`}
         >
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-blue-300/30 to-transparent opacity-0 transition group-hover:opacity-100" />
             <div className="flex items-start justify-between gap-3">
                 <div>
                     <p className="font-mono text-xs text-slate-500">
@@ -110,7 +111,7 @@ export default function LessonCard({ lesson, index }) {
                 ) : (
                     <Link
                         to={`/lessons/${lesson.id}`}
-                        className="inline-flex w-full items-center justify-center rounded-lg bg-white/[0.03] py-2 text-sm font-semibold text-slate-300 ring-1 ring-white/[0.06] transition hover:bg-white/[0.06] hover:text-blue-200 hover:ring-blue-300/[0.22]"
+                        className="inline-flex w-full items-center justify-center rounded-xl border border-blue-300/14 bg-blue-400/[0.055] py-2.5 text-sm font-bold text-blue-100 transition hover:border-blue-300/25 hover:bg-blue-400/[0.08]"
                     >
                         Open lesson →
                     </Link>

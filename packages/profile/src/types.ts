@@ -18,4 +18,8 @@ export type ProfileAdapter = {
     updateProfile: (profile: DarkProfile) => Promise<DarkProfile>;
     addXp: (amount: number) => Promise<DarkProfile>;
     resetProfile: () => Promise<void>;
+    addBadge: (badge: string) => Promise<DarkProfile>;
+    completeLesson: (lessonId: string, xp?: number) => Promise<DarkProfile>;
+    completeMission: (missionId: string, xp?: number) => Promise<DarkProfile>;
+    completeDefend: (defendId: string, xp?: number) => Promise<DarkProfile>;
 };

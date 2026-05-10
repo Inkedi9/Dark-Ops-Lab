@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import {
     AlertTriangle,
+    ArrowLeft,
     CheckCircle2,
     ClipboardCheck,
     KeyRound,
@@ -204,8 +205,12 @@ export default function SecurityCheckPage() {
 
             <section className="relative z-10 mx-auto max-w-7xl">
                 <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-                    <Link to="/">
-                        <AppButton variant="secondary">Back Home</AppButton>
+                    <Link
+                        to="/"
+                        className="inline-flex items-center gap-2 font-mono text-sm text-slate-400 transition hover:text-blue-300"
+                    >
+                        <ArrowLeft className="h-4 w-4" />
+                        Back Home
                     </Link>
                     <div className="flex flex-wrap gap-2">
                         <AppBadge variant={riskProfile.variant}>{riskProfile.label}</AppBadge>

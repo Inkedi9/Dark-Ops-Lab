@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import {
   ArrowRight,
@@ -115,7 +115,14 @@ const modules: Module[] = [
   },
 ];
 
-const flowSteps = [
+const flowSteps: Array<{
+  key: string;
+  role: string;
+  short: string;
+  name: string;
+  icon: React.ElementType;
+  tone: "blue" | "green";
+}> = [
   { key: "learn", role: "LEARN", short: "Understand", name: "Lessons and concepts", icon: BookOpen, tone: "blue" },
   { key: "practice", role: "PRACTICE", short: "Exploit safely", name: "Labs, CTF and missions", icon: Swords, tone: "green" },
   { key: "defend", role: "DEFEND", short: "Reduce risk", name: "Phishing and human defense", icon: ShieldCheck, tone: "blue" },
@@ -149,43 +156,9 @@ const paths = [
   },
 ];
 
-function cn(...classes: Array<string | false | null | undefined>) {
-  return classes.filter(Boolean).join(" ");
-}
-
-function getNextLevelXp(level: number) {
-  return level * 100;
-}
-
-function getCurrentLevelStartXp(level: number) {
-  return Math.max(0, (level - 1) * 100);
-}
-
-function toneClasses(tone: "blue" | "green" = "blue") {
-  return tone === "green"
-    ? {
-      text: "text-green-300",
-      border: "border-green-300/30",
-      bg: "bg-green-400/10",
-      hover: "hover:bg-green-400/15 hover:border-green-300/50",
-      glow: "shadow-[0_0_34px_rgba(57,255,20,.08)]",
-    }
-    : {
-      text: "text-blue-300",
-      border: "border-blue-300/30",
-      bg: "bg-blue-400/10",
-      hover: "hover:bg-blue-400/15 hover:border-blue-300/50",
-      glow: "shadow-[0_0_34px_rgba(0,229,255,.08)]",
-    };
-}
-
 export default function DarkNexusHub() {
-  const [activeModule, setActiveModule] = useState("learn");
   const [profile, setProfile] = useState<Profile | null>(null);
   const [username, setUsername] = useState("");
-  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
-
-  const active = useMemo(() => modules.find((m) => m.key === activeModule), [activeModule]);
 
   useEffect(() => {
     async function loadProfile() {
@@ -211,7 +184,6 @@ export default function DarkNexusHub() {
     await profileService.resetProfile();
     setProfile(null);
     setUsername("");
-    setIsProfileMenuOpen(false);
   }
 
   if (!profile) {
@@ -265,8 +237,6 @@ export default function DarkNexusHub() {
 
         <Topbar
           profile={profile}
-          isProfileMenuOpen={isProfileMenuOpen}
-          setIsProfileMenuOpen={setIsProfileMenuOpen}
           onReset={handleResetProfile}
         />
 

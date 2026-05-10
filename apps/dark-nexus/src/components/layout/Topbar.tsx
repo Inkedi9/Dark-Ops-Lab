@@ -1,8 +1,10 @@
 "use client";
 
-import { RotateCcw, Shield, User } from "lucide-react";
+import { Shield } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import ProfileMenuButton from "@dark/ui/components/ProfileMenuButton";
+import type { ReactNode } from "react";
 
 type Profile = {
     username: string;
@@ -12,8 +14,6 @@ type Profile = {
 
 type TopbarProps = {
     profile: Profile;
-    isProfileMenuOpen: boolean;
-    setIsProfileMenuOpen: (value: boolean | ((prev: boolean) => boolean)) => void;
     onReset: () => void;
 };
 
@@ -26,18 +26,36 @@ const navItems = [
     { label: "Learn", href: "/learn" },
     { label: "Practice", href: "/practice" },
     { label: "Defend", href: "/defend" },
+    ...(process.env.NODE_ENV !== "production"
+        ? [{ label: "Data", href: "/data-settings" }]
+        : []),
 ];
+
+function NextProfileLink({
+    to,
+    children,
+    ...props
+}: {
+    to: string;
+    children: ReactNode;
+    className?: string;
+    onClick?: () => void;
+}) {
+    return (
+        <Link href={to} {...props}>
+            {children}
+        </Link>
+    );
+}
 
 export default function Topbar({
     profile,
-    isProfileMenuOpen,
-    setIsProfileMenuOpen,
     onReset,
 }: TopbarProps) {
-    const pathname = usePathname();
+    const pathname = usePathname() ?? "";
 
     return (
-        <nav className="sticky top-4 z-30 rounded-2xl border border-white/[0.06] bg-black/40 px-5 py-4 shadow-[0_10px_40px_rgba(0,0,0,0.45)] backdrop-blur-xl">
+        <nav className="sticky top-4 z-30 rounded-[1.65rem] border border-white/[0.07] bg-[#05070A]/72 px-5 py-4 shadow-[0_24px_90px_rgba(0,0,0,.55)] ring-1 ring-white/[0.045] backdrop-blur-2xl">
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <Link href="/" className="flex items-center gap-3">
                     <div className="grid h-10 w-10 place-items-center rounded-xl border border-blue-300/40 bg-blue-400/10 shadow-[0_0_24px_rgba(0,229,255,.25)]">
@@ -87,39 +105,12 @@ export default function Topbar({
                         Ranking
                     </Link>
 
-                    <div className="relative">
-                        <button
-                            onClick={() => setIsProfileMenuOpen((prev) => !prev)}
-                            className="group grid h-10 w-10 place-items-center rounded-xl border border-white/[0.08] bg-white/[0.04] text-white transition hover:bg-white/[0.08]"
-                        >
-                            <User className="h-5 w-5 transition-transform group-hover:scale-110" />
-                        </button>
-
-                        {isProfileMenuOpen && (
-                            <div className="absolute right-0 z-50 mt-3 w-60 overflow-hidden rounded-2xl border border-blue-400/20 bg-black/90 shadow-[0_0_34px_rgba(0,229,255,.16)] backdrop-blur-xl">
-                                <div className="border-b border-blue-400/10 px-4 py-3">
-                                    <p className="font-semibold text-white">{profile.username}</p>
-                                    <p className="font-mono text-xs text-blue-300">
-                                        LVL {profile.level} • {profile.rank}
-                                    </p>
-                                </div>
-
-                                <Link
-                                    href="/profile"
-                                    className="block px-4 py-3 text-sm font-bold text-slate-300 hover:bg-blue-400/10 hover:text-white"
-                                >
-                                    View profile
-                                </Link>
-
-                                <button
-                                    onClick={onReset}
-                                    className="flex w-full items-center gap-2 px-4 py-3 text-left text-sm font-bold text-red-300 hover:bg-red-400/10"
-                                >
-                                    <RotateCcw className="h-4 w-4" /> Reset / logout
-                                </button>
-                            </div>
-                        )}
-                    </div>
+                    <ProfileMenuButton
+                        profile={profile}
+                        profileHref="/profile"
+                        LinkComponent={NextProfileLink}
+                        onLogout={onReset}
+                    />
                 </div>
             </div>
         </nav>

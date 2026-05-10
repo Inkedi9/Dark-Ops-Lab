@@ -1,6 +1,7 @@
 "use client";
 
 import {
+    ArrowLeft,
     ArrowRight,
     Crosshair,
     Flag,
@@ -78,9 +79,10 @@ export default function PracticeCommandCenter() {
                 <div className="mb-8 flex items-center justify-between">
                     <Link
                         href="/"
-                        className="rounded-xl border border-white/[0.08] bg-white/[0.04] px-4 py-2 text-sm font-bold text-slate-300 transition hover:bg-white/[0.08] hover:text-white"
+                        className="inline-flex items-center gap-2 font-mono text-sm text-slate-400 transition hover:text-blue-300"
                     >
-                        ← Back to Command
+                        <ArrowLeft className="h-4 w-4" />
+                        Back to Command
                     </Link>
 
                     <span className="font-mono text-xs font-black uppercase tracking-[0.35em] text-rose-200">

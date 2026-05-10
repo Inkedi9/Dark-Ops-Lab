@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { lessons } from "../../data/lessons";
 import { tracks } from "../../data/tracks";
@@ -49,7 +49,7 @@ export default function CommandPalette({ isOpen, onClose }) {
                 type: "Glossary",
                 title: term.title,
                 description: term.shortDescription,
-                to: `/resources/glossary/${term.id}`,
+                to: `/concepts/${term.id}`,
             })),
             ...handbookItems,
         ];
@@ -65,18 +65,18 @@ export default function CommandPalette({ isOpen, onClose }) {
         })
         .slice(0, 10);
 
-    function closePalette() {
+    const closePalette = useCallback(function closePalette() {
         setQuery("");
         setActiveIndex(0);
         onClose();
-    }
+    }, [onClose]);
 
-    function openResult(item) {
+    const openResult = useCallback(function openResult(item) {
         if (!item) return;
 
         navigate(item.to);
         closePalette();
-    }
+    }, [closePalette, navigate]);
 
     useEffect(() => {
         if (!isOpen) return;
@@ -124,7 +124,7 @@ export default function CommandPalette({ isOpen, onClose }) {
         return () => {
             document.removeEventListener("keydown", handleKeyDown);
         };
-    }, [isOpen, results, activeIndex]);
+    }, [isOpen, results, activeIndex, closePalette, openResult]);
 
     if (!isOpen) return null;
 

@@ -16,6 +16,6 @@ export const XP_REWARD_LABELS = {
   UNLOCK_CERTIFICATE: "Unlocked certificate",
 };
 
-export function getLevelFromXp(xp) {
+export function getLevelFromXp(xp: number) {
   return Math.floor(xp / 50);
 }

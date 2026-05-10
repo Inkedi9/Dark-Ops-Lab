@@ -1,32 +1,51 @@
+"use client";
+
 import Link from "next/link";
+import ProfileMenuButton from "@dark/ui/components/ProfileMenuButton";
+import { getLocalUserProfile } from "@/services/profile-service";
+import type { ReactNode } from "react";
+
+function NextProfileLink({
+    to,
+    children,
+    ...props
+}: {
+    to: string;
+    children: ReactNode;
+    className?: string;
+    onClick?: () => void;
+}) {
+    return (
+        <Link href={to} {...props}>
+            {children}
+        </Link>
+    );
+}
 
 export function ProfileButton() {
+    const profile = getLocalUserProfile();
+
+    function handleLogout() {
+        const confirmed = window.confirm("Reset local offensive profile?");
+        if (!confirmed) return;
+
+        localStorage.removeItem("dc_global_progress");
+        localStorage.removeItem("darkchallenges:progress");
+        localStorage.removeItem("darkchallenges:ctf-progress");
+        localStorage.removeItem("darkchallenges:warzone-progress");
+        window.location.assign("/");
+    }
+
     return (
-        <Link
-            href="/profile"
-            className="inline-flex items-center gap-2 rounded-xl border border-slate-800 bg-[#05070d] px-4 py-3 font-mono text-xs uppercase tracking-[0.18em] text-slate-300 transition hover:border-blue-300 hover:text-blue-200"
-        >
-            <svg
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                className="text-blue-300"
-            >
-                <path
-                    d="M12 2L4 6V12C4 17.2 7.4 21.1 12 22C16.6 21.1 20 17.2 20 12V6L12 2Z"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                />
-                <path
-                    d="M9 12L11 14L15.5 9.5"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                />
-            </svg>
-            Profile
-        </Link>
+        <ProfileMenuButton
+            profile={{
+                username: profile.username,
+                level: profile.level,
+                rank: profile.rank.toUpperCase(),
+            }}
+            profileHref="/profile"
+            LinkComponent={NextProfileLink}
+            onLogout={handleLogout}
+        />
     );
 }

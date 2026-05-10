@@ -24,6 +24,7 @@ export default function LessonsPage() {
 
     const [confirmReset, setConfirmReset] = useState(false);
     const [showResetToast, setShowResetToast] = useState(false);
+    const [progressFilter, setProgressFilter] = useState("All");
 
     useEffect(() => {
         if (!confirmReset) return;
@@ -73,7 +74,13 @@ export default function LessonsPage() {
 
         const matchesSearch = searchableText.includes(searchQuery.toLowerCase());
 
-        return matchesFilter && matchesSearch;
+        const status = getLessonStatus(lesson.id);
+
+        const matchesProgress =
+            progressFilter === "All" ||
+            progressFilter === status;
+
+        return matchesFilter && matchesSearch && matchesProgress;
     });
 
     const stats = [
@@ -126,6 +133,30 @@ export default function LessonsPage() {
                     </div>
                 }
             />
+
+            <div className="flex flex-wrap gap-2">
+                {[
+                    ["All", "All progress"],
+                    ["not-started", "Not started"],
+                    ["in-progress", "In progress"],
+                    ["completed", "Completed"],
+                ].map(([value, label]) => {
+                    const isActive = progressFilter === value;
+
+                    return (
+                        <button
+                            key={value}
+                            onClick={() => setProgressFilter(value)}
+                            className={`rounded-full px-4 py-2 text-sm font-semibold transition ${isActive
+                                ? "bg-emerald-300/[0.12] text-emerald-100 ring-1 ring-emerald-300/[0.24]"
+                                : "bg-white/[0.025] text-slate-400 ring-1 ring-white/[0.05] hover:bg-white/[0.055] hover:text-slate-200"
+                                }`}
+                        >
+                            {label}
+                        </button>
+                    );
+                })}
+            </div>
 
             <section className="mb-10">
                 <PanelCard variant="default" accent="emerald" className="p-6">

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
 import { glossaryTerms } from "../data/glossary";
 
 const alphabetFilters = ["All", ...Array.from("ABCDEFGHIJKLMNOPQRSTUVWXYZ")];
@@ -24,9 +25,10 @@ export default function GlossaryPage() {
         <div className="py-10">
             <Link
                 to="/resources"
-                className="mb-6 inline-flex font-mono text-sm text-slate-400 transition hover:text-blue-300"
+                className="mb-6 inline-flex items-center gap-2 font-mono text-sm text-slate-400 transition hover:text-blue-300"
             >
-                ← Back to resources
+                <ArrowLeft className="h-4 w-4" />
+                Back to resources
             </Link>
 
             <section className="mb-10">
@@ -92,7 +94,7 @@ export default function GlossaryPage() {
                         </p>
 
                         <Link
-                            to={`/resources/glossary/${term.id}`}
+                            to={`/concepts/${term.id}`}
                             className="mt-2 inline-flex font-mono text-sm text-blue-300 transition hover:text-blue-200"
                         >
                             More →

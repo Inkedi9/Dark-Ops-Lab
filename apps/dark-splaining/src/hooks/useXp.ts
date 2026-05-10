@@ -7,7 +7,7 @@ export const XP_KEY = "darksplaining:xp";
 export function useXp() {
   const [xp, setXp] = useState(() => storageService.get(XP_KEY, 0));
 
-  function addXp(amount) {
+  function addXp(amount: number) {
     if (!amount || amount <= 0) return;
 
     setXp((currentXp) => {
@@ -17,7 +17,7 @@ export function useXp() {
     });
   }
 
-  function setTotalXp(nextXp) {
+  function setTotalXp(nextXp: number) {
     storageService.set(XP_KEY, nextXp);
     setXp(nextXp);
   }

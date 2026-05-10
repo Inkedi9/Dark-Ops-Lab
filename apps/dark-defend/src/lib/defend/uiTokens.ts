@@ -48,17 +48,19 @@ export const toneAliases = {
     teal: "blue",
 };
 
-export function getDefendTone(tone = "slate") {
+export type DefendToneName = keyof typeof defendTones | keyof typeof toneAliases;
+
+export function getDefendTone(tone: DefendToneName | string = "slate") {
     const normalized = toneAliases[tone] || tone;
     return defendTones[normalized] || defendTones.slate;
 }
 
-export function toneClass(tone = "slate") {
+export function toneClass(tone: DefendToneName | string = "slate") {
     const selected = getDefendTone(tone);
     return `${selected.border} ${selected.bg} ${selected.text} ${selected.glow}`;
 }
 
-export function compactSpacing(enabled) {
+export function compactSpacing(enabled: boolean) {
     return enabled
         ? {
               section: "mb-5",

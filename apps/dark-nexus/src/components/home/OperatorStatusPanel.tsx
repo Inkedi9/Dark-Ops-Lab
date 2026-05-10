@@ -1,6 +1,6 @@
 "use client";
 
-import { Activity, Cpu, Lock, Radio, Route, ShieldCheck, Zap } from "lucide-react";
+import { Activity, Lock, Radio, Route, ShieldCheck, Zap } from "lucide-react";
 import PanelCard from "@dark/ui/components/PanelCard";
 
 type Profile = {

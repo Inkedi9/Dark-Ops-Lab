@@ -17,6 +17,30 @@ function save(profile: DarkProfile) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
 }
 
+async function completeProfileEntry({
+    profile,
+    key,
+    id,
+    xp,
+    adapter,
+}: {
+    profile: DarkProfile;
+    key: "completedLessons" | "completedMissions" | "completedDefend";
+    id: string;
+    xp: number;
+    adapter: ProfileAdapter;
+}) {
+    const alreadyCompleted = profile[key].includes(id);
+    const completedEntries = alreadyCompleted ? profile[key] : [...profile[key], id];
+
+    await adapter.updateProfile({
+        ...profile,
+        [key]: completedEntries,
+    });
+
+    return adapter.addXp(alreadyCompleted ? 0 : xp);
+}
+
 export const localProfileAdapter: ProfileAdapter = {
     async getProfile() {
         const raw = localStorage.getItem(STORAGE_KEY);
@@ -95,15 +119,38 @@ export const localProfileAdapter: ProfileAdapter = {
         const profile = await this.getProfile();
         if (!profile) throw new Error("No profile found");
 
-        const completedLessons = profile.completedLessons.includes(lessonId)
-            ? profile.completedLessons
-            : [...profile.completedLessons, lessonId];
-
-        const updated = await this.updateProfile({
-            ...profile,
-            completedLessons,
+        return completeProfileEntry({
+            profile,
+            key: "completedLessons",
+            id: lessonId,
+            xp,
+            adapter: this,
         });
+    },
 
-        return this.addXp(profile.completedLessons.includes(lessonId) ? 0 : xp);
+    async completeMission(missionId, xp = 50) {
+        const profile = await this.getProfile();
+        if (!profile) throw new Error("No profile found");
+
+        return completeProfileEntry({
+            profile,
+            key: "completedMissions",
+            id: missionId,
+            xp,
+            adapter: this,
+        });
+    },
+
+    async completeDefend(defendId, xp = 35) {
+        const profile = await this.getProfile();
+        if (!profile) throw new Error("No profile found");
+
+        return completeProfileEntry({
+            profile,
+            key: "completedDefend",
+            id: defendId,
+            xp,
+            adapter: this,
+        });
     },
 };

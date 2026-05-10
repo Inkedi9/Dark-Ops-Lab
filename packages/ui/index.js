@@ -10,5 +10,6 @@ export { default as SkeletonCard } from "./components/SkeletonCard";
 export { default as ProgressBar } from "./components/ProgressBar";
 export { default as StatCard } from "./components/StatCard";
 export { default as BackBar } from "./components/BackBar";
+export { default as ProfileMenuButton } from "./components/ProfileMenuButton";
 export { default as PageHeader } from "./components/PageHeader";
 export * from "./components/ToastContext";

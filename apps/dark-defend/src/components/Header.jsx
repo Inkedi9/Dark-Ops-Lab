@@ -1,7 +1,33 @@
+import { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
-import { Radar, Shield, User } from "lucide-react";
+import { Radar, Shield } from "lucide-react";
+import ProfileMenuButton from "@dark/ui/components/ProfileMenuButton";
+import { profileService } from "../lib/profile/profileService";
 
 export default function Header() {
+    const [profile, setProfile] = useState(null);
+
+    useEffect(() => {
+        let mounted = true;
+
+        profileService.getProfile().then((storedProfile) => {
+            if (mounted) setProfile(storedProfile);
+        });
+
+        return () => {
+            mounted = false;
+        };
+    }, []);
+
+    async function handleLogout() {
+        const confirmed = window.confirm("Reset local operator profile?");
+        if (!confirmed) return;
+
+        await profileService.resetProfile();
+        setProfile(null);
+        window.location.assign("/");
+    }
+
     const navClass = ({ isActive }) =>
         [
             "relative rounded-xl border px-4 py-2 text-xs font-bold uppercase tracking-[0.22em] transition",
@@ -19,7 +45,7 @@ export default function Header() {
 
     return (
         <header className="sticky top-0 z-50 px-4 pt-4 md:px-8">
-            <div className="mx-auto flex max-w-7xl items-center justify-between rounded-2xl border border-blue-400/20 bg-black/35 px-4 py-3 shadow-[0_0_40px_rgba(0,229,255,0.08)] backdrop-blur-xl">
+            <div className="mx-auto flex max-w-7xl items-center justify-between rounded-[1.65rem] border border-white/[0.07] bg-[#05070A]/72 px-4 py-3 shadow-[0_24px_90px_rgba(0,0,0,.55)] ring-1 ring-white/[0.045] backdrop-blur-2xl">
                 <NavLink
                     to="/"
                     className="flex items-center gap-3"
@@ -67,13 +93,12 @@ export default function Header() {
                         <Radar className="h-5 w-5" />
                     </NavLink>
 
-                    <NavLink
-                        to="/profile"
-                        aria-label="Open profile"
-                        className={profileClass}
-                    >
-                        <User className="h-5 w-5" />
-                    </NavLink>
+                    <ProfileMenuButton
+                        profile={profile}
+                        profileHref="/profile"
+                        LinkComponent={NavLink}
+                        onLogout={handleLogout}
+                    />
                 </div>
             </div>
         </header>

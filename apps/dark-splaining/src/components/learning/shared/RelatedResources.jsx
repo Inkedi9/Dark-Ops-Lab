@@ -35,7 +35,7 @@ export default function RelatedResources({ termIds = [] }) {
                         </div>
 
                         <Link
-                            to={`/resources/glossary/${term.id}`}
+                            to={`/concepts/${term.id}`}
                             className="font-mono text-sm font-bold text-blue-300 transition hover:text-blue-200"
                         >
                             More →

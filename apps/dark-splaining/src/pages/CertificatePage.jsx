@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
 import { tracks } from "../data/tracks";
 import { useLessonProgress } from "../hooks/useLessonProgress";
 import { getTrackProgress } from "../utils/trackProgress";
@@ -18,8 +19,9 @@ export default function CertificatePage() {
     if (!track || !track.certificate) {
         return (
             <div className="py-10">
-                <Link to="/tracks" className="mb-8 inline-flex font-mono text-sm text-slate-400 transition hover:text-blue-300">
-                    ← Back to tracks
+                <Link to="/tracks" className="mb-8 inline-flex items-center gap-2 font-mono text-sm text-slate-400 transition hover:text-blue-300">
+                    <ArrowLeft className="h-4 w-4" />
+                    Back to tracks
                 </Link>
 
                 <PanelCard variant="elevated" accent="danger" className="max-w-3xl p-8">
@@ -35,8 +37,9 @@ export default function CertificatePage() {
     if (!progress.isCompleted) {
         return (
             <div className="py-10">
-                <Link to={`/tracks/${track.id}`} className="mb-8 inline-flex font-mono text-sm text-slate-400 transition hover:text-blue-300">
-                    ← Back to track
+                <Link to={`/tracks/${track.id}`} className="mb-8 inline-flex items-center gap-2 font-mono text-sm text-slate-400 transition hover:text-blue-300">
+                    <ArrowLeft className="h-4 w-4" />
+                    Back to track
                 </Link>
 
                 <PanelCard variant="elevated" accent="violet" className="p-8">
@@ -84,9 +87,10 @@ Skills: ${(track.skills || []).join(", ")}`;
 
     return (
         <div className="py-10">
-            <Link to={`/tracks/${track.id}`} className="mb-8 inline-flex font-mono text-sm text-slate-400 transition hover:text-blue-300">
-                ← Back to track
-            </Link>
+                <Link to={`/tracks/${track.id}`} className="mb-8 inline-flex items-center gap-2 font-mono text-sm text-slate-400 transition hover:text-blue-300">
+                    <ArrowLeft className="h-4 w-4" />
+                    Back to track
+                </Link>
 
             <PanelCard variant="hero" accent={badge.variant || "emerald"} animated className="p-8 md:p-12">
                 <div className="grid gap-10 lg:grid-cols-[1fr_320px] lg:items-start">

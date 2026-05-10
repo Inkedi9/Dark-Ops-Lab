@@ -3,7 +3,11 @@
   "version": "0.0.1",
   "private": true,
   "type": "module",
+  "dependencies": {
+    "@dark/progress": "*"
+  },
   "exports": {
+    ".": "./src/index.ts",
     "./profileService": "./src/profileService.ts",
     "./types": "./src/types.ts"
   }

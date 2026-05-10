@@ -1,11 +1,8 @@
 import {
-  LEARNING_STANDARDS,
-  SECURITY_PILLARS,
-  SECURITY_DOMAINS,
-  LAB_TYPES,
   DIFFICULTIES,
 } from "./learningModel";
 import { lessonExperience } from "./lessonExperience";
+import { bridgeTargets, darkRoutes } from "@dark/routes";
 
 function withExperience(lesson) {
   return {
@@ -31,6 +28,74 @@ export const lessons = [
     relatedTermIds: ["sql", "code-injection", "dml"],
     description:
       "Understand how unsafe database queries can expose sensitive data.",
+    learningPath: {
+      prerequisite: "Basic understanding of web requests and login forms",
+      goal: "Understand how unsafe input reaches a vulnerable query",
+      nextStep: "Practice identifying unsafe concatenation patterns",
+    },
+    defenderNotes: {
+      whyItMatters:
+        "SQL injection can turn a simple form field into a path for data exposure, account access, or destructive database actions.",
+      attackerAbuse:
+        "Attackers look for places where input is mixed into query logic, then try values that alter filters, conditions, or database behavior.",
+      detection:
+        "Defenders look for unusual query errors, suspicious payload patterns, unexpected authentication success, and abnormal database reads.",
+      commonMistake:
+        "Only checking the frontend input while still building SQL with string concatenation on the server.",
+      fixPattern:
+        "Use parameterized queries, least-privilege database accounts, and consistent server-side validation.",
+    },
+    relatedConcepts: [
+      "input-validation",
+      "authentication",
+      "prepared-statements",
+    ],
+    attackFlow: {
+      title: "SQL Injection attack chain",
+      steps: [
+        {
+          label: "User input",
+          description:
+            "Attacker-controlled text reaches a vulnerable parameter such as a login field, search box, or API value.",
+          tone: "blue",
+        },
+        {
+          label: "Unsafe query",
+          description:
+            "The application concatenates raw input directly into SQL instead of passing it as data.",
+          tone: "amber",
+        },
+        {
+          label: "Database execution",
+          description:
+            "The database receives a query whose logic may now be influenced by untrusted input.",
+          tone: "red",
+        },
+        {
+          label: "Impact",
+          description:
+            "Sensitive records may become visible, modified, or reachable through logic the app did not intend.",
+          tone: "violet",
+        },
+      ],
+    },
+    bridges: [
+      {
+        type: "challenge",
+        title: "Practice SQL Injection",
+        description:
+          "Apply unsafe query concepts in a guided DarkChallenge mission.",
+        difficulty: "Beginner",
+        to: darkRoutes.challenges.mission(bridgeTargets.sqlInjection.challengeMission),
+      },
+      {
+        type: "defend",
+        title: "See the defensive side",
+        description:
+          "Learn how defenders identify and triage suspicious database behavior.",
+        to: "/soc",
+      },
+    ],
 
     content: {
       goal: "Understand why raw user input should never be trusted inside a database query.",
@@ -103,6 +168,74 @@ export const lessons = [
     relatedTermIds: ["code-injection", "http", "https", "cookies"],
     prerequisites: ["sql-injection"],
     description: "Learn how unsafe rendering can execute unwanted scripts.",
+    learningPath: {
+      prerequisite: "Basic understanding of HTML rendering and user-generated content",
+      goal: "Understand how untrusted content becomes active page behavior",
+      nextStep: "Practice spotting unsafe rendering and escaping mistakes",
+    },
+    defenderNotes: {
+      whyItMatters:
+        "XSS can let untrusted content run in a user's browser, exposing sessions, data, or trusted user actions.",
+      attackerAbuse:
+        "Attackers place script-like payloads into comments, profile fields, URLs, or reflected messages that other users open.",
+      detection:
+        "Defenders monitor suspicious script payloads, encoded markup, unusual redirects, and reports of unexpected browser behavior.",
+      commonMistake:
+        "Assuming stored content is safe because it passed through the application once.",
+      fixPattern:
+        "Escape output by context, avoid rendering trusted HTML by default, and use defensive browser controls such as CSP.",
+    },
+    relatedConcepts: [
+      "output-encoding",
+      "browser-security",
+      "content-security-policy",
+    ],
+    attackFlow: {
+      title: "XSS rendering chain",
+      steps: [
+        {
+          label: "User content",
+          description:
+            "A user-controlled value enters the app through a comment, profile field, message, or URL parameter.",
+          tone: "blue",
+        },
+        {
+          label: "Unsafe render",
+          description:
+            "The app places that content into the page without escaping it for the current HTML context.",
+          tone: "amber",
+        },
+        {
+          label: "Browser trust",
+          description:
+            "The browser interprets the content as page behavior instead of plain text.",
+          tone: "red",
+        },
+        {
+          label: "Safer pattern",
+          description:
+            "Escaping output and using defensive browser controls keeps user content as data.",
+          tone: "emerald",
+        },
+      ],
+    },
+    bridges: [
+      {
+        type: "challenge",
+        title: "Practice XSS",
+        description:
+          "Apply rendering and escaping concepts in a guided DarkChallenge mission.",
+        difficulty: "Beginner",
+        to: darkRoutes.challenges.mission(bridgeTargets.reflectedXss.challengeMission),
+      },
+      {
+        type: "defend",
+        title: "Review phishing and browser risk",
+        description:
+          "Train defensive recognition of suspicious links, browser prompts, and user-facing risk.",
+        to: "/simulator",
+      },
+    ],
 
     content: {
       goal: "Understand why user-controlled content must be escaped before being displayed.",
@@ -175,6 +308,23 @@ export const lessons = [
     relatedTermIds: ["sessions", "cookies", "hashing", "salting"],
     prerequisites: ["xss"],
     description: "Explore common login and session management mistakes.",
+    bridges: [
+      {
+        type: "challenge",
+        title: "Practice authentication flaws",
+        description:
+          "Apply session and login concepts in a guided DarkChallenge mission.",
+        difficulty: "Beginner",
+        to: "/challenges/authentication",
+      },
+      {
+        type: "defend",
+        title: "See account defense workflow",
+        description:
+          "Connect weak authentication patterns to posture checks and defensive response.",
+        to: "/security-check",
+      },
+    ],
 
     content: {
       goal: "Understand how weak authentication flows can put accounts at risk.",

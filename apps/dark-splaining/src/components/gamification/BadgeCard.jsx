@@ -1,6 +1,38 @@
+import { createElement } from "react";
 import AppBadge from "@dark/ui/components/AppBadge";
+import {
+    BookOpenCheck,
+    Bug,
+    Flag,
+    KeyRound,
+    Layers,
+    LockKeyhole,
+    Route,
+    ShieldCheck,
+    Sparkles,
+    Trophy,
+} from "lucide-react";
+
+const badgeIcons = {
+    "first-lesson": BookOpenCheck,
+    "first-exercise": Sparkles,
+    "injection-rookie": Bug,
+    "web-security": ShieldCheck,
+    "auth-analyst": KeyRound,
+    "authorization-guard": LockKeyhole,
+    "first-track": Route,
+    fundamentals: Layers,
+    "quiz-master": Trophy,
+    "owasp-explorer": Flag,
+};
+
+function getBadgeIcon(badgeId) {
+    return badgeIcons[badgeId] || Trophy;
+}
 
 export default function BadgeCard({ badge }) {
+    const Icon = getBadgeIcon(badge.id);
+
     return (
         <div
             className={`group relative overflow-hidden rounded-2xl p-4 ring-1 transition ${badge.earned
@@ -14,12 +46,15 @@ export default function BadgeCard({ badge }) {
 
             <div className="flex items-start gap-3">
                 <span
-                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl font-mono text-sm font-black ring-1 ${badge.earned
-                        ? "bg-emerald-300 text-slate-950 ring-emerald-200/40"
+                    className={`relative flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ring-1 transition ${badge.earned
+                        ? "bg-gradient-to-br from-emerald-200 to-blue-200 text-slate-950 ring-emerald-200/45 shadow-[0_0_22px_rgba(16,185,129,0.18)]"
                         : "bg-white/[0.035] text-slate-500 ring-white/[0.06]"
                         }`}
                 >
-                    {badge.earned ? "✓" : "?"}
+                    {createElement(Icon, { className: "h-5 w-5" })}
+                    {badge.earned && (
+                        <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full border border-slate-950 bg-emerald-300 shadow-[0_0_10px_rgba(16,185,129,0.9)]" />
+                    )}
                 </span>
 
                 <div>

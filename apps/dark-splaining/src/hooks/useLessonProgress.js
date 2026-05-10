@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
+import { appendProgressEvent } from "@dark/progress";
 import { storageService } from "../services/storageService";
 import { XP_KEY } from "./useXp";
 import { XP_REWARDS } from "../data/rewards";
@@ -59,7 +60,10 @@ export function useLessonProgress() {
     storageService.set(PROGRESS_STORAGE_KEY, nextProgress);
   }
 
-  function updateLessonProgress(lessonId, updater) {
+  const updateLessonProgress = useCallback(function updateLessonProgress(
+    lessonId,
+    updater,
+  ) {
     setProgress((currentProgress) => {
       const currentLessonProgress = normalizeLessonProgress(
         currentProgress[lessonId],
@@ -79,9 +83,9 @@ export function useLessonProgress() {
 
       return updatedProgress;
     });
-  }
+  }, []);
 
-  function startLesson(lessonId) {
+  const startLesson = useCallback(function startLesson(lessonId) {
     updateLessonProgress(lessonId, (currentLessonProgress) => {
       if (currentLessonProgress.status === "completed") {
         return { nextLessonProgress: currentLessonProgress };
@@ -104,9 +108,9 @@ export function useLessonProgress() {
         xpAdded,
       };
     });
-  }
+  }, [updateLessonProgress]);
 
-  function completeExercise(lessonId) {
+  const completeExercise = useCallback(function completeExercise(lessonId) {
     updateLessonProgress(lessonId, (currentLessonProgress) => {
       const { lessonProgress, xpAdded } = addXpOnce({
         lessonProgress: currentLessonProgress,
@@ -124,15 +128,26 @@ export function useLessonProgress() {
         xpAdded,
       };
     });
-  }
+  }, [updateLessonProgress]);
 
-  function completeQuiz(lessonId) {
+  const completeQuiz = useCallback(function completeQuiz(lessonId) {
     updateLessonProgress(lessonId, (currentLessonProgress) => {
       const { lessonProgress, xpAdded } = addXpOnce({
         lessonProgress: currentLessonProgress,
         rewardKey: "completeQuiz",
         amount: XP_REWARDS.COMPLETE_QUIZ,
       });
+
+      if (xpAdded > 0) {
+        appendProgressEvent("splaining", {
+          type: "quiz_completed",
+          source: "dark-splaining",
+          payload: {
+            lessonId,
+            xp: xpAdded,
+          },
+        });
+      }
 
       return {
         nextLessonProgress: {
@@ -144,9 +159,9 @@ export function useLessonProgress() {
         xpAdded,
       };
     });
-  }
+  }, [updateLessonProgress]);
 
-  function completeLesson(lessonId) {
+  const completeLesson = useCallback(function completeLesson(lessonId) {
     updateLessonProgress(lessonId, (currentLessonProgress) => {
       if (currentLessonProgress.status === "completed") {
         return { nextLessonProgress: currentLessonProgress };
@@ -158,6 +173,17 @@ export function useLessonProgress() {
         amount: XP_REWARDS.COMPLETE_LESSON,
       });
 
+      if (xpAdded > 0) {
+        appendProgressEvent("splaining", {
+          type: "lesson_completed",
+          source: "dark-splaining",
+          payload: {
+            lessonId,
+            xp: xpAdded,
+          },
+        });
+      }
+
       return {
         nextLessonProgress: {
           ...lessonProgress,
@@ -166,32 +192,32 @@ export function useLessonProgress() {
         xpAdded,
       };
     });
-  }
+  }, [updateLessonProgress]);
 
-  function resetProgress() {
+  const resetProgress = useCallback(function resetProgress() {
     storageService.remove(PROGRESS_STORAGE_KEY);
     setProgress({});
-  }
+  }, []);
 
-  function getLessonProgress(lessonId) {
+  const getLessonProgress = useCallback(function getLessonProgress(lessonId) {
     return normalizeLessonProgress(progress[lessonId]);
-  }
+  }, [progress]);
 
-  function getLessonStatus(lessonId) {
+  const getLessonStatus = useCallback(function getLessonStatus(lessonId) {
     return getLessonProgress(lessonId).status || "not-started";
-  }
+  }, [getLessonProgress]);
 
-  function isQuizCompleted(lessonId) {
+  const isQuizCompleted = useCallback(function isQuizCompleted(lessonId) {
     return getLessonProgress(lessonId).quizCompleted;
-  }
+  }, [getLessonProgress]);
 
-  function isExerciseCompleted(lessonId) {
+  const isExerciseCompleted = useCallback(function isExerciseCompleted(lessonId) {
     return getLessonProgress(lessonId).exerciseCompleted;
-  }
+  }, [getLessonProgress]);
 
-  function hasClaimedReward(lessonId, rewardKey) {
+  const hasClaimedReward = useCallback(function hasClaimedReward(lessonId, rewardKey) {
     return Boolean(getLessonProgress(lessonId).rewardsClaimed?.[rewardKey]);
-  }
+  }, [getLessonProgress]);
 
   return {
     progress,

@@ -4,18 +4,10 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, Crown, Medal, Shield, Trophy, User, Zap, Route } from "lucide-react";
 import { profileService } from "@dark/profile/profileService"
+import type { DarkProfile } from "@dark/profile/types";
 import NexusBackground from "@dark/ui/components/NexusBackground";
 import PanelCard from "@dark/ui/components/PanelCard";
 import NexusAIButton from "@/components/assistant/NexusAIButton";
-
-type Profile = {
-    id: string;
-    username: string;
-    xp: number;
-    level: number;
-    rank: string;
-    badges: string[];
-};
 
 const mockOperators = [
     { username: "NullByte", xp: 2450, level: 25, rank: "OPERATOR", badges: 12, routes: 8 },
@@ -26,7 +18,7 @@ const mockOperators = [
 ];
 
 export default function LeaderboardPage() {
-    const [profile, setProfile] = useState<Profile | null>(null);
+    const [profile, setProfile] = useState<DarkProfile | null>(null);
 
     useEffect(() => {
         async function load() {
@@ -72,7 +64,7 @@ export default function LeaderboardPage() {
                     <div className="flex items-center justify-between">
                         <Link
                             href="/"
-                            className="inline-flex items-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.04] px-4 py-2 text-sm font-bold text-slate-200 transition hover:bg-white/[0.08]"
+                            className="inline-flex items-center gap-2 font-mono text-sm text-slate-400 transition hover:text-blue-300"
                         >
                             <ArrowLeft size={17} />
                             Back to DarkNexus
@@ -143,6 +135,7 @@ function LeaderboardRow({
         level: number;
         rank: string;
         badges: number;
+        routes: number;
         isYou?: boolean;
     };
     position: number;

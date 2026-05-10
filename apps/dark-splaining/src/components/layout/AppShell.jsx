@@ -1,15 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, NavLink } from "react-router-dom";
 import TopbarSearch from "./TopbarSearch";
 import XpBadge from "../xp/XpBadge";
 import NexusBackground from "@dark/ui/components/NexusBackground";
+import ProfileMenuButton from "@dark/ui/components/ProfileMenuButton";
+import { profileService } from "@dark/profile/profileService";
 import { Shield } from "lucide-react";
-
-const mobileNavClass = ({ isActive }) =>
-    `rounded-2xl px-4 py-3 text-sm font-semibold transition ring-1 ${isActive
-        ? "bg-blue-300/[0.10] text-blue-100 ring-blue-300/[0.24]"
-        : "bg-white/[0.025] text-slate-300 ring-white/[0.06] hover:bg-white/[0.055]"
-    }`;
 
 const navItems = [
     { to: "/", label: "Home" },
@@ -27,21 +23,38 @@ const navLinkClass = ({ isActive }) =>
 
 export default function AppShell({ children }) {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [profile, setProfile] = useState(null);
+
+    useEffect(() => {
+        let mounted = true;
+
+        profileService.getProfile().then((storedProfile) => {
+            if (mounted) setProfile(storedProfile);
+        });
+
+        return () => {
+            mounted = false;
+        };
+    }, []);
+
+    async function handleLogout() {
+        const confirmed = window.confirm("Reset local operator profile?");
+        if (!confirmed) return;
+
+        await profileService.resetProfile();
+        setProfile(null);
+        window.location.assign("/");
+    }
 
     return (
 
-        <div className="relative min-h-screen overflow-x-hidden bg-[#070b16] text-slate-100">
+        <div className="relative min-h-screen overflow-x-hidden bg-[#080d1a] text-slate-100">
             <NexusBackground />
-            <div className="pointer-events-none fixed inset-0 z-0 bg-[radial-gradient(circle_at_top_left,rgba(96,165,250,0.16),transparent_30%),radial-gradient(circle_at_top_right,rgba(168,85,247,0.14),transparent_32%)]" />
-            <div className="pointer-events-none fixed inset-0 z-0 opacity-[0.18]">
-                <div className="absolute inset-0 bg-[linear-gradient(rgba(96,165,250,0.18)_1px,transparent_1px),linear-gradient(90deg,rgba(96,165,250,0.18)_1px,transparent_1px)] bg-[size:42px_42px]" />
-                <div className="absolute inset-0 bg-[linear-gradient(180deg,transparent,rgba(7,11,22,0.9))]" />
-            </div>
 
             <div className="relative z-10 flex min-h-screen flex-col">
                 <header className="fixed left-0 right-0 top-0 z-[100] px-4 pt-4">
-                    <div className="mx-auto max-w-7xl overflow-hidden rounded-3xl border border-blue-400/20 bg-black/35 shadow-[0_0_42px_rgba(0,229,255,.08),0_22px_80px_rgba(0,0,0,.45)] ring-1 ring-white/[0.06] backdrop-blur-2xl">
-                        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-blue-300/60 to-emerald-300/40" />
+                    <div className="mx-auto max-w-7xl overflow-visible rounded-[1.65rem] border border-white/[0.07] bg-[#05070A]/72 shadow-[0_24px_90px_rgba(0,0,0,.55)] ring-1 ring-white/[0.045] backdrop-blur-2xl">
+                        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-blue-200/25 to-indigo-200/15" />
 
                         <div className="flex items-center gap-4 px-5 py-4 md:px-6">
                             <Link
@@ -81,32 +94,12 @@ export default function AppShell({ children }) {
                                     </NavLink>
                                 ))}
 
-                                <NavLink
-                                    to="/profile"
-                                    end
-                                    aria-label="Profile"
-                                    title="Profile"
-                                    className={({ isActive }) =>
-                                        `flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm transition ${isActive
-                                            ? "bg-blue-300/[0.14] text-blue-100 ring-1 ring-blue-300/[0.35]"
-                                            : "bg-white/[0.04] text-slate-300 ring-1 ring-white/[0.08] hover:text-blue-200 hover:ring-blue-300/[0.25]"
-                                        }`
-                                    }
-                                >
-                                    <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none">
-                                        <path
-                                            d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"
-                                            stroke="currentColor"
-                                            strokeWidth="1.8"
-                                        />
-                                        <path
-                                            d="M4.75 20a7.25 7.25 0 0 1 14.5 0"
-                                            stroke="currentColor"
-                                            strokeWidth="1.8"
-                                            strokeLinecap="round"
-                                        />
-                                    </svg>
-                                </NavLink>
+                                <ProfileMenuButton
+                                    profile={profile}
+                                    profileHref="/profile"
+                                    LinkComponent={Link}
+                                    onLogout={handleLogout}
+                                />
 
                                 <NavLink
                                     to="/lessons/sql-injection"

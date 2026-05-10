@@ -36,7 +36,7 @@ export default function GlossaryTooltip({ termId, children }) {
                 </span>
 
                 <Link
-                    to={`/resources/glossary/${term.id}`}
+                    to={`/concepts/${term.id}`}
                     className="pointer-events-auto mt-3 inline-flex font-mono text-xs font-bold text-blue-300 transition hover:text-blue-200 focus:outline-none focus:text-blue-100"
                 >
                     Open glossary →

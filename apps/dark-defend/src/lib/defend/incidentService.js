@@ -1,3 +1,5 @@
+import { appendProgressEvent } from "@dark/progress";
+
 const INCIDENTS_KEY = "darkdefend-incidents";
 
 export function getIncidents() {
@@ -48,6 +50,16 @@ export function createIncidentFromScenario({
 
   const incidents = getIncidents();
   localStorage.setItem(INCIDENTS_KEY, JSON.stringify([incident, ...incidents]));
+  appendProgressEvent("defend", {
+    type: "incident_generated",
+    source: "dark-defend",
+    payload: {
+      incidentId: incident.id,
+      scenarioId: incident.scenarioId,
+      severity: incident.severity,
+      forced,
+    },
+  });
 
   return incident;
 }

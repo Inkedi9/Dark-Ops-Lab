@@ -1,10 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
 import { TerminalPanel } from "@/components/dc-ui/TerminalPanel";
 import type { ChallengeLog } from "@/engine/types";
 import type { WarzoneState } from "@/warzone/types";
+import type { Warzone } from "@/warzone/types";
 import { getWarzoneBySlug } from "@/warzone/registry";
 import {
     getWarzoneProgress,
@@ -12,6 +15,7 @@ import {
     saveWarzoneProgress,
 } from "@/store/warzone-progress-store";
 import { addXp } from "@/store/global-progress";
+import { appendProgressEvent } from "@dark/progress";
 import PanelCard from "@dark/ui/components/PanelCard";
 import AppBadge from "@dark/ui/components/AppBadge";
 import AppButton from "@dark/ui/components/AppButton";
@@ -25,15 +29,43 @@ type Props = {
     slug: string;
 };
 
+const fallbackWarzoneState: WarzoneState = {
+    stage: "recon",
+    objectivesCompleted: [],
+    flagParts: [],
+};
+
+const fallbackWarzone: Warzone = {
+    id: "missing-warzone",
+    slug: "missing-warzone",
+    title: "Warzone not found",
+    description: "Return to the warzone board and choose an available simulation.",
+    difficulty: "beginner",
+    timeLimitSeconds: 0,
+    rewardXp: 0,
+    badge: "Unavailable",
+    objectives: [],
+    initialState: fallbackWarzoneState,
+    evaluateAction: () => ({
+        success: false,
+        message: "Warzone not found.",
+        logs: [{ level: "error", message: "warzone not found" }],
+    }),
+};
+
 export function WarzoneRunner({ slug }: Props) {
-    const warzone = getWarzoneBySlug(slug);
+    const foundWarzone = getWarzoneBySlug(slug);
+    const warzone = foundWarzone ?? fallbackWarzone;
 
-    if (!warzone) return null;
-
+    const [savedProgress] = useState(() =>
+        foundWarzone ? getWarzoneProgress(warzone.id, warzone.initialState) : null
+    );
     const [action, setAction] = useState("");
-    const [state, setState] = useState<WarzoneState>(warzone.initialState);
-    const [completed, setCompleted] = useState(false);
-    const [actionsCount, setActionsCount] = useState(0);
+    const [state, setState] = useState<WarzoneState>(
+        savedProgress?.state ?? warzone.initialState
+    );
+    const [completed, setCompleted] = useState(savedProgress?.completed ?? false);
+    const [actionsCount, setActionsCount] = useState(savedProgress?.actionsCount ?? 0);
     const [startedAt] = useState(() => Date.now());
     const [remainingSeconds, setRemainingSeconds] = useState(warzone.timeLimitSeconds);
     const [logs, setLogs] = useState<TerminalLog[]>([
@@ -46,12 +78,12 @@ export function WarzoneRunner({ slug }: Props) {
     const [actionHistory, setActionHistory] = useState<string[]>([]);
     const [defenseMode, setDefenseMode] = useState<"normal" | "learning" | "hardened">("normal");
 
-    useEffect(() => {
-        const saved = getWarzoneProgress(warzone.id, warzone.initialState);
-        setState(saved.state);
-        setCompleted(saved.completed);
-        setActionsCount(saved.actionsCount);
-    }, [warzone]);
+    const getTime = useCallback(() => {
+        const elapsed = Math.floor((Date.now() - startedAt) / 1000);
+        const minutes = String(Math.floor(elapsed / 60)).padStart(2, "0");
+        const seconds = String(elapsed % 60).padStart(2, "0");
+        return `${minutes}:${seconds}`;
+    }, [startedAt]);
 
     useEffect(() => {
         if (completed) return;
@@ -90,32 +122,36 @@ export function WarzoneRunner({ slug }: Props) {
         }, 9000);
 
         return () => window.clearInterval(timer);
-    }, [completed]);
+    }, [completed, getTime]);
 
     useEffect(() => {
         if (detectionRisk >= 100 && !completed) {
-            setFailed(true);
+            const timeout = window.setTimeout(() => {
+                setFailed(true);
 
-            setLogs((current) => [
-                ...current,
-                {
-                    time: getTime(),
-                    level: "error",
-                    message: "detection threshold exceeded",
-                },
-                {
-                    time: getTime(),
-                    level: "error",
-                    message: "system lockdown initiated",
-                },
-                {
-                    time: getTime(),
-                    level: "error",
-                    message: "all access revoked",
-                },
-            ]);
+                setLogs((current) => [
+                    ...current,
+                    {
+                        time: getTime(),
+                        level: "error",
+                        message: "detection threshold exceeded",
+                    },
+                    {
+                        time: getTime(),
+                        level: "error",
+                        message: "system lockdown initiated",
+                    },
+                    {
+                        time: getTime(),
+                        level: "error",
+                        message: "all access revoked",
+                    },
+                ]);
+            }, 0);
+
+            return () => window.clearTimeout(timeout);
         }
-    }, [detectionRisk, completed]);
+    }, [completed, detectionRisk, getTime]);
 
     useEffect(() => {
         if (completed || failed) return;
@@ -158,22 +194,17 @@ export function WarzoneRunner({ slug }: Props) {
         }, 18000);
 
         return () => window.clearInterval(timer);
-    }, [completed, failed]);
+    }, [completed, failed, getTime]);
 
     const completion = useMemo(() => {
+        if (warzone.objectives.length === 0) return 0;
+
         return Math.round(
             (state.objectivesCompleted.length / warzone.objectives.length) * 100
         );
     }, [state.objectivesCompleted.length, warzone.objectives.length]);
 
     const fullFlag = state.flagParts.join("");
-
-    function getTime() {
-        const elapsed = Math.floor((Date.now() - startedAt) / 1000);
-        const minutes = String(Math.floor(elapsed / 60)).padStart(2, "0");
-        const seconds = String(elapsed % 60).padStart(2, "0");
-        return `${minutes}:${seconds}`;
-    }
 
     function formatRemaining(seconds: number) {
         const minutes = String(Math.floor(seconds / 60)).padStart(2, "0");
@@ -229,7 +260,6 @@ export function WarzoneRunner({ slug }: Props) {
     function executeAction() {
         if (completed || remainingSeconds <= 0) return;
         if (completed || failed || remainingSeconds <= 0) return;
-        if (!warzone) return
 
         const result = warzone.evaluateAction(action, state);
 
@@ -289,6 +319,17 @@ export function WarzoneRunner({ slug }: Props) {
 
             if (isComplete) {
                 addXp(warzone.rewardXp);
+                appendProgressEvent("challenges", {
+                    type: "challenge_completed",
+                    source: "dark-challenges",
+                    payload: {
+                        challengeId: warzone.id,
+                        slug: warzone.slug,
+                        kind: "warzone",
+                        xp: warzone.rewardXp,
+                        actionsCount: nextActionsCount,
+                    },
+                });
             }
 
             saveWarzoneProgress({
@@ -312,8 +353,6 @@ export function WarzoneRunner({ slug }: Props) {
     }
 
     function resetSimulation() {
-        if (!warzone) return
-
         resetWarzoneProgress(warzone.id);
         setState(warzone.initialState);
         setCompleted(false);
@@ -336,23 +375,53 @@ export function WarzoneRunner({ slug }: Props) {
         if (completed || failed) return;
 
         if (detectionRisk >= 75 && defenseMode !== "hardened") {
-            setDefenseMode("hardened");
+            const timeout = window.setTimeout(() => {
+                setDefenseMode("hardened");
 
-            setLogs((current) => [
-                ...current,
-                {
-                    time: getTime(),
-                    level: "warning",
-                    message: "WAF hardened mode enabled",
-                },
-                {
-                    time: getTime(),
-                    level: "warning",
-                    message: "future noisy actions will increase detection faster",
-                },
-            ]);
+                setLogs((current) => [
+                    ...current,
+                    {
+                        time: getTime(),
+                        level: "warning",
+                        message: "WAF hardened mode enabled",
+                    },
+                    {
+                        time: getTime(),
+                        level: "warning",
+                        message: "future noisy actions will increase detection faster",
+                    },
+                ]);
+            }, 0);
+
+            return () => window.clearTimeout(timeout);
         }
-    }, [detectionRisk, defenseMode, completed, failed]);
+    }, [detectionRisk, defenseMode, completed, failed, getTime]);
+
+    if (!foundWarzone) {
+        return (
+            <AppShell>
+                <PanelCard variant="darkNexus" accent="danger" className="p-8">
+                    <AppBadge variant="danger">Warzone not found</AppBadge>
+
+                    <h1 className="mt-4 text-3xl font-black text-white">
+                        This simulation does not exist.
+                    </h1>
+
+                    <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-400">
+                        Return to the warzone board and choose an available operation.
+                    </p>
+
+                    <Link
+                        href="/warzone"
+                        className="mt-6 inline-flex items-center gap-2 font-mono text-sm text-slate-400 transition hover:text-blue-300"
+                    >
+                        <ArrowLeft className="h-4 w-4" />
+                        Back to warzones
+                    </Link>
+                </PanelCard>
+            </AppShell>
+        );
+    }
 
     return (
         <AppShell>

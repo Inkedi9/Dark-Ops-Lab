@@ -1,9 +1,18 @@
+import type { ReactNode } from "react";
+
+type MetricCardProps = {
+    label: string;
+    value: ReactNode;
+    helper?: string;
+    accent?: "blue" | "emerald" | "violet" | "amber";
+};
+
 export default function MetricCard({
     label,
     value,
     helper,
     accent = "blue",
-}) {
+}: MetricCardProps) {
     const accents = {
         blue: "text-blue-300",
         emerald: "text-emerald-300",

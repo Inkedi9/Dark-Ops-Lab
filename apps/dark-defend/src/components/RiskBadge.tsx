@@ -1,6 +1,10 @@
 import { getDefendTone } from "@/lib/defend/uiTokens";
 
-export default function RiskBadge({ level }) {
+type RiskBadgeProps = {
+    level?: string;
+};
+
+export default function RiskBadge({ level }: RiskBadgeProps) {
     const toneName =
         level === "Low" ? "emerald" : level === "Medium" ? "amber" : level ? "red" : "blue";
     const tone = getDefendTone(toneName);

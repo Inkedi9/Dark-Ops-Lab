@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { AppShell } from "@/components/layout/AppShell";
 import PanelCard from "@dark/ui/components/PanelCard";
 import AppButton from "@dark/ui/components/AppButton";
@@ -12,11 +12,7 @@ import PageHeader from "@dark/ui/components/PageHeader";
 
 export default function WarzonePage() {
     const warzones = getAllWarzones();
-    const [progress, setProgress] = useState(getAllWarzoneProgress());
-
-    useEffect(() => {
-        setProgress(getAllWarzoneProgress());
-    }, []);
+    const [progress] = useState(() => getAllWarzoneProgress());
 
     return (
         <AppShell>

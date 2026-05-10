@@ -1,4 +1,5 @@
 import { Link, useParams } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
 import { glossaryTerms, getGlossaryTermById } from "../data/glossary";
 import { lessons } from "../data/lessons";
 
@@ -25,9 +26,10 @@ export default function GlossaryTermPage() {
             <div className="py-10">
                 <Link
                     to="/resources/glossary"
-                    className="mb-8 inline-flex font-mono text-sm text-slate-400 transition hover:text-blue-300"
+                    className="mb-8 inline-flex items-center gap-2 font-mono text-sm text-slate-400 transition hover:text-blue-300"
                 >
-                    ← Back to glossary
+                    <ArrowLeft className="h-4 w-4" />
+                    Back to glossary
                 </Link>
 
                 <section className="max-w-3xl">
@@ -52,9 +54,10 @@ export default function GlossaryTermPage() {
         <div className="py-10">
             <Link
                 to="/resources/glossary"
-                className="mb-8 inline-flex font-mono text-sm text-slate-400 transition hover:text-blue-300"
+                className="mb-8 inline-flex items-center gap-2 font-mono text-sm text-slate-400 transition hover:text-blue-300"
             >
-                ← Back to glossary
+                <ArrowLeft className="h-4 w-4" />
+                Back to glossary
             </Link>
 
             <article className="max-w-4xl">
@@ -90,7 +93,7 @@ export default function GlossaryTermPage() {
                             {relatedTerms.map((relatedTerm) => (
                                 <Link
                                     key={relatedTerm.id}
-                                    to={`/resources/glossary/${relatedTerm.id}`}
+                                    to={`/concepts/${relatedTerm.id}`}
                                     className="rounded-full border border-white/10 bg-white/[0.035] px-4 py-2 font-mono text-sm text-slate-300 transition hover:border-blue-300/30 hover:text-blue-200"
                                 >
                                     {relatedTerm.title}

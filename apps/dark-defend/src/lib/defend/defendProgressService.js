@@ -1,4 +1,12 @@
-import { profileService } from "@dark/profile/profileService";
+import {
+  addGlobalXp,
+  awardGlobalBadge,
+  getGlobalLevel,
+  getGlobalProfile,
+  getGlobalRank,
+  saveGlobalProfile,
+} from "@dark/profile/profileService";
+import { appendProgressEvent } from "@dark/progress";
 
 const MODULE_ID = "darkdefend:phishing-simulator";
 
@@ -25,8 +33,7 @@ function calculateDefendXp(result, mode = "beginner", streak = 0) {
 }
 
 async function getOrCreateProfile() {
-  const profile = await profileService.getProfile();
-  return profile || profileService.createProfile("Ghost");
+  return getGlobalProfile();
 }
 
 export async function getDarkProfile() {
@@ -61,6 +68,19 @@ export async function recordDefendScenario({
 }) {
   const profile = await getOrCreateProfile();
   const completionId = scenarioCompletionId(scenarioId);
+  const xpAwarded = calculateDefendXp(result, mode, streak);
+
+  appendProgressEvent("defend", {
+    type: "phishing_analyzed",
+    source: "dark-defend",
+    payload: {
+      scenarioId,
+      mode,
+      score: result.score,
+      isCorrect: result.isCorrect,
+      xp: profile.completedDefend.includes(completionId) ? 0 : xpAwarded,
+    },
+  });
 
   if (profile.completedDefend.includes(completionId)) {
     return { profile, xpAwarded: 0, alreadyCompleted: true };
@@ -91,22 +111,23 @@ export async function recordDefendScenario({
     badges.add(DEFEND_BADGES.PHISHING_PATH_COMPLETE);
   }
 
-  const xpAwarded = calculateDefendXp(result, mode, streak);
-  const updatedProfile = await profileService.updateProfile({
+  const profileWithDefendStats = saveGlobalProfile({
     ...profile,
-    xp: profile.xp + xpAwarded,
-    level: Math.floor((profile.xp + xpAwarded) / 100) + 1,
-    rank: calculateRank(Math.floor((profile.xp + xpAwarded) / 100) + 1),
     badges: Array.from(badges),
     completedDefend,
   });
+  const updatedProfile = addGlobalXp(
+    xpAwarded,
+    "darkdefend",
+    `scenario:${scenarioId}`,
+    profileWithDefendStats,
+  );
+
+  for (const badge of badges) {
+    awardGlobalBadge(badge);
+  }
 
   return { profile: updatedProfile, xpAwarded, alreadyCompleted: false };
 }
 
-function calculateRank(level) {
-  if (level >= 50) return "GHOST";
-  if (level >= 25) return "OPERATOR";
-  if (level >= 10) return "HUNTER";
-  return "ROOKIE";
-}
+export { getGlobalLevel, getGlobalRank };

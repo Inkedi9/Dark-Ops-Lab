@@ -1,0 +1,17 @@
+{
+  "name": "@dark/progress",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@dark/storage": "*",
+    "@dark/supabase-client": "*",
+    "@dark/types": "*"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./debug": "./src/debug.ts",
+    "./migrations": "./src/migrations.ts",
+    "./providers/supabaseProgressProvider": "./src/providers/supabaseProgressProvider.ts"
+  }
+}

@@ -1,7 +1,6 @@
 "use client";
 
-import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import PanelCard from "@dark/ui/components/PanelCard";
 import { BadgeCard } from "@/components/profile/BadgeCard";
 import type { UserProfile } from "@/services/profile-service";
@@ -14,11 +13,7 @@ import StatCard from "@dark/ui/components/StatCard";
 import AppBadge from "@dark/ui/components/AppBadge";
 
 export default function ProfilePage() {
-    const [profile, setProfile] = useState<UserProfile | null>(null);
-
-    useEffect(() => {
-        setProfile(getLocalUserProfile());
-    }, []);
+    const [profile] = useState<UserProfile | null>(() => getLocalUserProfile());
 
     if (!profile) {
         return (

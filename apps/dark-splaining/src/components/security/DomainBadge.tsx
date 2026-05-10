@@ -1,6 +1,11 @@
 import AppBadge from "@dark/ui/components/AppBadge";
 
-const domainConfig = {
+type DomainBadgeConfig = {
+    label: string;
+    variant: string;
+};
+
+const domainConfig: Record<string, DomainBadgeConfig> = {
     "OWASP Top 10": {
         label: "OWASP Top 10",
         variant: "violet",
@@ -51,7 +56,12 @@ const domainConfig = {
     },
 };
 
-export default function DomainBadge({ value, compact = false }) {
+type DomainBadgeProps = {
+    value?: string;
+    compact?: boolean;
+};
+
+export default function DomainBadge({ value, compact = false }: DomainBadgeProps) {
     if (!value) return null;
 
     const config = domainConfig[value] || {

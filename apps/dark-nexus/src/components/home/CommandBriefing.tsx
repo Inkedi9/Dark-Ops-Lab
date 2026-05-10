@@ -1,4 +1,5 @@
 import { ArrowRight, BookOpen, ShieldCheck, Swords } from "lucide-react";
+import type { ElementType } from "react";
 import PanelCard from "@dark/ui/components/PanelCard";
 import AppButton from "@dark/ui/components/AppButton";
 
@@ -61,7 +62,7 @@ function MiniStep({
     text,
     active = false,
 }: {
-    icon: any;
+    icon: ElementType;
     label: string;
     text: string;
     active?: boolean;

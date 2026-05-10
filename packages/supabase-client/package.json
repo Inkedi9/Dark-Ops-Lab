@@ -1,0 +1,12 @@
+{
+  "name": "@dark/supabase-client",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.87.1"
+  },
+  "exports": {
+    ".": "./src/index.ts"
+  }
+}

@@ -11,6 +11,9 @@
   },
   "dependencies": {
     "@dark/profile": "*",
+    "@dark/progress": "*",
+    "@dark/storage": "*",
+    "@dark/supabase-client": "*",
     "@dark/ui": "*",
     "framer-motion": "^12.38.0",
     "lucide-react": "^1.11.0",
@@ -31,6 +34,7 @@
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.4.0",
     "tailwindcss": "^4.2.4",
+    "typescript": "^5.9.3",
     "vite": "^8.0.4"
   }
 }

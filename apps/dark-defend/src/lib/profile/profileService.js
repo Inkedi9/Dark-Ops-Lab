@@ -1,3 +1,1 @@
-import { localProfileAdapter } from "./localProfileAdapter";
-
-export const profileService = localProfileAdapter;
+export { profileService } from "@dark/profile/profileService";

@@ -14,6 +14,7 @@ import {
 import CertificateCard from "../components/certificates/CertificateCard";
 import DomainBadge from "../components/security/DomainBadge";
 import { getLessonIdentity } from "../utils/lessonIdentity";
+import { ArrowLeft, BadgeCheck } from "lucide-react";
 
 function getTrackById(trackId) {
     return tracks.find((track) => track.id === trackId);
@@ -36,9 +37,10 @@ export default function TrackDetailPage() {
             <div className="py-10">
                 <Link
                     to="/tracks"
-                    className="mb-6 inline-flex font-mono text-sm text-slate-400 transition hover:text-violet-300"
+                    className="mb-6 inline-flex items-center gap-2 font-mono text-sm text-slate-400 transition hover:text-violet-300"
                 >
-                    ← Back to tracks
+                    <ArrowLeft className="h-4 w-4" />
+                    Back to tracks
                 </Link>
 
                 <PanelCard variant="elevated" accent="danger" className="p-8">
@@ -71,6 +73,7 @@ export default function TrackDetailPage() {
         availableLessons.length > 0 && completedCount === availableLessons.length;
 
     const nextLesson = getNextUnlockedLesson(availableLessons, getLessonStatus);
+    const nextLessonId = nextLesson?.id;
 
     const ctaLabel = isComingSoon
         ? "Coming soon"
@@ -90,9 +93,10 @@ export default function TrackDetailPage() {
         <div className="py-10">
             <Link
                 to="/tracks"
-                className="mb-6 inline-flex font-mono text-sm text-slate-400 transition hover:text-violet-300"
+                className="mb-6 inline-flex items-center gap-2 font-mono text-sm text-slate-400 transition hover:text-violet-300"
             >
-                ← Back to tracks
+                <ArrowLeft className="h-4 w-4" />
+                Back to tracks
             </Link>
 
             <PanelCard
@@ -152,15 +156,15 @@ export default function TrackDetailPage() {
 
                     <div className="bg-black/45 p-6 ring-1 ring-white/[0.08]">
                         <div
-                            className={`flex h-20 w-20 items-center justify-center font-mono text-3xl font-black ${isTrackCompleted
-                                ? "bg-emerald-300 text-slate-950"
+                            className={`flex h-20 w-20 items-center justify-center rounded-3xl font-mono text-3xl font-black ring-1 ${isTrackCompleted
+                                ? "bg-gradient-to-br from-emerald-200 to-blue-200 text-slate-950 ring-emerald-200/40"
                                 : badge.variant === "blue"
-                                    ? "bg-blue-300 text-slate-950"
+                                    ? "bg-gradient-to-br from-blue-200 to-slate-200 text-slate-950 ring-blue-200/35"
                                     : badge.variant === "amber"
-                                        ? "bg-amber-300 text-slate-950"
+                                        ? "bg-gradient-to-br from-amber-200 to-slate-200 text-slate-950 ring-amber-200/35"
                                         : badge.variant === "emerald"
-                                            ? "bg-emerald-300 text-slate-950"
-                                            : "bg-violet-300 text-slate-950"
+                                            ? "bg-gradient-to-br from-emerald-200 to-slate-200 text-slate-950 ring-emerald-200/35"
+                                            : "bg-gradient-to-br from-violet-200 to-blue-200 text-slate-950 ring-violet-200/35"
                                 }`}
                         >
                             {badge.icon}
@@ -184,6 +188,26 @@ export default function TrackDetailPage() {
                         <p className="mt-3 font-mono text-xs text-slate-500">
                             {progressPercent}% complete
                         </p>
+
+                        <div className="mt-5 grid grid-cols-2 gap-3">
+                            <div className="rounded-xl border border-white/[0.07] bg-white/[0.03] p-3">
+                                <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500">
+                                    Lessons
+                                </p>
+                                <p className="mt-1 text-lg font-black text-white">
+                                    {availableLessons.length}
+                                </p>
+                            </div>
+
+                            <div className="rounded-xl border border-white/[0.07] bg-white/[0.03] p-3">
+                                <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500">
+                                    Level
+                                </p>
+                                <p className="mt-1 text-lg font-black text-white">
+                                    {track.level}
+                                </p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </PanelCard>
@@ -229,15 +253,15 @@ export default function TrackDetailPage() {
                                     <div className="flex gap-4">
                                         <div className="flex flex-col items-center">
                                             <span
-                                                className={`flex h-11 w-11 shrink-0 items-center justify-center font-mono text-xs font-black ring-1 ${isLessonCompleted
-                                                    ? "bg-emerald-300 text-slate-950 ring-emerald-300/30"
+                                                className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full font-mono text-xs font-black ring-1 transition ${isLessonCompleted
+                                                    ? "bg-gradient-to-br from-emerald-200 to-blue-200 text-slate-950 ring-emerald-200/40 shadow-[0_0_18px_rgba(16,185,129,0.20)]"
                                                     : isUnlocked
                                                         ? "bg-blue-300/[0.10] text-blue-200 ring-blue-300/[0.22]"
                                                         : "bg-white/[0.035] text-slate-500 ring-white/[0.06]"
                                                     }`}
                                             >
                                                 {isLessonCompleted
-                                                    ? "✓"
+                                                    ? <BadgeCheck className="h-5 w-5" />
                                                     : String(index + 1).padStart(2, "0")}
                                             </span>
 
@@ -260,9 +284,18 @@ export default function TrackDetailPage() {
                                                 <AppBadge variant="slate">
                                                     {identity.code}
                                                 </AppBadge>
+
+                                                {lesson.id === nextLessonId && (
+                                                    <AppBadge variant="emerald">
+                                                        Next recommended
+                                                    </AppBadge>
+                                                )}
                                             </div>
 
-                                            <h2 className="mt-3 text-xl font-black tracking-tight text-white">
+                                            <p className="mb-1 mt-3 font-mono text-[10px] uppercase tracking-[0.22em] text-slate-500">
+                                                Lesson {String(index + 1).padStart(2, "0")}
+                                            </p>
+                                            <h2 className="text-xl font-black tracking-tight text-white">
                                                 {lesson.title}
                                             </h2>
 
@@ -341,6 +374,36 @@ export default function TrackDetailPage() {
                         compact
                     />
 
+                    {track.skills?.length > 0 && (
+                        <PanelCard variant="elevated" accent="blue" className="p-5">
+                            <AppBadge variant="blue">Skills you'll gain</AppBadge>
+
+                            <div className="mt-4 flex flex-wrap gap-2">
+                                {track.skills.map((skill) => (
+                                    <AppBadge key={skill} variant="slate">
+                                        {skill}
+                                    </AppBadge>
+                                ))}
+                            </div>
+                        </PanelCard>
+                    )}
+
+                    {availableLessons.length === 0 && (
+                        <PanelCard variant="elevated" accent="amber" className="p-5">
+                            <AppBadge variant="amber">No available lessons</AppBadge>
+                            <p className="mt-4 text-sm leading-6 text-slate-400">
+                                This track is in preparation. Check back later or explore another roadmap.
+                            </p>
+                            <Link
+                                to="/tracks"
+                                className="mt-5 inline-flex items-center gap-2 font-mono text-sm text-slate-400 transition hover:text-blue-300"
+                            >
+                                <ArrowLeft className="h-4 w-4" />
+                                Back to tracks
+                            </Link>
+                        </PanelCard>
+                    )}
+
                     <DarkAssistant trackId={track.id} compact />
 
                     <PanelCard variant="elevated" accent="violet" className="p-5">
@@ -351,6 +414,16 @@ export default function TrackDetailPage() {
                                 ? "You completed this track. You can review any lesson to refresh the concepts."
                                 : "Follow the lessons in order for the clearest learning experience."}
                         </p>
+
+                        <div className="mt-4 rounded-xl border border-white/[0.07] bg-black/25 p-3">
+                            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500">
+                                Next unlock
+                            </p>
+
+                            <p className="mt-1 text-sm font-bold text-white">
+                                {nextLesson?.title || "No lesson pending"}
+                            </p>
+                        </div>
 
                         {isComingSoon || !nextLesson ? (
                             <AppButton

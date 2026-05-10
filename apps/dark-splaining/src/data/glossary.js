@@ -1,4 +1,4 @@
-export const glossaryTerms = [
+const baseGlossaryTerms = [
   {
     id: "botnets",
     title: "Botnets",
@@ -255,6 +255,180 @@ export const glossaryTerms = [
       "A zero-day exploit targets a vulnerability before a fix is widely available. This makes it harder for defenders because normal patching may not yet be possible. Monitoring, defense in depth, and rapid response help reduce impact.",
   },
 ];
+
+const glossaryEnhancements = {
+  "code-injection": {
+    category: "Web Security",
+    level: "Intermediate",
+    whyItMatters:
+      "Code injection breaks the boundary between user data and application behavior, which can lead to data exposure, account takeover, or remote actions.",
+    attackerUse:
+      "Attackers look for inputs that are passed into interpreters, queries, templates, or commands and try payloads that change execution.",
+    defenderTip:
+      "Separate data from execution, prefer safe APIs, validate input, and log suspicious payload patterns.",
+    commonMistakes: [
+      "Filtering only a few dangerous characters.",
+      "Trusting frontend validation as the main defense.",
+      "Building queries or commands with string concatenation.",
+    ],
+    relatedLessons: ["sql-injection", "command-injection"],
+    relatedTracks: ["injection", "web-security"],
+    relatedCommands: ["linux-search", "powershell-files"],
+  },
+  cookies: {
+    category: "Identity & Access",
+    level: "Beginner",
+    relatedLessons: ["broken-auth"],
+    relatedTracks: ["identity-access"],
+  },
+  hashing: {
+    category: "Secure Coding",
+    level: "Beginner",
+    relatedLessons: ["broken-auth"],
+    relatedTracks: ["identity-access"],
+  },
+  http: {
+    category: "Web Security",
+    level: "Beginner",
+    relatedLessons: ["sql-injection", "xss"],
+    relatedTracks: ["web-security", "fundamentals"],
+    relatedCommands: ["linux-networking", "powershell-networking"],
+  },
+  https: {
+    category: "Web Security",
+    level: "Beginner",
+    relatedTracks: ["web-security"],
+    relatedCommands: ["linux-networking", "powershell-networking"],
+  },
+  oauth: {
+    category: "Identity & Access",
+    level: "Intermediate",
+    whyItMatters:
+      "OAuth is common in modern SaaS and identity flows. Misconfigured scopes, redirects, or app consent can create account and data exposure risks.",
+    attackerUse:
+      "Attackers may abuse consent prompts, malicious OAuth apps, weak redirect validation, or stolen tokens to gain delegated access.",
+    defenderTip:
+      "Review app consent, restrict risky scopes, monitor new grants, and prefer least-privilege integrations.",
+    commonMistakes: [
+      "Treating OAuth as authentication without validating identity correctly.",
+      "Allowing broad scopes by default.",
+      "Ignoring suspicious third-party application consent.",
+    ],
+    relatedLessons: ["oauth-basics", "broken-auth"],
+    relatedTracks: ["identity-access"],
+  },
+  phishing: {
+    category: "SOC / Detection",
+    level: "Beginner",
+    whyItMatters:
+      "Phishing targets human decision-making and is often the entry point for credential theft, malware delivery, and business email compromise.",
+    attackerUse:
+      "Attackers use urgency, impersonation, fake login pages, attachments, and trusted brands to push users into unsafe actions.",
+    defenderTip:
+      "Verify sender context, inspect links carefully, report suspicious messages, and use phishing-resistant MFA where possible.",
+    commonMistakes: [
+      "Trusting display names instead of sender details.",
+      "Clicking before checking the destination.",
+      "Assuming a message is safe because it mentions a known service.",
+    ],
+    relatedLessons: ["phishing-basics"],
+    relatedTracks: ["fundamentals", "soc-basics"],
+  },
+  "principle-of-least-privilege": {
+    category: "Identity & Access",
+    level: "Beginner",
+    relatedLessons: ["access-control"],
+    relatedTracks: ["identity-access", "access-control"],
+  },
+  sessions: {
+    category: "Identity & Access",
+    level: "Beginner",
+    relatedLessons: ["broken-auth"],
+    relatedTracks: ["identity-access"],
+  },
+  sql: {
+    category: "Web Security",
+    level: "Beginner",
+    whyItMatters:
+      "SQL sits directly in front of application data. Unsafe query construction can expose or alter sensitive records.",
+    attackerUse:
+      "Attackers test form fields, URL parameters, and API inputs for values that change query logic or reveal database errors.",
+    defenderTip:
+      "Use prepared statements, least-privilege database users, and monitoring for suspicious database errors or query patterns.",
+    commonMistakes: [
+      "Concatenating user input into SQL strings.",
+      "Relying on escaping instead of parameterized queries.",
+      "Giving the application database user more privileges than needed.",
+    ],
+    relatedLessons: ["sql-injection"],
+    relatedTracks: ["web-security", "injection"],
+    relatedCommands: ["linux-search", "powershell-files"],
+  },
+  "social-engineering": {
+    category: "SOC / Detection",
+    level: "Beginner",
+    relatedLessons: ["phishing-basics"],
+    relatedTracks: ["fundamentals"],
+  },
+};
+
+function inferCategory(term) {
+  const id = term.id;
+
+  if (["oauth", "sessions", "cookies", "ldap", "principle-of-least-privilege"].includes(id)) {
+    return "Identity & Access";
+  }
+
+  if (["phishing", "social-engineering", "botnets", "worms", "zero-day-exploits"].includes(id)) {
+    return "SOC / Detection";
+  }
+
+  if (["hashing", "salting", "randomness", "releases", "digital-signatures"].includes(id)) {
+    return "Secure Coding";
+  }
+
+  if (["ip-address", "netmasks"].includes(id)) {
+    return "Command Basics";
+  }
+
+  return "Web Security";
+}
+
+function defaultWhyItMatters(term) {
+  return `${term.title} matters because it gives you a clearer mental model for how systems behave, where trust boundaries sit, and what defenders need to verify.`;
+}
+
+function defaultAttackerUse(term) {
+  return `Attackers may abuse weak understanding or unsafe handling of ${term.title.toLowerCase()} to create confusion, bypass controls, or hide suspicious behavior.`;
+}
+
+function defaultDefenderTip(term) {
+  return `When you see ${term.title.toLowerCase()} in a system, ask what should be trusted, what should be logged, and what failure mode would be safest.`;
+}
+
+export const glossaryTerms = baseGlossaryTerms.map((term) => {
+  const enhancement = glossaryEnhancements[term.id] || {};
+  const relatedConcepts = enhancement.relatedConcepts || term.relatedTermIds || [];
+
+  return {
+    ...term,
+    term: term.term || term.title,
+    category: enhancement.category || term.category || inferCategory(term),
+    level: enhancement.level || term.level || "Beginner",
+    definition: term.definition || term.description,
+    whyItMatters: enhancement.whyItMatters || term.whyItMatters || defaultWhyItMatters(term),
+    attackerUse: enhancement.attackerUse || term.attackerUse || defaultAttackerUse(term),
+    defenderTip: enhancement.defenderTip || term.defenderTip || defaultDefenderTip(term),
+    commonMistakes: enhancement.commonMistakes || term.commonMistakes || [
+      "Memorizing the term without connecting it to a real system behavior.",
+      "Assuming the concept is automatically safe because it is common.",
+    ],
+    relatedLessons: enhancement.relatedLessons || term.relatedLessons || [],
+    relatedTracks: enhancement.relatedTracks || term.relatedTracks || [],
+    relatedCommands: enhancement.relatedCommands || term.relatedCommands || [],
+    relatedConcepts,
+  };
+});
 
 export function getGlossaryTermById(termId) {
   return glossaryTerms.find((term) => term.id === termId);

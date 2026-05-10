@@ -1,6 +1,14 @@
 import AppBadge from "@dark/ui/components/AppBadge";
 
-export default function TrackCompletionBadge({ isCompleted, compact = false }) {
+type TrackCompletionBadgeProps = {
+    isCompleted?: boolean;
+    compact?: boolean;
+};
+
+export default function TrackCompletionBadge({
+    isCompleted,
+    compact = false,
+}: TrackCompletionBadgeProps) {
     if (!isCompleted) return null;
 
     return (

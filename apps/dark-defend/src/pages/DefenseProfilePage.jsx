@@ -59,11 +59,12 @@ export default function DefenseProfilePage() {
 
             <section className="relative z-10 mx-auto max-w-7xl">
                 <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-                    <Link to="/">
-                        <AppButton variant="secondary" className="gap-2">
-                            <ArrowLeft className="h-4 w-4" />
-                            Back Home
-                        </AppButton>
+                    <Link
+                        to="/"
+                        className="inline-flex items-center gap-2 font-mono text-sm text-slate-400 transition hover:text-blue-300"
+                    >
+                        <ArrowLeft className="h-4 w-4" />
+                        Back Home
                     </Link>
                 </div>
 

@@ -1,7 +1,16 @@
 import { createElement } from "react";
+import type { ComponentType } from "react";
 import { Link } from "react-router-dom";
-import { Inbox } from "lucide-react";
+import { ArrowLeft, Inbox } from "lucide-react";
 import AppButton from "@dark/ui/components/AppButton";
+
+type EmptyStateProps = {
+    icon?: ComponentType<{ className?: string }>;
+    title?: string;
+    description?: string;
+    actionLabel?: string;
+    actionTo?: string;
+};
 
 export default function EmptyState({
     icon = Inbox,
@@ -9,7 +18,9 @@ export default function EmptyState({
     description,
     actionLabel,
     actionTo,
-}) {
+}: EmptyStateProps) {
+    const isBackAction = actionLabel?.toLowerCase().startsWith("back");
+
     return (
         <div className="rounded-xl border border-slate-300/12 bg-slate-400/[0.035] p-5 text-center shadow-[0_0_24px_rgba(96,165,250,0.035)]">
             <div className="mx-auto grid h-11 w-11 place-items-center rounded-lg border border-blue-300/18 bg-blue-400/[0.055] text-blue-200">
@@ -28,7 +39,17 @@ export default function EmptyState({
                 </p>
             )}
 
-            {actionLabel && actionTo && (
+            {actionLabel && actionTo && isBackAction && (
+                <Link
+                    to={actionTo}
+                    className="mt-4 inline-flex items-center gap-2 font-mono text-sm text-slate-400 transition hover:text-blue-300"
+                >
+                    <ArrowLeft className="h-4 w-4" />
+                    {actionLabel}
+                </Link>
+            )}
+
+            {actionLabel && actionTo && !isBackAction && (
                 <Link to={actionTo} className="mt-4 inline-flex">
                     <AppButton variant="secondary">{actionLabel}</AppButton>
                 </Link>

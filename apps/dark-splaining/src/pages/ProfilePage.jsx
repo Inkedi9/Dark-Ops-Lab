@@ -25,11 +25,6 @@ export default function ProfilePage() {
         (lesson) => getLessonStatus(lesson.id) === "completed"
     );
 
-    const completedTracks = tracks.filter((track) => {
-        if (track.status === "Coming soon") return false;
-        return getTrackProgress(track, getLessonStatus).isCompleted;
-    });
-
     const badges = getEarnedBadges({ getLessonStatus, isQuizCompleted });
     const earnedBadges = badges.filter((badge) => badge.earned);
 

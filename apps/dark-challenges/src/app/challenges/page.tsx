@@ -1,7 +1,7 @@
 "use client";
 
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { getAllProgress } from "@/store/progress-store";
 import { MissionCard } from "@/components/dc-ui/MissionCard";
 import {
@@ -19,13 +19,11 @@ import PanelCard from "@dark/ui/components/PanelCard";
 
 export default function ChallengesPage() {
     const challenges = getAllChallenges();
-    const [progress, setProgress] = useState<ReturnType<typeof getAllProgress>>([]);
+    const [progress] = useState<ReturnType<typeof getAllProgress>>(() =>
+        getAllProgress()
+    );
 
     const solvedCount = progress.filter((p) => p.solved).length;
-
-    useEffect(() => {
-        setProgress(getAllProgress());
-    }, []);
 
     function getProgress(challengeId: string) {
         return progress.find((item) => item.challengeId === challengeId);

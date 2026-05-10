@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { AppShell } from "@/components/layout/AppShell";
 import { getAllMiniCtfs } from "@/ctf/registry";
 import { getAllCtfProgress } from "@/store/ctf-progress-store";
@@ -12,11 +12,7 @@ import AppBadge from "@dark/ui/components/AppBadge";
 
 export default function CtfPage() {
     const ctfs = getAllMiniCtfs();
-    const [progress, setProgress] = useState(getAllCtfProgress());
-
-    useEffect(() => {
-        setProgress(getAllCtfProgress());
-    }, []);
+    const [progress] = useState(() => getAllCtfProgress());
 
     return (
         <AppShell>
@@ -33,10 +29,10 @@ export default function CtfPage() {
                     const saved = progress.find((item) => item.ctfId === ctf.id);
                     const completed = Boolean(saved?.completed);
                     const solvedSteps = saved?.solvedStepIds.length ?? 0;
-                    const completion = Math.round((solvedSteps / ctf.steps.length) * 100);
 
                     return (
                         <PanelCard
+                            key={ctf.id}
                             variant="darkNexus"
                             accent={completed ? "emerald" : "blue"}
                             hover

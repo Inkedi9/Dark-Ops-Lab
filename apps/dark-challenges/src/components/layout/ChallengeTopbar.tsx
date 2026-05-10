@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
 import { usePathname } from "next/navigation";
-import { RotateCcw, Shield, User } from "lucide-react";
+import { Shield } from "lucide-react";
 import AppBadge from "@dark/ui/components/AppBadge";
+import ProfileMenuButton from "@dark/ui/components/ProfileMenuButton";
+import type { ReactNode } from "react";
 
 
 type Props = {
@@ -20,9 +21,36 @@ const navItems = [
     { href: "https://dark-nexus.vercel.app", label: "Nexus", external: true },
 ];
 
+function NextProfileLink({
+    to,
+    children,
+    ...props
+}: {
+    to: string;
+    children: ReactNode;
+    className?: string;
+    onClick?: () => void;
+}) {
+    return (
+        <Link href={to} {...props}>
+            {children}
+        </Link>
+    );
+}
+
 export default function ChallengeTopbar({ level, rank }: Props) {
     const pathname = usePathname();
-    const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+
+    function handleLogout() {
+        const confirmed = window.confirm("Reset local offensive profile?");
+        if (!confirmed) return;
+
+        localStorage.removeItem("dc_global_progress");
+        localStorage.removeItem("darkchallenges:progress");
+        localStorage.removeItem("darkchallenges:ctf-progress");
+        localStorage.removeItem("darkchallenges:warzone-progress");
+        window.location.assign("/");
+    }
 
     function navClass(href: string) {
         const active = href === "/" ? pathname === "/" : pathname.startsWith(href);
@@ -70,37 +98,17 @@ export default function ChallengeTopbar({ level, rank }: Props) {
                             <AppBadge variant="blue">LVL {level}</AppBadge>
                             <AppBadge variant="emerald">{rank.toUpperCase()}</AppBadge>
                         </div>
-                        <div className="relative ml-2">
-                            <button
-                                onClick={() => setIsProfileMenuOpen((prev) => !prev)}
-                                className="group grid h-10 w-10 place-items-center rounded-xl border border-white/[0.08] bg-white/[0.04] text-white transition hover:bg-white/[0.08]"
-                            >
-                                <User className="h-5 w-5 transition-transform group-hover:scale-110" />
-                            </button>
-
-                            {isProfileMenuOpen && (
-                                <div className="absolute right-0 z-50 mt-3 w-60 overflow-hidden rounded-2xl border border-white/[0.08] bg-black/90 shadow-[0_20px_70px_rgba(0,0,0,.55)] backdrop-blur-xl">
-                                    <div className="border-b border-white/[0.06] px-4 py-3">
-                                        <p className="font-semibold text-white">Operator</p>
-                                        <p className="font-mono text-xs text-blue-200">
-                                            LVL {level} • {rank.toUpperCase()}
-                                        </p>
-                                    </div>
-
-                                    <Link
-                                        href="/profile"
-                                        className="block px-4 py-3 text-sm font-bold text-slate-300 hover:bg-white/[0.04] hover:text-white"
-                                    >
-                                        View profile
-                                    </Link>
-
-                                    <button className="flex w-full items-center gap-2 px-4 py-3 text-left text-sm font-bold text-red-300 hover:bg-red-400/10">
-                                        <RotateCcw className="h-4 w-4" />
-                                        Reset / logout
-                                    </button>
-                                </div>
-                            )}
-                        </div>
+                        <ProfileMenuButton
+                            profile={{
+                                username: "Offensive Operator",
+                                level,
+                                rank: rank.toUpperCase(),
+                            }}
+                            profileHref="/profile"
+                            LinkComponent={NextProfileLink}
+                            onLogout={handleLogout}
+                            className="ml-2"
+                        />
                     </nav>
                 </div>
             </div>

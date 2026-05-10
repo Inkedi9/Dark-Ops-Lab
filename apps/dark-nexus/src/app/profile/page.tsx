@@ -63,7 +63,7 @@ export default function ProfilePage() {
 
                         <Link
                             href="/"
-                            className="inline-flex items-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.04] px-4 py-2 text-sm font-bold text-slate-200 transition hover:bg-white/[0.08]"
+                            className="inline-flex items-center gap-2 font-mono text-sm text-slate-400 transition hover:text-blue-300"
                         >
                             <ArrowLeft size={18} />
                             Back to hub
@@ -73,11 +73,6 @@ export default function ProfilePage() {
             </main>
         );
     }
-
-    const totalCompleted =
-        profile.completedLessons.length +
-        profile.completedMissions.length +
-        profile.completedDefend.length;
 
     const completedRoutes = Math.min(
         profile.completedLessons.length,
@@ -101,7 +96,7 @@ export default function ProfilePage() {
                     <div className="flex items-center justify-between">
                         <Link
                             href="/"
-                            className="inline-flex items-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.04] px-4 py-2 text-sm font-bold text-slate-200 transition hover:bg-white/[0.08]"
+                            className="inline-flex items-center gap-2 font-mono text-sm text-slate-400 transition hover:text-blue-300"
                         >
                             <ArrowLeft size={17} />
                             Back to DarkNexus

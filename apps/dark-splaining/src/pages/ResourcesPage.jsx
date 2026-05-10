@@ -1,3 +1,4 @@
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { glossaryTerms } from "../data/glossary";
 import { lessons } from "../data/lessons";
@@ -5,7 +6,19 @@ import { handbookSections } from "../data/handbook";
 import PageHeader from "@dark/ui/components/PageHeader";
 import PanelCard from "@dark/ui/components/PanelCard";
 import AppBadge from "@dark/ui/components/AppBadge";
+import SectionHeader from "@dark/ui/components/SectionHeader";
 import { radius, spacing, surface, typography } from "../styles/ui";
+
+const categories = [
+    "All",
+    "Web Security",
+    "Identity & Access",
+    "SOC / Detection",
+    "Secure Coding",
+    "Glossary",
+];
+
+const levels = ["All", "Beginner", "Intermediate", "Advanced"];
 
 const resources = [
     {
@@ -14,6 +27,10 @@ const resources = [
             "Beginner-friendly explanations of common cyber security terms, protocols, attacks and defensive concepts.",
         to: "/resources/glossary",
         status: "Available",
+        category: "Glossary",
+        level: "Beginner",
+        type: "glossary",
+        cta: "Open glossary",
     },
     {
         title: "PCI Compliance",
@@ -21,10 +38,80 @@ const resources = [
             "Future notes about payment security, compliance basics and secure handling of cardholder data.",
         to: "/resources/pci-compliance",
         status: "Draft",
+        category: "Secure Coding",
+        level: "Intermediate",
+        type: "external",
+        cta: "Open notes",
     },
 ];
 
+const beginnerLinks = [
+    {
+        title: "Guided tracks",
+        description: "Follow a structured path instead of jumping between isolated concepts.",
+        to: "/tracks",
+    },
+    {
+        title: "Lesson catalogue",
+        description: "Browse short lessons for web security, identity and detection fundamentals.",
+        to: "/lessons",
+    },
+    {
+        title: "Command basics",
+        description: "Practice Linux and PowerShell commands in a safe mocked terminal.",
+        to: "/command-basics",
+    },
+];
+
+const operationalBasics = [
+    {
+        title: "Linux Basics",
+        description: "Navigation, file reading, searching, processes and networking commands.",
+        to: "/command-basics",
+        level: "Beginner",
+    },
+    {
+        title: "PowerShell Basics",
+        description: "Core cmdlets for navigation, files, process inspection and connectivity checks.",
+        to: "/command-basics",
+        level: "Beginner",
+    },
+];
+
+function getTypeVariant(type) {
+    if (type === "command") return "violet";
+    if (type === "lesson") return "blue";
+    if (type === "glossary") return "emerald";
+    return "slate";
+}
+
 export default function ResourcesPage() {
+    const [search, setSearch] = useState("");
+    const [category, setCategory] = useState("All");
+    const [level, setLevel] = useState("All");
+
+    const conceptResources = useMemo(() => {
+        return resources;
+    }, []);
+
+    const filteredResources = useMemo(() => {
+        const query = search.trim().toLowerCase();
+
+        return conceptResources.filter((resource) => {
+            const matchesSearch =
+                !query ||
+                [resource.title, resource.description, resource.category, resource.type]
+                    .join(" ")
+                    .toLowerCase()
+                    .includes(query);
+
+            const matchesCategory = category === "All" || resource.category === category;
+            const matchesLevel = level === "All" || resource.level === level;
+
+            return matchesSearch && matchesCategory && matchesLevel;
+        });
+    }, [category, conceptResources, level, search]);
+
     const learningLinksCount = lessons.reduce((total, lesson) => {
         return total + (lesson.relatedTermIds?.length || 0);
     }, 0);
@@ -40,7 +127,7 @@ export default function ResourcesPage() {
         },
         {
             label: "Resources",
-            value: resources.length,
+            value: conceptResources.length,
         },
     ];
 
@@ -71,38 +158,188 @@ export default function ResourcesPage() {
                 ))}
             </section>
 
-            <section className={`max-w-5xl divide-y divide-white/10 border-y ${surface.divider}`}>
-                {resources.map((resource) => (
-                    <article
-                        key={resource.title}
-                        className="grid gap-5 py-7 md:grid-cols-[1fr_auto] md:items-center"
-                    >
-                        <div>
-                            <div className="flex flex-wrap items-center gap-3">
-                                <h2 className="font-mono text-2xl font-bold tracking-tight text-slate-200">
-                                    {resource.title}
-                                </h2>
+            <section className="mb-12">
+                <SectionHeader
+                    eyebrow="Recommended for beginners"
+                    title="Start from the right place"
+                    accent="emerald"
+                />
 
-                                <AppBadge
-                                    variant={resource.status === "Available" ? "emerald" : "slate"}
-                                >
-                                    {resource.status}
-                                </AppBadge>
+                <div className={`max-w-5xl divide-y divide-white/10 border-y ${surface.divider}`}>
+                    {beginnerLinks.map((link) => (
+                        <article
+                            key={link.title}
+                            className="grid gap-4 py-5 md:grid-cols-[1fr_auto] md:items-center"
+                        >
+                            <div>
+                                <h2 className="font-mono text-lg font-bold tracking-tight text-slate-200">
+                                    {link.title}
+                                </h2>
+                                <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">
+                                    {link.description}
+                                </p>
                             </div>
 
-                            <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-400">
-                                {resource.description}
+                            <Link
+                                to={link.to}
+                                className="font-mono text-sm font-bold text-emerald-300 transition hover:text-emerald-200"
+                            >
+                                Open →
+                            </Link>
+                        </article>
+                    ))}
+                </div>
+            </section>
+
+            <section className="mb-12">
+                <SectionHeader
+                    eyebrow="Operational basics"
+                    title="Command-line foundations"
+                    accent="violet"
+                />
+
+                <div className={`max-w-5xl divide-y divide-white/10 border-y ${surface.divider}`}>
+                    {operationalBasics.map((item) => (
+                        <article
+                            key={item.title}
+                            className="grid gap-4 py-5 md:grid-cols-[1fr_auto] md:items-center"
+                        >
+                            <div>
+                                <div className="flex flex-wrap items-center gap-3">
+                                    <h2 className="font-mono text-lg font-bold tracking-tight text-slate-200">
+                                        {item.title}
+                                    </h2>
+                                    <AppBadge variant="violet">{item.level}</AppBadge>
+                                </div>
+                                <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">
+                                    {item.description}
+                                </p>
+                            </div>
+
+                            <Link
+                                to={item.to}
+                                className="font-mono text-sm font-bold text-violet-300 transition hover:text-violet-200"
+                            >
+                                Practice →
+                            </Link>
+                        </article>
+                    ))}
+                </div>
+            </section>
+
+            <section className="mb-14">
+                <SectionHeader
+                    eyebrow="Concept library"
+                    title="Find the concept you need"
+                    description="Search lessons, glossary references and command basics without leaving the learning flow."
+                    accent="blue"
+                />
+
+                <div className={`mb-6 max-w-5xl border-y ${surface.divider} py-4`}>
+                    <div className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-end">
+                        <label className="block">
+                            <span className="font-mono text-xs uppercase tracking-[0.25em] text-slate-500">
+                                Search
+                            </span>
+                            <input
+                                value={search}
+                                onChange={(event) => setSearch(event.target.value)}
+                                placeholder="Search SQL, MFA, Linux, glossary..."
+                                className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-950/50 px-4 py-3 text-sm text-slate-200 outline-none transition placeholder:text-slate-600 focus:border-blue-300/40 focus:bg-slate-950/70"
+                            />
+                        </label>
+
+                        <div className="grid gap-3 sm:grid-cols-2">
+                            <label className="block">
+                                <span className="font-mono text-xs uppercase tracking-[0.25em] text-slate-500">
+                                    Category
+                                </span>
+                                <select
+                                    value={category}
+                                    onChange={(event) => setCategory(event.target.value)}
+                                    className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-950/50 px-4 py-3 text-sm text-slate-200 outline-none transition focus:border-blue-300/40"
+                                >
+                                    {categories.map((item) => (
+                                        <option key={item}>{item}</option>
+                                    ))}
+                                </select>
+                            </label>
+
+                            <label className="block">
+                                <span className="font-mono text-xs uppercase tracking-[0.25em] text-slate-500">
+                                    Level
+                                </span>
+                                <select
+                                    value={level}
+                                    onChange={(event) => setLevel(event.target.value)}
+                                    className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-950/50 px-4 py-3 text-sm text-slate-200 outline-none transition focus:border-blue-300/40"
+                                >
+                                    {levels.map((item) => (
+                                        <option key={item}>{item}</option>
+                                    ))}
+                                </select>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div className={`max-w-5xl divide-y divide-white/10 border-y ${surface.divider}`}>
+                    {filteredResources.map((resource) => (
+                        <article
+                            key={resource.title}
+                            className="grid gap-5 py-7 md:grid-cols-[1fr_auto] md:items-center"
+                        >
+                            <div>
+                                <div className="flex flex-wrap items-center gap-3">
+                                    <h2 className="font-mono text-2xl font-bold tracking-tight text-slate-200">
+                                        {resource.title}
+                                    </h2>
+
+                                    <AppBadge
+                                        variant={resource.status === "Available" ? "emerald" : "slate"}
+                                    >
+                                        {resource.status}
+                                    </AppBadge>
+                                    <AppBadge variant={getTypeVariant(resource.type)}>
+                                        {resource.type}
+                                    </AppBadge>
+                                </div>
+
+                                <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-400">
+                                    {resource.description}
+                                </p>
+
+                                <div className="mt-3 flex flex-wrap gap-2">
+                                    <span className="rounded-full border border-blue-300/15 bg-blue-300/[0.06] px-3 py-1 font-mono text-xs text-blue-200">
+                                        {resource.category}
+                                    </span>
+                                    <span className="rounded-full border border-white/10 bg-white/[0.035] px-3 py-1 font-mono text-xs text-slate-400">
+                                        {resource.level}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <Link
+                                to={resource.to}
+                                className="font-mono text-sm font-bold text-blue-300 transition hover:text-blue-200"
+                            >
+                                {resource.cta || "Open"} →
+                            </Link>
+                        </article>
+                    ))}
+
+                    {filteredResources.length === 0 && (
+                        <div className="py-10">
+                            <p className="font-mono text-sm font-bold text-slate-200">
+                                No concept found.
+                            </p>
+                            <p className="mt-2 max-w-xl text-sm leading-6 text-slate-400">
+                                Try a broader search, switch the category back to All, or reset
+                                the level filter.
                             </p>
                         </div>
-
-                        <Link
-                            to={resource.to}
-                            className="font-mono text-sm font-bold text-blue-300 transition hover:text-blue-200"
-                        >
-                            Open →
-                        </Link>
-                    </article>
-                ))}
+                    )}
+                </div>
             </section>
 
             <section className="mt-14">

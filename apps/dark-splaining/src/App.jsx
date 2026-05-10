@@ -7,6 +7,8 @@ import TracksPage from "./pages/TracksPage";
 import TrackDetailPage from "./pages/TrackDetailPage";
 import AnalyticsPage from "./pages/AnalyticsPage";
 import HandbookItemPage from "./pages/HandbookItemPage";
+import CommandBasicsPage from "./pages/CommandBasicsPage";
+import ConceptDetailPage from "./pages/ConceptDetailPage";
 
 import ResourcesPage from "./pages/ResourcesPage";
 import GlossaryPage from "./pages/GlossaryPage";
@@ -36,9 +38,11 @@ export default function App() {
             <Route path="/tracks" element={<TracksPage />} />
             <Route path="/tracks/:trackId" element={<TrackDetailPage />} />
             <Route path="/analytics" element={<AnalyticsPage />} />
+            <Route path="/command-basics" element={<CommandBasicsPage />} />
             <Route path="/resources" element={<ResourcesPage />} />
             <Route path="/resources/glossary" element={<GlossaryPage />} />
             <Route path="/resources/glossary/:termId" element={<GlossaryTermPage />} />
+            <Route path="/concepts/:conceptId" element={<ConceptDetailPage />} />
             <Route path="/resources/pci-compliance" element={<PciCompliancePage />} />
             <Route path="/resources/handbook/:itemId" element={<HandbookItemPage />} />
             <Route path="/certificates/:trackId" element={<CertificatePage />} />

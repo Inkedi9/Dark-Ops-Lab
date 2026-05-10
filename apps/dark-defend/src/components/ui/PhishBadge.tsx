@@ -1,6 +1,12 @@
+import type { ReactNode } from "react";
 import AppBadge from "@dark/ui/components/AppBadge";
 
-export function PhishBadge({ children, tone = "teal" }) {
+type PhishBadgeProps = {
+    children: ReactNode;
+    tone?: string;
+};
+
+export function PhishBadge({ children, tone = "teal" }: PhishBadgeProps) {
     const variants = {
         blue: "blue",
         teal: "blue",
@@ -15,7 +21,7 @@ export function PhishBadge({ children, tone = "teal" }) {
     };
 
     return (
-        <AppBadge variant={variants[tone] || variants.teal} className="rounded-lg tracking-[0.16em]">
+        <AppBadge variant={variants[tone as keyof typeof variants] || variants.teal} className="rounded-lg tracking-[0.16em]">
             {children}
         </AppBadge>
     );

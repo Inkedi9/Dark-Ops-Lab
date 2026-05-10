@@ -75,7 +75,7 @@ export default function TopbarSearch({ variant = "desktop", onNavigate }) {
             type: "Glossary",
             title: term.title,
             description: term.shortDescription,
-            to: `/resources/glossary/${term.id}`,
+            to: `/concepts/${term.id}`,
         }));
 
         return [...lessonItems, ...trackItems, ...glossaryItems, ...staticResources];

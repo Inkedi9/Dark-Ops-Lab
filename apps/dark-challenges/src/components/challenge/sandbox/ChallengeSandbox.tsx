@@ -1,6 +1,5 @@
 import type { ChallengeDefinition } from "@/engine/types";
 import { FakeBrowser } from "./FakeBrowser";
-import { FakeDbPanel } from "./FakeDbPanel";
 import { FakeTerminalOutput } from "./FakeTerminalOutput";
 import { BlindSqlPanel } from "./BlindSqlPanel";
 import { TimeBasedSqlPanel } from "./TimeBasedSqlPanel";

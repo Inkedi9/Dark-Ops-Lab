@@ -1,6 +1,12 @@
 import { getDefendTone } from "@/lib/defend/uiTokens";
 
-export function PhishMetric({ label, value, tone = "teal" }) {
+type PhishMetricProps = {
+    label: string;
+    value: string | number;
+    tone?: string;
+};
+
+export function PhishMetric({ label, value, tone = "teal" }: PhishMetricProps) {
     const selectedTone = getDefendTone(tone);
 
     return (

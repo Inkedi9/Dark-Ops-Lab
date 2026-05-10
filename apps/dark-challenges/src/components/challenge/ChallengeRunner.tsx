@@ -1,11 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { Crosshair, Clock, Trophy, ShieldAlert } from "lucide-react";
+import { useMemo, useState } from "react";
+import Link from "next/link";
+import { ArrowLeft, Crosshair, Clock, Trophy, ShieldAlert } from "lucide-react";
 import { getChallengeBySlug } from "@/challenges/registry";
 import { runChallengeAttempt } from "@/engine/challenge-engine";
 import { calculateScore } from "@/engine/scoring";
 import type { ChallengeLog } from "@/engine/types";
+import type { ChallengeDefinition } from "@/engine/types";
 import {
     getChallengeProgress,
     resetChallengeProgress,
@@ -13,7 +15,8 @@ import {
 } from "@/store/progress-store";
 import { TerminalPanel } from "@/components/dc-ui/TerminalPanel";
 import { ChallengeSandbox } from "@/components/challenge/sandbox/ChallengeSandbox";
-import { addXp, getGlobalProgress } from "@/store/global-progress";
+import { addXp } from "@/store/global-progress";
+import { appendProgressEvent } from "@dark/progress";
 import { MissionStatusBar } from "@/components/challenge/MissionStatusBar";
 import { AppShell } from "@/components/layout/AppShell";
 import { FailIntelligencePanel } from "@/components/challenge/FailIntelligencePanel";
@@ -32,63 +35,60 @@ type Props = {
     slug: string;
 };
 
+const fallbackChallenge: ChallengeDefinition = {
+    id: "missing-challenge",
+    slug: "missing-challenge",
+    title: "Mission not found",
+    category: "Unknown",
+    difficulty: "beginner",
+    estimatedMinutes: 0,
+    objective: "Return to the mission board and choose an available mission.",
+    successCondition: "No mission loaded.",
+    hints: [],
+    evaluate: () => ({
+        success: false,
+        message: "Mission not found.",
+        logs: [{ level: "error", message: "mission not found" }],
+    }),
+    fields: [],
+    sandboxType: "terminal",
+};
+
 export default function ChallengeRunner({ slug }: Props) {
     const foundChallenge = getChallengeBySlug(slug);
-
-    if (!foundChallenge) {
-        return null;
-    }
-
-    const challenge = foundChallenge;
+    const challenge = foundChallenge ?? fallbackChallenge;
 
     const [inputValues, setInputValues] = useState<Record<string, string>>({});
-    const [logs, setLogs] = useState<TerminalLog[]>([
+    const [savedProgress] = useState(() => getChallengeProgress(challenge.id));
+    const [logs, setLogs] = useState<TerminalLog[]>(() => [
         { time: "00:00", level: "info", message: "mission initialized" },
         { time: "00:00", level: "info", message: "waiting for input" },
+        ...(savedProgress
+            ? [
+                {
+                    time: "00:00",
+                    level: "success" as const,
+                    message: `saved progress loaded: best score ${savedProgress.bestScore} XP`,
+                },
+            ]
+            : []),
     ]);
-    const [attempts, setAttempts] = useState(0);
-    const [hintsUsed, setHintsUsed] = useState(0);
-    const [solved, setSolved] = useState(false);
-    const [bestScore, setBestScore] = useState<number | null>(null);
+    const [attempts, setAttempts] = useState(savedProgress?.attempts ?? 0);
+    const [hintsUsed, setHintsUsed] = useState(savedProgress?.hintsUsed ?? 0);
+    const [solved, setSolved] = useState(savedProgress?.solved ?? false);
+    const [bestScore, setBestScore] = useState<number | null>(savedProgress?.bestScore ?? null);
     const [startedAt] = useState(() => Date.now());
-    const [global, setGlobal] = useState({
-        totalXp: 0,
-        level: 1,
-        rank: "novice",
-    });
-    const [sandboxVersion, setSandboxVersion] = useState(0);
 
     const generatedQuery = useMemo(() => {
         return challenge.getPreview?.(inputValues) ?? "";
-    }, [challenge, inputValues, sandboxVersion]);
-
-    const elapsedSeconds = Math.floor((Date.now() - startedAt) / 1000);
+    }, [challenge, inputValues]);
 
     const score = calculateScore({
         difficulty: challenge.difficulty,
         attempts,
         hintsUsed,
-        elapsedSeconds,
+        elapsedSeconds: 0,
     });
-
-    useEffect(() => {
-        const savedProgress = getChallengeProgress(challenge.id);
-
-        if (!savedProgress) return;
-
-        setSolved(savedProgress.solved);
-        setBestScore(savedProgress.bestScore);
-        setGlobal(getGlobalProgress());
-
-        setLogs((current) => [
-            ...current,
-            {
-                time: "00:00",
-                level: "success",
-                message: `saved progress loaded: best score ${savedProgress.bestScore} XP`,
-            },
-        ]);
-    }, [challenge.id]);
 
     function getTime() {
         const seconds = Math.floor((Date.now() - startedAt) / 1000);
@@ -108,6 +108,10 @@ export default function ChallengeRunner({ slug }: Props) {
         ]);
     }
 
+    function getElapsedSeconds() {
+        return Math.floor((Date.now() - startedAt) / 1000);
+    }
+
     function runLogin() {
         if (solved) return;
 
@@ -120,7 +124,6 @@ export default function ChallengeRunner({ slug }: Props) {
 
         setAttempts(finalAttempts);
         appendLogs(result.logs);
-        setSandboxVersion((value) => value + 1);
 
         if (!result.success) return;
 
@@ -137,11 +140,21 @@ export default function ChallengeRunner({ slug }: Props) {
             difficulty: challenge.difficulty,
             attempts: finalAttempts,
             hintsUsed,
-            elapsedSeconds,
+            elapsedSeconds: getElapsedSeconds(),
         });
 
-        const updatedGlobal = addXp(finalScore);
-        setGlobal(updatedGlobal);
+        addXp(finalScore);
+        appendProgressEvent("challenges", {
+            type: "challenge_completed",
+            source: "dark-challenges",
+            payload: {
+                challengeId: challenge.id,
+                slug: challenge.slug,
+                xp: finalScore,
+                attempts: finalAttempts,
+                hintsUsed,
+            },
+        });
 
         setSolved(true);
 
@@ -189,14 +202,32 @@ export default function ChallengeRunner({ slug }: Props) {
             { time: "00:00", level: "info", message: "mission reset" },
             { time: "00:00", level: "info", message: "waiting for input" },
         ]);
-        setSandboxVersion((value) => value + 1);
     }
 
-    function getLogClass(level: ChallengeLog["level"]) {
-        if (level === "success") return "text-green-300";
-        if (level === "warning") return "text-amber-300";
-        if (level === "error") return "text-red-300";
-        return "text-slate-300";
+    if (!foundChallenge) {
+        return (
+            <AppShell>
+                <PanelCard variant="darkNexus" accent="danger" className="p-8">
+                    <AppBadge variant="danger">Mission not found</AppBadge>
+
+                    <h1 className="mt-4 text-3xl font-black text-white">
+                        This challenge does not exist.
+                    </h1>
+
+                    <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-400">
+                        Return to the mission board and choose an available operation.
+                    </p>
+
+                    <Link
+                        href="/challenges"
+                        className="mt-6 inline-flex items-center gap-2 font-mono text-sm text-slate-400 transition hover:text-blue-300"
+                    >
+                        <ArrowLeft className="h-4 w-4" />
+                        Back to missions
+                    </Link>
+                </PanelCard>
+            </AppShell>
+        );
     }
 
     return (

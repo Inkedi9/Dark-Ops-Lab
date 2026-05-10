@@ -1,13 +1,15 @@
 import { Link } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
 
 export default function PciCompliancePage() {
     return (
         <div className="py-10">
             <Link
                 to="/resources"
-                className="mb-8 inline-flex font-mono text-sm text-slate-400 transition hover:text-blue-300"
+                className="mb-8 inline-flex items-center gap-2 font-mono text-sm text-slate-400 transition hover:text-blue-300"
             >
-                ← Back to resources
+                <ArrowLeft className="h-4 w-4" />
+                Back to resources
             </Link>
 
             <article className="max-w-4xl">

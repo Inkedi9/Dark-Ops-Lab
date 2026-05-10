@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { usePathname } from "next/navigation";
 import { getGlobalProgress } from "@/store/global-progress";
 import ProgressBar from "@dark/ui/components/ProgressBar";
@@ -14,17 +14,9 @@ type AppShellProps = {
 };
 
 export function AppShell({ children }: AppShellProps) {
-    const [global, setGlobal] = useState({
-        totalXp: 0,
-        level: 1,
-        rank: "novice",
-    });
+    const [global] = useState(() => getGlobalProgress());
 
     const pathname = usePathname();
-
-    useEffect(() => {
-        setGlobal(getGlobalProgress());
-    }, []);
 
     function navClass(href: string) {
         const active = href === "/" ? pathname === "/" : pathname.startsWith(href);

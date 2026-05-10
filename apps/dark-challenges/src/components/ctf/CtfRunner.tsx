@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
 import { TerminalPanel } from "@/components/dc-ui/TerminalPanel";
 import type { ChallengeLog } from "@/engine/types";
@@ -10,7 +12,9 @@ import {
     saveCtfProgress,
 } from "@/store/ctf-progress-store";
 import { addXp } from "@/store/global-progress";
+import { appendProgressEvent } from "@dark/progress";
 import { getMiniCtfBySlug } from "@/ctf/registry";
+import type { MiniCtf } from "@/ctf/types";
 import PanelCard from "@dark/ui/components/PanelCard";
 import AppBadge from "@dark/ui/components/AppBadge";
 import AppButton from "@dark/ui/components/AppButton";
@@ -26,19 +30,57 @@ type Props = {
     slug: string;
 };
 
-export function CtfRunner({ slug }: Props) {
-    const ctf = getMiniCtfBySlug(slug);
+const fallbackCtf: MiniCtf = {
+    id: "missing-ctf",
+    slug: "missing-ctf",
+    title: "CTF not found",
+    description: "Return to the CTF board and choose an available operation.",
+    difficulty: "beginner",
+    rewardXp: 0,
+    badge: "Unavailable",
+    finalFlag: "",
+    steps: [
+        {
+            id: "missing-step",
+            title: "Unavailable fragment",
+            objective: "No CTF operation loaded.",
+            field: {
+                name: "input",
+                label: "Input",
+                placeholder: "No operation available",
+            },
+            evaluate: () => ({
+                success: false,
+                message: "CTF not found.",
+                logs: [{ level: "error", message: "ctf not found" }],
+            }),
+        },
+    ],
+};
 
-    if (!ctf) {
-        return null;
-    }
+export function CtfRunner({ slug }: Props) {
+    const foundCtf = getMiniCtfBySlug(slug);
+    const ctf = foundCtf ?? fallbackCtf;
+    const [savedProgress] = useState(() =>
+        foundCtf ? getCtfProgress(ctf.id) : null
+    );
 
     const [inputValues, setInputValues] = useState<Record<string, string>>({});
-    const [activeStepIndex, setActiveStepIndex] = useState(0);
-    const [submittedFlag, setSubmittedFlag] = useState("");
-    const [completed, setCompleted] = useState(false);
-    const [solvedStepIds, setSolvedStepIds] = useState<string[]>([]);
-    const [fragments, setFragments] = useState<string[]>([]);
+    const [activeStepIndex, setActiveStepIndex] = useState(() => {
+        if (!savedProgress) return 0;
+
+        const nextIndex = ctf.steps.findIndex(
+            (step) => !savedProgress.solvedStepIds.includes(step.id)
+        );
+
+        return nextIndex === -1 ? ctf.steps.length - 1 : nextIndex;
+    });
+    const [submittedFlag, setSubmittedFlag] = useState(savedProgress?.submittedFlag ?? "");
+    const [completed, setCompleted] = useState(savedProgress?.completed ?? false);
+    const [solvedStepIds, setSolvedStepIds] = useState<string[]>(
+        savedProgress?.solvedStepIds ?? []
+    );
+    const [fragments, setFragments] = useState<string[]>(savedProgress?.fragments ?? []);
     const [logs, setLogs] = useState<TerminalLog[]>([
         { time: "00:00", level: "info", message: "ctf operation initialized" },
     ]);
@@ -46,21 +88,6 @@ export function CtfRunner({ slug }: Props) {
     const [attempts, setAttempts] = useState(0);
 
     const activeStep = ctf.steps[activeStepIndex];
-
-    useEffect(() => {
-        const saved = getCtfProgress(ctf.id);
-
-        setSolvedStepIds(saved.solvedStepIds);
-        setFragments(saved.fragments);
-        setCompleted(saved.completed);
-        setSubmittedFlag(saved.submittedFlag ?? "");
-
-        const nextIndex = ctf.steps.findIndex(
-            (step) => !saved.solvedStepIds.includes(step.id)
-        );
-
-        setActiveStepIndex(nextIndex === -1 ? ctf.steps.length - 1 : nextIndex);
-    }, [ctf]);
 
     const completion = useMemo(() => {
         return Math.round((solvedStepIds.length / ctf.steps.length) * 100);
@@ -101,8 +128,6 @@ export function CtfRunner({ slug }: Props) {
         setSolvedStepIds(nextSolved);
         setFragments(nextFragments);
 
-
-        if (!ctf) return;
         saveCtfProgress({
             ctfId: ctf.id,
             solvedStepIds: nextSolved,
@@ -117,8 +142,6 @@ export function CtfRunner({ slug }: Props) {
     }
 
     function submitFinalFlag() {
-        if (!ctf) return;
-
         const elapsedSeconds = Math.floor((Date.now() - startedAt) / 1000);
         const success = submittedFlag.trim() === ctf.finalFlag;
 
@@ -136,6 +159,17 @@ export function CtfRunner({ slug }: Props) {
 
         setCompleted(true);
         addXp(ctf.rewardXp);
+        appendProgressEvent("challenges", {
+            type: "challenge_completed",
+            source: "dark-challenges",
+            payload: {
+                challengeId: ctf.id,
+                slug: ctf.slug,
+                kind: "ctf",
+                xp: ctf.rewardXp,
+                attempts,
+            },
+        });
 
         saveCtfProgress({
             ctfId: ctf.id,
@@ -159,8 +193,6 @@ export function CtfRunner({ slug }: Props) {
     }
 
     function resetOperation() {
-        if (!ctf) return;
-
         resetCtfProgress(ctf.id);
         setInputValues({});
         setActiveStepIndex(0);
@@ -171,6 +203,32 @@ export function CtfRunner({ slug }: Props) {
         setLogs([
             { time: "00:00", level: "info", message: "ctf operation reset" },
         ]);
+    }
+
+    if (!foundCtf) {
+        return (
+            <AppShell>
+                <PanelCard variant="darkNexus" accent="danger" className="p-8">
+                    <AppBadge variant="danger">CTF not found</AppBadge>
+
+                    <h1 className="mt-4 text-3xl font-black text-white">
+                        This CTF operation does not exist.
+                    </h1>
+
+                    <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-400">
+                        Return to the CTF board and choose an available chain.
+                    </p>
+
+                    <Link
+                        href="/ctf"
+                        className="mt-6 inline-flex items-center gap-2 font-mono text-sm text-slate-400 transition hover:text-blue-300"
+                    >
+                        <ArrowLeft className="h-4 w-4" />
+                        Back to CTF
+                    </Link>
+                </PanelCard>
+            </AppShell>
+        );
     }
 
     return (

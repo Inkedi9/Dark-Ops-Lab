@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
 import PanelCard from "@dark/ui/components/PanelCard";
 import AppBadge from "@dark/ui/components/AppBadge";
 import AppButton from "@dark/ui/components/AppButton";
@@ -87,9 +89,13 @@ export default function CompletionCard({
                 )}
 
                 {isCompleted && !nextLesson && (
-                    <AppButton to="/lessons" variant="secondary">
+                    <Link
+                        to="/lessons"
+                        className="inline-flex items-center gap-2 font-mono text-sm text-slate-400 transition hover:text-blue-300"
+                    >
+                        <ArrowLeft className="h-4 w-4" />
                         Back to lesson library
-                    </AppButton>
+                    </Link>
                 )}
             </div>
         </PanelCard>
