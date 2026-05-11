@@ -1,5 +1,11 @@
 # 🧠 Dark Ecosystem
 
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](./LICENSE)
+![Status](https://img.shields.io/badge/status-active%20development-blueviolet)
+![Stack](https://img.shields.io/badge/stack-Next.js%20%7C%20React%20%7C%20Supabase-black)
+![Architecture](https://img.shields.io/badge/architecture-monorepo%20%7C%20local--first-0f172a)
+![Cyber OS](https://img.shields.io/badge/concept-Cyber%20Operating%20System-7c3aed)
+
 > Learn. Practice. Attack. Defend.
 
 Dark Ecosystem is a modern cybersecurity training platform designed to bridge the gap between theory, offensive practice, and defensive thinking — through immersive and modular experiences.
