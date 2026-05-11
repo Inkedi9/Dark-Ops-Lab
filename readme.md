@@ -128,53 +128,62 @@ DarkNexus is intentionally separated from the training apps to preserve a local-
 - TypeScript migration in progress
 - Multi-app monorepo architecture
 
-🎨 Shared Design System
+#### 🎨 Shared Design System
 
 Shared UI components:
-PanelCard
-AppButton
-AppBadge
-SectionHeader
-ProgressBar
-EmptyState
-Status indicators
-Shared telemetry UI
+
+- PanelCard
+- AppButton
+- AppBadge
+- SectionHeader
+- ProgressBar
+- EmptyState
+- Status indicators
+- Shared telemetry UI
 
 The ecosystem uses a unified dark blue/slate visual language while progressively differentiating each module.
 
-🧪 Engines
+#### 🧪 Engines
 
 Challenge Engine
 
 Used inside DarkChallenges:
-exploit simulation
-answer validation
-dynamic scoring
-mission progression
-Telemetry Engine
+
+- exploit simulation
+- answer validation
+- dynamic scoring
+- mission progression
+- Telemetry Engine
 
 Used across all apps:
-normalized progress events
-idempotent sync model
-cross-app telemetry
-local-first event queue
-Supabase-ready synchronization
 
-🔄 Local-First Sync Architecture
+- normalized progress events
+- idempotent sync model
+- cross-app telemetry
+- local-first event queue
+- Supabase-ready synchronization
+
+#### 🔄 Local-First Sync Architecture
 
 Dark Ecosystem uses a local-first architecture.
 
 Each application:
-stores its own progress locally
-works independently
-can function offline
-exports telemetry explicitly to Nexus
+
+- stores its own progress locally
+- works independently
+- can function offline
+- exports telemetry explicitly to Nexus
 
 Flow:
+
 App local progress
+
 → telemetry export bridge
+
 → DarkNexus import
+
 → telemetry merge
+
 → optional Supabase sync
 
 Why?
@@ -188,7 +197,7 @@ offline capability
 resilience
 explicit sync control
 
-🧠 Progress Event Model
+#### 🧠 Progress Event Model
 
 The ecosystem uses normalized progress events.
 
