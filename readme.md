@@ -40,6 +40,46 @@ inside guided and simulated environments.
 | 🛡️ DarkDefend     | Defend            | Phishing & defensive awareness simulator |
 | 🧠 DarkNexus      | Hub               | Global telemetry, sync, orchestration    |
 
+## 🧠 Why “Cyber Operating System”?
+
+Most cybersecurity platforms isolate:
+
+- learning
+- labs
+- defensive simulations
+- telemetry
+- progression
+
+Dark Ecosystem connects them.
+
+The objective is not to create separate cyber apps.
+
+The objective is to create:
+
+- a persistent operator identity
+- connected workflows
+- shared progression
+- ecosystem-wide telemetry
+- modular cyber specializations
+
+inside one immersive operational environment.
+
+### 🧠 DarkNexus — Cyber Operating System Layer
+
+DarkNexus acts as the orchestration and telemetry layer of the ecosystem.
+
+Responsibilities:
+
+- global profile
+- telemetry aggregation
+- sync orchestration
+- Supabase authentication
+- cloud synchronization
+- ecosystem navigation
+- cross-app visibility
+
+DarkNexus is intentionally separated from the training apps to preserve a local-first architecture.
+
 ### 📚 DarkSplaining — Learning Platform
 
 DarkSplaining focuses on guided cybersecurity education.
@@ -108,22 +148,6 @@ Features:
 - defensive profiling
 
 The objective is to build real defensive reflexes instead of passive awareness training.
-
-### 🧠 DarkNexus — Central Hub
-
-DarkNexus acts as the orchestration and telemetry layer of the ecosystem.
-
-Responsibilities:
-
-- global profile
-- telemetry aggregation
-- sync orchestration
-- Supabase authentication
-- cloud synchronization
-- ecosystem navigation
-- cross-app visibility
-
-DarkNexus is intentionally separated from the training apps to preserve a local-first architecture.
 
 ---
 
