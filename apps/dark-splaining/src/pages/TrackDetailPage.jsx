@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
 import { lessons } from "../data/lessons";
 import { tracks } from "../data/tracks";
@@ -15,6 +16,10 @@ import CertificateCard from "../components/certificates/CertificateCard";
 import DomainBadge from "../components/security/DomainBadge";
 import { getLessonIdentity } from "../utils/lessonIdentity";
 import { ArrowLeft, BadgeCheck } from "lucide-react";
+import {
+    recordTrackCompleted,
+    recordTrackStarted,
+} from "../services/splainingProgressEvents";
 
 function getTrackById(trackId) {
     return tracks.find((track) => track.id === trackId);
@@ -31,6 +36,36 @@ export default function TrackDetailPage() {
     const { getLessonStatus } = useLessonProgress();
 
     const track = getTrackById(trackId);
+
+    const trackLessons = track ? getTrackLessons(track) : [];
+    const availableLessons = trackLessons.filter(
+        (lesson) => lesson.status !== "Coming soon"
+    );
+
+    const completedCount = availableLessons.filter(
+        (lesson) => getLessonStatus(lesson.id) === "completed"
+    ).length;
+
+    const progressPercent =
+        availableLessons.length > 0
+            ? Math.round((completedCount / availableLessons.length) * 100)
+            : 0;
+
+    const isComingSoon = track?.status === "Coming soon";
+    const isTrackCompleted =
+        availableLessons.length > 0 && completedCount === availableLessons.length;
+
+    useEffect(() => {
+        if (!track || isComingSoon) return;
+
+        if (progressPercent > 0) {
+            recordTrackStarted(track.id);
+        }
+
+        if (isTrackCompleted) {
+            recordTrackCompleted(track.id);
+        }
+    }, [isComingSoon, isTrackCompleted, progressPercent, track]);
 
     if (!track) {
         return (
@@ -53,24 +88,6 @@ export default function TrackDetailPage() {
             </div>
         );
     }
-
-    const trackLessons = getTrackLessons(track);
-    const availableLessons = trackLessons.filter(
-        (lesson) => lesson.status !== "Coming soon"
-    );
-
-    const completedCount = availableLessons.filter(
-        (lesson) => getLessonStatus(lesson.id) === "completed"
-    ).length;
-
-    const progressPercent =
-        availableLessons.length > 0
-            ? Math.round((completedCount / availableLessons.length) * 100)
-            : 0;
-
-    const isComingSoon = track.status === "Coming soon";
-    const isTrackCompleted =
-        availableLessons.length > 0 && completedCount === availableLessons.length;
 
     const nextLesson = getNextUnlockedLesson(availableLessons, getLessonStatus);
     const nextLessonId = nextLesson?.id;

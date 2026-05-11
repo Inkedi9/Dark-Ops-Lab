@@ -13,6 +13,10 @@ function isBrowser() {
     return typeof window !== "undefined";
 }
 
+function notifyProgressChanged() {
+    window.dispatchEvent(new Event("darkchallenges:local-progress"));
+}
+
 export function getAllProgress(): ChallengeProgress[] {
     if (!isBrowser()) return [];
 
@@ -61,6 +65,7 @@ export function saveChallengeProgress(progress: ChallengeProgress) {
     }
 
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(allProgress));
+    notifyProgressChanged();
 }
 
 export function resetChallengeProgress(challengeId: string) {
@@ -71,4 +76,5 @@ export function resetChallengeProgress(challengeId: string) {
     );
 
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(nextProgress));
+    notifyProgressChanged();
 }

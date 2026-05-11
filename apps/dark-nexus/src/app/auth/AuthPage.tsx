@@ -1,50 +1,29 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import type { User } from "@supabase/supabase-js";
 import AppBadge from "@dark/ui/components/AppBadge";
 import AppButton from "@dark/ui/components/AppButton";
 import NexusBackground from "@dark/ui/components/NexusBackground";
 import PanelCard from "@dark/ui/components/PanelCard";
 import { createBrowserSupabaseClient, hasSupabaseConfig } from "@dark/supabase-client";
-
-function getAvatarUrl(user: User | null) {
-    const avatar = user?.user_metadata?.avatar_url;
-    return typeof avatar === "string" ? avatar : "";
-}
-
-function getUserLabel(user: User | null) {
-    const userName = user?.user_metadata?.user_name;
-    if (typeof userName === "string" && userName) return userName;
-    return user?.email || "GitHub user";
-}
+import { useSupabaseSession } from "@/hooks/useSupabaseSession";
 
 export default function AuthPage() {
-    const [configured, setConfigured] = useState(false);
-    const [user, setUser] = useState<User | null>(null);
     const [feedback, setFeedback] = useState("");
-
-    useEffect(() => {
-        const timer = window.setTimeout(async () => {
-            const isConfigured = hasSupabaseConfig();
-            setConfigured(isConfigured);
-
-            if (!isConfigured) return;
-
-            const supabase = createBrowserSupabaseClient();
-            if (!supabase) return;
-
-            const { data } = await supabase.auth.getUser();
-            setUser(data.user || null);
-        }, 0);
-
-        return () => window.clearTimeout(timer);
-    }, []);
+    const {
+        configured,
+        loading,
+        user,
+        avatarUrl,
+        displayName,
+        email,
+        signOut,
+    } = useSupabaseSession();
 
     async function handleGithubSignIn() {
-        if (!configured) {
+        if (!configured && !hasSupabaseConfig()) {
             setFeedback("Supabase is not configured yet.");
             return;
         }
@@ -66,8 +45,6 @@ export default function AuthPage() {
             setFeedback(error.message);
         }
     }
-
-    const avatarUrl = getAvatarUrl(user);
 
     return (
         <main className="relative min-h-screen overflow-hidden bg-[#080d1a] px-4 py-10 text-slate-100 sm:px-6 lg:px-8">
@@ -92,6 +69,9 @@ export default function AuthPage() {
                     <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-300">
                         Sync your profile, progress and local Dark ecosystem telemetry.
                     </p>
+                    <p className="mt-3 text-sm text-slate-400">
+                        Local-first mode remains available without sign in.
+                    </p>
 
                     {user ? (
                         <div className="mt-8 rounded-2xl border border-white/[0.07] bg-black/25 p-5">
@@ -108,15 +88,22 @@ export default function AuthPage() {
                                     </div>
                                 )}
                                 <div>
-                                    <p className="font-bold text-white">{getUserLabel(user)}</p>
-                                    {user.email && (
-                                        <p className="mt-1 text-sm text-slate-400">{user.email}</p>
+                                    <p className="font-bold text-white">{displayName || "GitHub user"}</p>
+                                    {email && (
+                                        <p className="mt-1 text-sm text-slate-400">{email}</p>
                                     )}
                                 </div>
                             </div>
-                            <div className="mt-6">
+                            <div className="mt-6 flex flex-wrap gap-3">
                                 <AppButton href="/data-settings" variant="primary">
                                     Go to Data Settings
+                                </AppButton>
+                                <AppButton
+                                    type="button"
+                                    variant="secondary"
+                                    onClick={() => void signOut()}
+                                >
+                                    Sign out
                                 </AppButton>
                             </div>
                         </div>
@@ -126,7 +113,7 @@ export default function AuthPage() {
                                 type="button"
                                 variant="primary"
                                 onClick={handleGithubSignIn}
-                                disabled={!configured}
+                                disabled={loading || !configured}
                             >
                                 Continue with GitHub
                             </AppButton>

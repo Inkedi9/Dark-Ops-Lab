@@ -57,15 +57,11 @@ export function WarzoneRunner({ slug }: Props) {
     const foundWarzone = getWarzoneBySlug(slug);
     const warzone = foundWarzone ?? fallbackWarzone;
 
-    const [savedProgress] = useState(() =>
-        foundWarzone ? getWarzoneProgress(warzone.id, warzone.initialState) : null
-    );
+    const [mounted, setMounted] = useState(false);
     const [action, setAction] = useState("");
-    const [state, setState] = useState<WarzoneState>(
-        savedProgress?.state ?? warzone.initialState
-    );
-    const [completed, setCompleted] = useState(savedProgress?.completed ?? false);
-    const [actionsCount, setActionsCount] = useState(savedProgress?.actionsCount ?? 0);
+    const [state, setState] = useState<WarzoneState>(warzone.initialState);
+    const [completed, setCompleted] = useState(false);
+    const [actionsCount, setActionsCount] = useState(0);
     const [startedAt] = useState(() => Date.now());
     const [remainingSeconds, setRemainingSeconds] = useState(warzone.timeLimitSeconds);
     const [logs, setLogs] = useState<TerminalLog[]>([
@@ -77,6 +73,8 @@ export function WarzoneRunner({ slug }: Props) {
     const [hostileEvent, setHostileEvent] = useState<string | null>(null);
     const [actionHistory, setActionHistory] = useState<string[]>([]);
     const [defenseMode, setDefenseMode] = useState<"normal" | "learning" | "hardened">("normal");
+    const isClientReady = mounted;
+    const displayCompleted = isClientReady && completed;
 
     const getTime = useCallback(() => {
         const elapsed = Math.floor((Date.now() - startedAt) / 1000);
@@ -84,6 +82,22 @@ export function WarzoneRunner({ slug }: Props) {
         const seconds = String(elapsed % 60).padStart(2, "0");
         return `${minutes}:${seconds}`;
     }, [startedAt]);
+
+    useEffect(() => {
+        const timeout = window.setTimeout(() => {
+            setMounted(true);
+
+            if (!foundWarzone) return;
+
+            const savedProgress = getWarzoneProgress(warzone.id, warzone.initialState);
+
+            setState(savedProgress.state);
+            setCompleted(savedProgress.completed);
+            setActionsCount(savedProgress.actionsCount);
+        }, 0);
+
+        return () => window.clearTimeout(timeout);
+    }, [foundWarzone, warzone.id, warzone.initialState]);
 
     useEffect(() => {
         if (completed) return;
@@ -320,14 +334,31 @@ export function WarzoneRunner({ slug }: Props) {
             if (isComplete) {
                 addXp(warzone.rewardXp);
                 appendProgressEvent("challenges", {
-                    type: "challenge_completed",
+                    type: "warzone_completed",
                     source: "dark-challenges",
+                    entityId: warzone.id,
+                    idempotencyKey: `challenges:warzone_completed:${warzone.id}`,
                     payload: {
+                        entityId: warzone.id,
                         challengeId: warzone.id,
                         slug: warzone.slug,
                         kind: "warzone",
-                        xp: warzone.rewardXp,
+                        rewardXp: warzone.rewardXp,
                         actionsCount: nextActionsCount,
+                    },
+                });
+                appendProgressEvent("challenges", {
+                    type: "xp_awarded",
+                    source: "dark-challenges",
+                    entityId: `warzone:${warzone.id}`,
+                    idempotencyKey: `challenges:xp_awarded:warzone:${warzone.id}`,
+                    payload: {
+                        entityId: `warzone:${warzone.id}`,
+                        challengeId: warzone.id,
+                        slug: warzone.slug,
+                        kind: "warzone",
+                        amount: warzone.rewardXp,
+                        reason: "warzone_completed",
                     },
                 });
             }
@@ -429,8 +460,8 @@ export function WarzoneRunner({ slug }: Props) {
                 <div className="pointer-events-none absolute -right-24 top-10 h-52 w-52 rounded-full bg-red-700/10 blur-3xl" />
                 <div className="pointer-events-none absolute right-12 top-20 h-20 w-32 rotate-12 rounded-full bg-red-500/[0.035] blur-xl" />
                 <div className="mb-4 flex flex-wrap items-center gap-3">
-                    <AppBadge variant={completed ? "emerald" : failed ? "danger" : "danger"}>
-                        {completed ? "Zone cleared" : failed ? "Lockdown" : "Hot zone"}
+                    <AppBadge variant={displayCompleted ? "emerald" : failed ? "danger" : "danger"}>
+                        {displayCompleted ? "Zone cleared" : failed ? "Lockdown" : "Hot zone"}
                     </AppBadge>
                     <AppBadge >{warzone.difficulty}</AppBadge >
                     <AppBadge >{formatRemaining(remainingSeconds)}</AppBadge >
@@ -455,7 +486,7 @@ export function WarzoneRunner({ slug }: Props) {
                     <ProgressBar
                         label="Zone control"
                         value={completion}
-                        variant={completed ? "success" : "danger"}
+                        variant={displayCompleted ? "success" : "danger"}
                     />
                 </div>
             </section>
@@ -479,7 +510,7 @@ export function WarzoneRunner({ slug }: Props) {
                                 key={step}
                                 className={[
                                     "rounded-xl border px-3 py-3 text-center font-mono text-[10px] uppercase tracking-[0.22em]",
-                                    completed
+                                    displayCompleted
                                         ? "border-emerald-300/20 bg-emerald-400/[0.07] text-emerald-200"
                                         : index === Math.min(state.objectivesCompleted.length, 3)
                                             ? "border-red-300/25 bg-red-400/[0.08] text-red-200 animate-pulse"
@@ -513,11 +544,11 @@ export function WarzoneRunner({ slug }: Props) {
 
                         <AppButton
                             onClick={executeAction}
-                            variant={completed ? "success" : "danger"}
+                            variant={displayCompleted ? "success" : "danger"}
                             disabled={completed || remainingSeconds <= 0}
                             className="mt-4 w-full"
                         >
-                            {completed ? "Zone cleared" : failed ? "Lockdown active" : "Execute combat action"}
+                            {displayCompleted ? "Zone cleared" : failed ? "Lockdown active" : "Execute combat action"}
                         </AppButton >
                     </PanelCard>
 
@@ -530,7 +561,7 @@ export function WarzoneRunner({ slug }: Props) {
                             <p className="font-mono text-sm uppercase tracking-[0.3em] text-blue-200">
                                 Objectives
                             </p>
-                            <AppBadge variant={completed ? "emerald" : "blue"}>
+                            <AppBadge variant={displayCompleted ? "emerald" : "blue"}>
                                 {state.objectivesCompleted.length}/{warzone.objectives.length}
                             </AppBadge>
                         </div>
@@ -643,12 +674,12 @@ export function WarzoneRunner({ slug }: Props) {
                         </div>
                     </PanelCard>
 
-                    <PanelCard variant="darkNexus" accent={completed ? "emerald" : failed ? "danger" : "blue"}>
+                    <PanelCard variant="darkNexus" accent={displayCompleted ? "emerald" : failed ? "danger" : "blue"}>
                         <p className="mb-4 font-mono text-sm uppercase tracking-[0.3em] text-emerald-200">
                             Simulation control
                         </p>
 
-                        {completed && (
+                        {displayCompleted && (
                             <div className="mb-4 rounded-xl border border-emerald-300/14 bg-emerald-400/[0.055] p-4">
                                 <p className="font-mono text-sm text-emerald-200">
                                     Badge unlocked: {warzone.badge}
@@ -669,13 +700,13 @@ export function WarzoneRunner({ slug }: Props) {
 
                         <AppButton
                             onClick={failed || completed ? resetSimulation : executeAction}
-                            variant={completed ? "emerald" : "danger"}
+                            variant={displayCompleted ? "emerald" : "danger"}
                             shape="terminal"
                             className="mt-4 w-full"
                         >
                             {failed
                                 ? "Restart simulation"
-                                : completed
+                                : displayCompleted
                                     ? "Reset cleared zone"
                                     : "Execute action"}
                         </AppButton>

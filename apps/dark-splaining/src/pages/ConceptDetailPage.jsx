@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import EmptyState from "@dark/ui/components/EmptyState";
@@ -8,6 +9,7 @@ import { lessons } from "../data/lessons";
 import { tracks } from "../data/tracks";
 import { commandBasics } from "../data/commandBasics";
 import { spacing, surface } from "../styles/ui";
+import { recordConceptViewed } from "../services/splainingProgressEvents";
 
 function uniqueById(items) {
     return Array.from(new Map(items.filter(Boolean).map((item) => [item.id, item])).values());
@@ -71,6 +73,14 @@ function LinkRow({ title, description, to, cta = "Open" }) {
 export default function ConceptDetailPage() {
     const { conceptId } = useParams();
     const concept = getGlossaryTermById(conceptId);
+
+    useEffect(() => {
+        if (concept?.id) {
+            recordConceptViewed(concept.id, {
+                sourcePage: "concept",
+            });
+        }
+    }, [concept?.id]);
 
     if (!concept) {
         return (

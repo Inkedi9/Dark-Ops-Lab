@@ -1,24 +1,21 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
 import { getAllChallenges } from "@/challenges/registry";
-import { getAllProgress } from "@/store/progress-store";
-import { getGlobalProgress } from "@/store/global-progress";
+import {
+  useChallengeProgressSnapshot,
+  useGlobalProgressSnapshot,
+} from "@/hooks/useLocalProgressSnapshots";
 import { AppShell } from "@/components/layout/AppShell";
 import { NexusHero } from "@/components/home/NexusHero";
 import PanelCard from "@dark/ui/components/PanelCard";
 
 export default function HomePage() {
   const challenges = getAllChallenges();
+  const global = useGlobalProgressSnapshot();
+  const progressState = useChallengeProgressSnapshot();
 
-  const [progress] = useState<ReturnType<typeof getAllProgress>>(
-    () => getAllProgress()
-  );
-
-  const [global] = useState(() => getGlobalProgress());
-
-  const solvedCount = progress.filter((item) => item.solved).length;
+  const solvedCount = progressState.filter((item) => item.solved).length;
   const totalChallenges = challenges.length;
   const completion =
     totalChallenges === 0 ? 0 : Math.round((solvedCount / totalChallenges) * 100);
@@ -26,7 +23,7 @@ export default function HomePage() {
   const nextMission =
     challenges.find(
       (challenge) =>
-        !progress.find((item) => item.challengeId === challenge.id)?.solved
+        !progressState.find((item) => item.challengeId === challenge.id)?.solved
     ) ?? challenges[0];
 
   return (

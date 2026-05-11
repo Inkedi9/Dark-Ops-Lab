@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
@@ -61,26 +61,14 @@ const fallbackCtf: MiniCtf = {
 export function CtfRunner({ slug }: Props) {
     const foundCtf = getMiniCtfBySlug(slug);
     const ctf = foundCtf ?? fallbackCtf;
-    const [savedProgress] = useState(() =>
-        foundCtf ? getCtfProgress(ctf.id) : null
-    );
 
+    const [mounted, setMounted] = useState(false);
     const [inputValues, setInputValues] = useState<Record<string, string>>({});
-    const [activeStepIndex, setActiveStepIndex] = useState(() => {
-        if (!savedProgress) return 0;
-
-        const nextIndex = ctf.steps.findIndex(
-            (step) => !savedProgress.solvedStepIds.includes(step.id)
-        );
-
-        return nextIndex === -1 ? ctf.steps.length - 1 : nextIndex;
-    });
-    const [submittedFlag, setSubmittedFlag] = useState(savedProgress?.submittedFlag ?? "");
-    const [completed, setCompleted] = useState(savedProgress?.completed ?? false);
-    const [solvedStepIds, setSolvedStepIds] = useState<string[]>(
-        savedProgress?.solvedStepIds ?? []
-    );
-    const [fragments, setFragments] = useState<string[]>(savedProgress?.fragments ?? []);
+    const [activeStepIndex, setActiveStepIndex] = useState(0);
+    const [submittedFlag, setSubmittedFlag] = useState("");
+    const [completed, setCompleted] = useState(false);
+    const [solvedStepIds, setSolvedStepIds] = useState<string[]>([]);
+    const [fragments, setFragments] = useState<string[]>([]);
     const [logs, setLogs] = useState<TerminalLog[]>([
         { time: "00:00", level: "info", message: "ctf operation initialized" },
     ]);
@@ -88,10 +76,33 @@ export function CtfRunner({ slug }: Props) {
     const [attempts, setAttempts] = useState(0);
 
     const activeStep = ctf.steps[activeStepIndex];
+    const isClientReady = mounted;
+    const displayCompleted = isClientReady && completed;
 
     const completion = useMemo(() => {
         return Math.round((solvedStepIds.length / ctf.steps.length) * 100);
     }, [solvedStepIds.length, ctf.steps.length]);
+
+    useEffect(() => {
+        const timeout = window.setTimeout(() => {
+            setMounted(true);
+
+            if (!foundCtf) return;
+
+            const savedProgress = getCtfProgress(ctf.id);
+            const nextIndex = ctf.steps.findIndex(
+                (step) => !savedProgress.solvedStepIds.includes(step.id)
+            );
+
+            setActiveStepIndex(nextIndex === -1 ? ctf.steps.length - 1 : nextIndex);
+            setSubmittedFlag(savedProgress.submittedFlag ?? "");
+            setCompleted(savedProgress.completed);
+            setSolvedStepIds(savedProgress.solvedStepIds);
+            setFragments(savedProgress.fragments);
+        }, 0);
+
+        return () => window.clearTimeout(timeout);
+    }, [ctf.id, ctf.steps, foundCtf]);
 
     function getTime() {
         const now = new Date();
@@ -160,14 +171,31 @@ export function CtfRunner({ slug }: Props) {
         setCompleted(true);
         addXp(ctf.rewardXp);
         appendProgressEvent("challenges", {
-            type: "challenge_completed",
+            type: "ctf_completed",
             source: "dark-challenges",
+            entityId: ctf.id,
+            idempotencyKey: `challenges:ctf_completed:${ctf.id}`,
             payload: {
+                entityId: ctf.id,
                 challengeId: ctf.id,
                 slug: ctf.slug,
                 kind: "ctf",
-                xp: ctf.rewardXp,
+                rewardXp: ctf.rewardXp,
                 attempts,
+            },
+        });
+        appendProgressEvent("challenges", {
+            type: "xp_awarded",
+            source: "dark-challenges",
+            entityId: `ctf:${ctf.id}`,
+            idempotencyKey: `challenges:xp_awarded:ctf:${ctf.id}`,
+            payload: {
+                entityId: `ctf:${ctf.id}`,
+                challengeId: ctf.id,
+                slug: ctf.slug,
+                kind: "ctf",
+                amount: ctf.rewardXp,
+                reason: "ctf_completed",
             },
         });
 
@@ -234,7 +262,7 @@ export function CtfRunner({ slug }: Props) {
     return (
         <AppShell>
             <SectionHeader
-                eyebrow={completed ? "Captured" : "Live CTF"}
+                eyebrow={displayCompleted ? "Captured" : "Live CTF"}
                 title={ctf.title}
                 description={ctf.description}
                 mode="nexus"
@@ -243,8 +271,8 @@ export function CtfRunner({ slug }: Props) {
                         <div className="flex flex-wrap gap-2">
                             <AppBadge variant="violet">{ctf.difficulty}</AppBadge>
                             <AppBadge variant="emerald">{ctf.rewardXp} XP</AppBadge>
-                            <AppBadge variant={completed ? "emerald" : "blue"}>
-                                {completed ? "Completed" : "Live chain"}
+                            <AppBadge variant={displayCompleted ? "emerald" : "blue"}>
+                                {displayCompleted ? "Completed" : "Live chain"}
                             </AppBadge>
                         </div>
 
@@ -424,11 +452,11 @@ export function CtfRunner({ slug }: Props) {
 
                         <AppButton
                             onClick={submitFinalFlag}
-                            variant={completed ? "emerald" : "danger"}
+                            variant={displayCompleted ? "emerald" : "danger"}
                             disabled={completed || solvedStepIds.length < ctf.steps.length}
                             className="mt-4 w-full"
                         >
-                            {completed ? "Flag captured" : "Submit final flag"}
+                            {displayCompleted ? "Flag captured" : "Submit final flag"}
                         </AppButton >
 
                         <AppButton

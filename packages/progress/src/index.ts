@@ -17,6 +17,8 @@ export type ProgressState = AppProgressState;
 export type ProgressTelemetry = {
   lessonsCompleted: number;
   challengesCompleted: number;
+  ctfCompleted: number;
+  warzoneCompleted: number;
   phishingAnalyses: number;
   quizzesCompleted: number;
   totalXp: number;
@@ -219,6 +221,35 @@ function getPayloadXp(event: ProgressEvent) {
   return Number(payload.xp ?? payload.xpAwarded ?? payload.amount ?? 0) || 0;
 }
 
+function isChallengeCompletionEvent(event: ProgressEvent) {
+  return (
+    event.namespace === "challenges" &&
+    event.type === "challenge_completed" &&
+    event.payload?.kind !== "ctf" &&
+    event.payload?.kind !== "warzone" &&
+    !String(event.entityId || "").startsWith("ctf:") &&
+    !String(event.entityId || "").startsWith("warzone:")
+  );
+}
+
+function isCtfCompletionEvent(event: ProgressEvent) {
+  return (
+    event.namespace === "challenges" &&
+    (event.type === "ctf_completed" ||
+      (event.type === "challenge_completed" &&
+        (event.payload?.kind === "ctf" || String(event.entityId || "").startsWith("ctf:"))))
+  );
+}
+
+function isWarzoneCompletionEvent(event: ProgressEvent) {
+  return (
+    event.namespace === "challenges" &&
+    (event.type === "warzone_completed" ||
+      (event.type === "challenge_completed" &&
+        (event.payload?.kind === "warzone" || String(event.entityId || "").startsWith("warzone:"))))
+  );
+}
+
 function getActivityStreak(events: ProgressEvent[]) {
   const activeDays = new Set(
     events
@@ -255,7 +286,9 @@ export function getProgressTelemetry(): ProgressTelemetry {
 
   return {
     lessonsCompleted: events.filter((event) => event.type === "lesson_completed").length,
-    challengesCompleted: events.filter((event) => event.type === "challenge_completed").length,
+    challengesCompleted: events.filter(isChallengeCompletionEvent).length,
+    ctfCompleted: events.filter(isCtfCompletionEvent).length,
+    warzoneCompleted: events.filter(isWarzoneCompletionEvent).length,
     phishingAnalyses: events.filter((event) => event.type === "phishing_analyzed").length,
     quizzesCompleted: events.filter((event) => event.type === "quiz_completed").length,
     totalXp: events.reduce((total, event) => total + getPayloadXp(event), 0),
@@ -274,7 +307,45 @@ export async function syncProgress(provider?: { name?: string }) {
   };
 }
 
-export async function syncProgressWithSupabase() {
+type SupabaseSyncMode = "push" | "pull" | "both";
+type SupabaseProviderResult<T = unknown> = {
+  ok: boolean;
+  reason?: string;
+  data?: T;
+  count?: number;
+};
+
+type SupabaseSyncResult = {
+  provider: "supabase";
+  mode: SupabaseSyncMode;
+  profile?: SupabaseProviderResult;
+  events?: SupabaseProviderResult;
+  snapshots?: SupabaseProviderResult;
+  pushedQueueItems?: number;
+  pull?: SupabaseSyncResult;
+};
+
+export async function syncProgressWithSupabase(
+  options: { mode?: SupabaseSyncMode } = {},
+): Promise<SupabaseSyncResult> {
+  const mode = options.mode || "push";
+
+  if (mode === "pull") {
+    const [profile, events, snapshots] = await Promise.all([
+      supabaseProgressProvider.pullProfile(),
+      supabaseProgressProvider.pullEvents(),
+      supabaseProgressProvider.pullSnapshots(),
+    ]);
+
+    return {
+      provider: "supabase",
+      mode,
+      profile,
+      events,
+      snapshots,
+    };
+  }
+
   const queue = getSyncQueue();
   const pendingQueue = queue.filter((item) => item.status !== "synced");
   const profile = safeRead<Partial<GlobalProfile> | null>(PROFILE_KEY, null);
@@ -291,11 +362,22 @@ export async function syncProgressWithSupabase() {
     pendingQueue.forEach((item) => markSyncItemSynced(item.id));
   }
 
-  return {
+  const pushResult: SupabaseSyncResult = {
     provider: "supabase",
+    mode,
     profile: profileResult,
     events: eventsResult,
     snapshots: snapshotsResult,
     pushedQueueItems: eventsResult.ok ? pendingQueue.length : 0,
   };
+
+  if (mode === "both") {
+    const pullResult = await syncProgressWithSupabase({ mode: "pull" });
+    return {
+      ...pushResult,
+      pull: pullResult,
+    };
+  }
+
+  return pushResult;
 }

@@ -1,5 +1,11 @@
 import { safeRead, safeRemove, safeReset, safeWrite } from "@dark/storage";
-import { getProgress, getProgressTelemetry, progressNamespaces } from "./index";
+import {
+  appendProgressEvent,
+  getProgress,
+  getProgressTelemetry,
+  progressNamespaces,
+  saveProgress,
+} from "./index";
 
 const PROGRESS_PREFIX = "dark:progress:";
 const PROFILE_KEY = "dark_profile";
@@ -38,10 +44,41 @@ export function importProgressDump(dump: string | Record<string, unknown>) {
       : {};
 
   progressNamespaces.forEach((namespace) => {
-    const value =
-      progress[namespace] || safeRead(`${PROGRESS_PREFIX}${namespace}`, null);
-    if (value) {
-      safeWrite(`${PROGRESS_PREFIX}${namespace}`, value);
+    const incoming = progress[namespace];
+    if (!incoming || typeof incoming !== "object" || Array.isArray(incoming)) {
+      return;
+    }
+
+    const incomingState = incoming as {
+      data?: Record<string, unknown>;
+      events?: unknown[];
+      updatedAt?: string | null;
+      schemaVersion?: number;
+    };
+    const current = getProgress(namespace);
+    const incomingData =
+      incomingState.data && typeof incomingState.data === "object" && !Array.isArray(incomingState.data)
+        ? incomingState.data
+        : {};
+
+    if (Object.keys(incomingData).length > 0) {
+      saveProgress(namespace, {
+        ...current,
+        data: {
+          ...current.data,
+          ...incomingData,
+        },
+        updatedAt: incomingState.updatedAt || current.updatedAt,
+        schemaVersion: incomingState.schemaVersion || current.schemaVersion,
+      });
+    }
+
+    if (Array.isArray(incomingState.events)) {
+      incomingState.events.forEach((event) => {
+        if (event && typeof event === "object" && !Array.isArray(event)) {
+          appendProgressEvent(namespace, event);
+        }
+      });
     }
   });
 

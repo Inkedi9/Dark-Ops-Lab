@@ -5,7 +5,8 @@ import XpBadge from "../xp/XpBadge";
 import NexusBackground from "@dark/ui/components/NexusBackground";
 import ProfileMenuButton from "@dark/ui/components/ProfileMenuButton";
 import { profileService } from "@dark/profile/profileService";
-import { Shield } from "lucide-react";
+import { Database, Shield } from "lucide-react";
+import { getNexusDataSettingsSyncUrl } from "../../services/nexusProgressBridge";
 
 const navItems = [
     { to: "/", label: "Home" },
@@ -44,6 +45,17 @@ export default function AppShell({ children }) {
         await profileService.resetProfile();
         setProfile(null);
         window.location.assign("/");
+    }
+
+    function handleNexusTelemetrySync(event) {
+        event.preventDefault();
+        setIsMobileMenuOpen(false);
+
+        window.open(
+            getNexusDataSettingsSyncUrl(),
+            "_blank",
+            "noopener,noreferrer",
+        );
     }
 
     return (
@@ -93,6 +105,18 @@ export default function AppShell({ children }) {
                                         {item.label}
                                     </NavLink>
                                 ))}
+
+                                <a
+                                    href="#"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    onClick={handleNexusTelemetrySync}
+                                    className="grid h-9 w-9 place-items-center rounded-full text-slate-400 ring-1 ring-white/[0.08] transition hover:bg-blue-300/[0.08] hover:text-blue-200 hover:ring-blue-300/[0.22]"
+                                    aria-label="Sync progress to Nexus telemetry"
+                                    title="Sync progress to Nexus telemetry"
+                                >
+                                    <Database className="h-4 w-4" />
+                                </a>
 
                                 <ProfileMenuButton
                                     profile={profile}
@@ -156,6 +180,16 @@ export default function AppShell({ children }) {
                                         >
                                             Profile
                                         </NavLink>
+
+                                        <a
+                                            href="#"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            onClick={handleNexusTelemetrySync}
+                                            className="rounded-2xl bg-white/[0.03] px-4 py-3 text-left text-sm font-bold text-slate-300 ring-1 ring-white/[0.06]"
+                                        >
+                                            Sync Nexus telemetry
+                                        </a>
                                     </div>
                                 </div>
                             </div>

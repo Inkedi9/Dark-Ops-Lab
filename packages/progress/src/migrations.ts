@@ -1,6 +1,6 @@
 import { safeRead, safeWrite } from "@dark/storage";
 import type { ProgressEvent, ProgressNamespace } from "@dark/types";
-import { appendProgressEvent } from "./index";
+import { appendProgressEvent, getProgress } from "./index";
 
 const MIGRATION_KEY = "dark:migrations:v1";
 
@@ -16,6 +16,22 @@ function asRecord(value: unknown): Record<string, unknown> {
 
 function asArray(value: unknown): unknown[] {
   return Array.isArray(value) ? value : [];
+}
+
+function getLegacyStatus(value: unknown) {
+  return typeof value === "string" ? value.toLowerCase() : null;
+}
+
+function isLegacyCompleted(progress: Record<string, unknown>) {
+  const status = getLegacyStatus(progress.status);
+
+  return (
+    progress.completed === true ||
+    progress.solved === true ||
+    status === "completed" ||
+    status === "done" ||
+    status === "captured"
+  );
 }
 
 function legacyEvent({
@@ -36,7 +52,7 @@ function legacyEvent({
     type,
     source,
     entityId,
-    idempotencyKey: `${source}:${type}:${namespace}:${entityId}`,
+    idempotencyKey: `${namespace}:${type}:${entityId}`,
     payload: {
       ...payload,
       legacy: true,
@@ -106,7 +122,7 @@ export function previewLegacyMigration() {
 
   asArray(safeRead("darkchallenges:progress", [])).forEach((item) => {
     const progress = asRecord(item);
-    if (!progress.solved || !progress.challengeId) return;
+    if (!isLegacyCompleted(progress) || !progress.challengeId) return;
 
     drafts.push(
       legacyEvent({
@@ -127,12 +143,12 @@ export function previewLegacyMigration() {
 
   asArray(safeRead("darkchallenges:ctf-progress", [])).forEach((item) => {
     const progress = asRecord(item);
-    if (!progress.completed || !progress.ctfId) return;
+    if (!isLegacyCompleted(progress) || !progress.ctfId) return;
 
     drafts.push(
       legacyEvent({
         namespace: "challenges",
-        type: "challenge_completed",
+        type: "ctf_completed",
         source: "legacy:darkchallenges",
         entityId: `ctf:${String(progress.ctfId)}`,
         payload: {
@@ -146,12 +162,12 @@ export function previewLegacyMigration() {
 
   asArray(safeRead("darkchallenges:warzone-progress", [])).forEach((item) => {
     const progress = asRecord(item);
-    if (!progress.completed || !progress.warzoneId) return;
+    if (!isLegacyCompleted(progress) || !progress.warzoneId) return;
 
     drafts.push(
       legacyEvent({
         namespace: "challenges",
-        type: "challenge_completed",
+        type: "warzone_completed",
         source: "legacy:darkchallenges",
         entityId: `warzone:${String(progress.warzoneId)}`,
         payload: {
@@ -224,19 +240,27 @@ export function migrateLegacyProgress() {
   }
 
   const preview = previewLegacyMigration();
+  let eventsWritten = 0;
+
   preview.events.forEach((event) => {
-    appendProgressEvent(event.namespace, event);
+    const before = getProgress(event.namespace).events.length;
+    const existing = appendProgressEvent(event.namespace, event);
+    const after = getProgress(event.namespace).events.length;
+
+    if (existing.idempotencyKey === event.idempotencyKey && after > before) {
+      eventsWritten += 1;
+    }
   });
 
   safeWrite(MIGRATION_KEY, {
     schemaVersion: 1,
     migratedAt: new Date().toISOString(),
-    eventsWritten: preview.events.length,
+    eventsWritten,
   });
 
   return {
     migrated: true,
     alreadyMigrated: false,
-    eventsWritten: preview.events.length,
+    eventsWritten,
   };
 }

@@ -26,7 +26,6 @@ import PanelCard from "@dark/ui/components/PanelCard";
 import AppBadge from "@dark/ui/components/AppBadge";
 import LessonChapter from "../components/learning/shared/LessonChapter";
 import { spacing, typography } from "../styles/ui";
-import { profileService } from "@dark/profile/profileService";
 import { ArrowLeft } from "lucide-react";
 
 export default function LessonPage() {
@@ -62,11 +61,8 @@ export default function LessonPage() {
         if (progressStatus === "completed") return;
         if (!quizCompleted || !exerciseCompleted) return;
 
-        async function finishLesson() {
+        function finishLesson() {
             completeLesson(lesson.id);
-
-            // XP global
-            await profileService.addXp(25);
         }
 
         finishLesson();

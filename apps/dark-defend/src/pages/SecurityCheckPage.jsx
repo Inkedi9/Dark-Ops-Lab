@@ -22,6 +22,7 @@ import { securityCheckQuestions } from "@/data/securityCheckQuestions";
 import EmptyState from "@/components/shared/EmptyState";
 import SectionHeader from "@/components/shared/SectionHeader";
 import { compactSpacing } from "@/lib/defend/uiTokens";
+import { recordSecurityCheckCompleted } from "@/lib/defend/defendProgressEvents";
 
 const STORAGE_KEY = "darkdefend-security-check";
 
@@ -186,6 +187,18 @@ export default function SecurityCheckPage() {
     const weakAreas = useMemo(() => getWeakAreas(categoryScores), [categoryScores]);
     const recommendations = useMemo(() => getRecommendations(answers), [answers]);
     const riskProfile = getRiskProfile(percent);
+
+    useEffect(() => {
+        if (!isComplete) return;
+
+        recordSecurityCheckCompleted(percent, {
+            score,
+            percent,
+            answeredCount,
+            totalQuestions: securityCheckQuestions.length,
+            weakAreas: weakAreas.map((area) => area.category),
+        });
+    }, [answeredCount, isComplete, percent, score, weakAreas]);
 
     function handleAnswer(question, answer) {
         setAnswers((current) => ({

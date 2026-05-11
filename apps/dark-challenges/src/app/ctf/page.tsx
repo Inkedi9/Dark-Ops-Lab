@@ -1,9 +1,8 @@
 "use client";
 
-import { useState } from "react";
 import { AppShell } from "@/components/layout/AppShell";
 import { getAllMiniCtfs } from "@/ctf/registry";
-import { getAllCtfProgress } from "@/store/ctf-progress-store";
+import { useCtfProgressSnapshot } from "@/hooks/useLocalProgressSnapshots";
 import PageHeader from "@dark/ui/components/PageHeader";
 import PanelCard from "@dark/ui/components/PanelCard";
 import AppButton from "@dark/ui/components/AppButton";
@@ -12,7 +11,7 @@ import AppBadge from "@dark/ui/components/AppBadge";
 
 export default function CtfPage() {
     const ctfs = getAllMiniCtfs();
-    const [progress] = useState(() => getAllCtfProgress());
+    const progress = useCtfProgressSnapshot();
 
     return (
         <AppShell>

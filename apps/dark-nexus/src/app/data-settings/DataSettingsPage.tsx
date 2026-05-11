@@ -1,9 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import type { User } from "@supabase/supabase-js";
 import AppBadge from "@dark/ui/components/AppBadge";
 import AppButton from "@dark/ui/components/AppButton";
 import PageHeader from "@dark/ui/components/PageHeader";
@@ -11,10 +10,13 @@ import PanelCard from "@dark/ui/components/PanelCard";
 import SectionHeader from "@dark/ui/components/SectionHeader";
 import NexusBackground from "@dark/ui/components/NexusBackground";
 import { clearSyncQueue, getSyncQueue, markSyncItemSynced, progressNamespaces, syncProgressWithSupabase } from "@dark/progress";
-import { exportAllDarkData, importAllDarkData, clearDarkData } from "@dark/progress/debug";
+import { exportAllDarkData, importAllDarkData, importProgressDump, clearDarkData } from "@dark/progress/debug";
 import { migrateLegacyProgress, previewLegacyMigration } from "@dark/progress/migrations";
-import { createBrowserSupabaseClient, hasSupabaseConfig } from "@dark/supabase-client";
+import { createBrowserSupabaseClient } from "@dark/supabase-client";
 import { supabaseProgressProvider } from "@dark/progress/providers/supabaseProgressProvider";
+import { useSupabaseBootstrapSync } from "@/hooks/useSupabaseBootstrapSync";
+import { useSupabaseSession } from "@/hooks/useSupabaseSession";
+import type { User } from "@supabase/supabase-js";
 import type { AppProgressState, SyncQueueItem } from "@dark/types";
 
 const legacyKeys = [
@@ -66,11 +68,28 @@ function formatJson(value: unknown) {
     return JSON.stringify(value, null, 2);
 }
 
+function decodePayload(payload: string) {
+    const binary = atob(payload);
+    const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
+    return JSON.parse(new TextDecoder().decode(bytes)) as Record<string, unknown>;
+}
+
 function getActiveProgressNamespaces(progress: Record<string, AppProgressState> = {}) {
     return Object.values(progress).filter((state) => {
         const dataSize = state?.data ? Object.keys(state.data).length : 0;
         return dataSize > 0 || (state?.events?.length || 0) > 0;
     }).length;
+}
+
+function getLocalDataSize(dump: DarkDataDump) {
+    try {
+        const bytes = new TextEncoder().encode(JSON.stringify(dump)).length;
+        if (bytes < 1024) return `${bytes} B`;
+        if (bytes < 1024 * 1024) return `${Math.round(bytes / 102.4) / 10} KB`;
+        return `${Math.round(bytes / 1024 / 102.4) / 10} MB`;
+    } catch {
+        return "unknown";
+    }
 }
 
 function getSupabaseUsername(user: User) {
@@ -100,6 +119,7 @@ function buildMinimalProfile(user: User): SupabaseProfileRow {
 }
 
 export default function DataSettingsPage() {
+    const handledBridgePayloadRef = useRef(false);
     const [dump, setDump] = useState<DarkDataDump>({});
     const [syncQueue, setSyncQueue] = useState<SyncQueueItem[]>([]);
     const [legacyDetected, setLegacyDetected] = useState<string[]>([]);
@@ -108,10 +128,21 @@ export default function DataSettingsPage() {
     const [exportJson, setExportJson] = useState("");
     const [importJson, setImportJson] = useState("");
     const [feedback, setFeedback] = useState<Feedback>(null);
-    const [supabaseConfigured, setSupabaseConfigured] = useState(false);
-    const [supabaseConfigChecked, setSupabaseConfigChecked] = useState(false);
-    const [authUser, setAuthUser] = useState<User | null>(null);
-    const [authChecked, setAuthChecked] = useState(false);
+    const {
+        configured: supabaseConfigured,
+        loading: sessionLoading,
+        user: authUser,
+        profile: supabaseProfile,
+        avatarUrl,
+        email,
+        refreshProfile,
+        signOut,
+    } = useSupabaseSession();
+    const {
+        status: bootstrapStatus,
+        result: bootstrapResult,
+        runNow: runBootstrapSync,
+    } = useSupabaseBootstrapSync();
 
     function refresh() {
         const nextDump = exportAllDarkData() as DarkDataDump;
@@ -124,48 +155,70 @@ export default function DataSettingsPage() {
         setMigrationStatus(migrationPreview.alreadyMigrated ? "migrated" : "not migrated");
     }
 
-    async function refreshSupabaseAuth() {
-        const configured = hasSupabaseConfig();
-        setSupabaseConfigured(configured);
-        setSupabaseConfigChecked(true);
-
-        if (!configured) {
-            setAuthUser(null);
-            setAuthChecked(true);
-            return;
-        }
-
-        try {
-            const supabase = createBrowserSupabaseClient();
-            if (!supabase) {
-                setAuthUser(null);
-                return;
-            }
-
-            const { data } = await supabase.auth.getUser();
-            setAuthUser(data.user || null);
-        } catch {
-            setAuthUser(null);
-        } finally {
-            setAuthChecked(true);
-        }
-    }
-
     useEffect(() => {
         const refreshTimer = window.setTimeout(refresh, 0);
-        const authTimer = window.setTimeout(() => {
-            void refreshSupabaseAuth();
-        }, 0);
 
         return () => {
             window.clearTimeout(refreshTimer);
-            window.clearTimeout(authTimer);
         };
+    }, []);
+
+    useEffect(() => {
+        if (handledBridgePayloadRef.current) return;
+        handledBridgePayloadRef.current = true;
+
+        const timer = window.setTimeout(async () => {
+            try {
+                const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+                const payload = hash.get("payload");
+                const shouldAutoSync = hash.get("autoSync") === "1";
+                const shouldClose = hash.get("closeOnDone") === "1";
+
+                if (!payload) return;
+
+                const imported = importProgressDump(decodePayload(payload));
+                setResultJson(formatJson(imported));
+                refresh();
+
+                if (!shouldAutoSync) {
+                    setFeedback({ tone: "success", message: "DarkSplaining progress imported." });
+                    return;
+                }
+
+                setFeedback({ tone: "info", message: "DarkSplaining progress imported. Running cloud sync..." });
+                const synced = await syncProgressWithSupabase();
+                setResultJson(formatJson(synced));
+                setFeedback({ tone: "success", message: "DarkSplaining progress imported and synced." });
+                refresh();
+
+                if (shouldClose) {
+                    window.setTimeout(() => window.close(), 900);
+                }
+            } catch (error) {
+                setFeedback({
+                    tone: "error",
+                    message: error instanceof Error ? error.message : "DarkSplaining bridge sync failed.",
+                });
+            } finally {
+                window.history.replaceState(null, "", window.location.pathname);
+            }
+        }, 0);
+
+        return () => window.clearTimeout(timer);
     }, []);
 
     const progressCount = useMemo(
         () => getActiveProgressNamespaces(dump.progress),
         [dump.progress],
+    );
+    const localDataSize = useMemo(() => getLocalDataSize(dump), [dump]);
+    const pendingSyncCount = useMemo(
+        () => syncQueue.filter((item) => item.status !== "synced").length,
+        [syncQueue],
+    );
+    const syncedSyncCount = useMemo(
+        () => syncQueue.filter((item) => item.status === "synced").length,
+        [syncQueue],
     );
 
     const latestQueueItems = useMemo(
@@ -342,7 +395,7 @@ export default function DataSettingsPage() {
                     },
                     "Supabase connection OK.",
                 );
-            setAuthUser(authData.user);
+            await refreshProfile(authData.user);
         } catch (error) {
             setFeedback({ tone: "error", message: error instanceof Error ? error.message : "Supabase connection failed." });
         }
@@ -352,15 +405,7 @@ export default function DataSettingsPage() {
         if (!window.confirm("Sign out from Supabase on this browser?")) return;
 
         try {
-            const supabase = createBrowserSupabaseClient();
-            if (!supabase) {
-                setFeedback({ tone: "error", message: "Supabase env is not configured." });
-                return;
-            }
-
-            await supabase.auth.signOut();
-            setAuthUser(null);
-            setAuthChecked(true);
+            await signOut();
             setFeedback({ tone: "success", message: "Signed out from Supabase." });
             refresh();
         } catch (error) {
@@ -400,6 +445,15 @@ export default function DataSettingsPage() {
         }
     }
 
+    async function handleRunBootstrapAgain() {
+        try {
+            setResult(await runBootstrapSync({ force: true }), "Bootstrap sync completed.");
+            refresh();
+        } catch (error) {
+            setFeedback({ tone: "error", message: error instanceof Error ? error.message : "Bootstrap sync failed." });
+        }
+    }
+
     return (
         <main className="relative min-h-screen overflow-hidden bg-[#080d1a] px-4 py-10 text-slate-100 sm:px-6 lg:px-8">
             <NexusBackground />
@@ -413,23 +467,32 @@ export default function DataSettingsPage() {
                 </Link>
 
                 <PageHeader
-                    eyebrow="Developer tools"
-                    title="Data Settings"
-                    description="Local QA controls for profile, progress, migrations, and backend sync preparation."
+                    eyebrow="Advanced"
+                    title="Data & Sync"
+                    description="Advanced local-first storage, cloud sync and diagnostics."
                     accent="blue"
                     badges={[
                         { label: "localStorage", variant: "blue" },
                         { label: "sync-ready", variant: "emerald" },
                         {
-                            label: `Supabase ${supabaseConfigChecked ? (supabaseConfigured ? "yes" : "no") : "checking"}`,
+                            label: `Supabase ${sessionLoading ? "checking" : supabaseConfigured ? "yes" : "no"}`,
                             variant: supabaseConfigured ? "emerald" : "slate",
                         },
                         {
-                            label: `Auth ${authChecked ? (authUser ? "yes" : "no") : "checking"}`,
+                            label: `Auth ${sessionLoading ? "checking" : authUser ? "yes" : "no"}`,
                             variant: authUser ? "emerald" : "slate",
                         },
                     ]}
                 />
+
+                <PanelCard variant="darkNexus" accent="amber" className="p-4">
+                    <div className="flex flex-wrap items-center gap-3">
+                        <AppBadge variant="amber">Local-first</AppBadge>
+                        <p className="text-sm leading-6 text-amber-100/90">
+                            Local storage remains the source of truth until cloud sync is fully enabled.
+                        </p>
+                    </div>
+                </PanelCard>
 
                 {feedback && (
                     <PanelCard variant="darkNexus" accent={feedback.tone === "error" ? "danger" : "blue"} className="p-4">
@@ -440,39 +503,35 @@ export default function DataSettingsPage() {
                 )}
 
                 <PanelCard variant="darkNexus" accent="blue" className="p-6">
-                    <SectionHeader eyebrow="Overview" title="Local data overview" accent="blue" />
+                    <SectionHeader
+                        eyebrow="Connection"
+                        title="Connection status"
+                        description="Supabase configuration, authenticated user, session state, and local profile availability."
+                        accent="blue"
+                    />
                     <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-                        <StatusTile label="Profile" value={dump.darkProfile ? "present" : "missing"} tone={dump.darkProfile ? "emerald" : "slate"} />
-                        <StatusTile label="Progress namespaces" value={`${progressCount}/${progressNamespaces.length}`} tone="blue" />
-                        <StatusTile label="Sync queue" value={String(syncQueue.length)} tone={syncQueue.length > 0 ? "amber" : "emerald"} />
-                        <StatusTile label="Legacy keys" value={String(legacyDetected.length)} tone={legacyDetected.length > 0 ? "amber" : "slate"} />
-                        <StatusTile label="Migration" value={migrationStatus} tone={migrationStatus === "migrated" ? "emerald" : "slate"} />
                         <StatusTile
                             label="Supabase"
-                            value={supabaseConfigChecked ? (supabaseConfigured ? "configured" : "missing") : "checking"}
+                            value={sessionLoading ? "checking" : supabaseConfigured ? "configured" : "missing"}
                             tone={supabaseConfigured ? "emerald" : "slate"}
                         />
                         <StatusTile
                             label="Authenticated"
-                            value={authChecked ? (authUser ? "yes" : "no") : "checking"}
+                            value={sessionLoading ? "checking" : authUser ? "yes" : "no"}
                             tone={authUser ? "emerald" : "slate"}
                         />
+                        <StatusTile label="Session user" value={getSupabaseUserLabel(authUser)} tone={authUser ? "emerald" : "slate"} />
+                        <StatusTile label="Local profile" value={dump.darkProfile ? "present" : "missing"} tone={dump.darkProfile ? "emerald" : "slate"} />
+                        <StatusTile label="Remote profile" value={supabaseProfile ? "present" : "missing"} tone={supabaseProfile ? "emerald" : "slate"} />
                     </div>
-                    {legacyDetected.length > 0 && (
-                        <div className="mt-4 flex flex-wrap gap-2">
-                            {legacyDetected.map((key) => (
-                                <AppBadge key={key} variant="amber">{key}</AppBadge>
-                            ))}
-                        </div>
-                    )}
                 </PanelCard>
 
                 <PanelCard variant="darkNexus" accent="emerald" className="p-6">
                     <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                         <SectionHeader
-                            eyebrow="Backend"
-                            title="Supabase sync preview"
-                            description="Manual QA controls only. Local storage remains the active source of truth until an authenticated user is present."
+                            eyebrow="Cloud Sync"
+                            title="Cloud sync controls"
+                            description="Manual Supabase checks, profile bootstrap, push, pull, and sign-out controls."
                             accent="emerald"
                         />
                         <AppBadge variant={supabaseConfigured ? "emerald" : "slate"}>
@@ -480,14 +539,39 @@ export default function DataSettingsPage() {
                         </AppBadge>
                     </div>
                     <div className="mt-2 rounded-xl border border-white/[0.07] bg-black/25 p-4">
-                        <p className="font-mono text-xs uppercase tracking-[0.18em] text-slate-500">
-                            Supabase user
-                        </p>
-                        <p className="mt-2 break-all text-sm font-bold text-slate-200">
-                            {authChecked ? getSupabaseUserLabel(authUser) : "checking"}
-                        </p>
-                        {authUser?.email && (
-                            <p className="mt-1 break-all text-xs text-slate-500">{authUser.email}</p>
+                        <div className="flex flex-wrap items-center gap-4">
+                            {avatarUrl ? (
+                                <span
+                                    aria-hidden="true"
+                                    className="h-12 w-12 rounded-full border border-blue-300/20 bg-blue-400/[0.08] bg-cover bg-center"
+                                    style={{ backgroundImage: `url(${avatarUrl})` }}
+                                />
+                            ) : (
+                                <span className="grid h-12 w-12 place-items-center rounded-full border border-blue-300/20 bg-blue-400/[0.08] font-mono text-xs text-blue-100">
+                                    NX
+                                </span>
+                            )}
+                            <div className="min-w-0">
+                                <p className="font-mono text-xs uppercase tracking-[0.18em] text-slate-500">
+                                    Supabase user
+                                </p>
+                                <p className="mt-2 break-all text-sm font-bold text-slate-200">
+                                    {sessionLoading ? "checking" : getSupabaseUserLabel(authUser)}
+                                </p>
+                                {email && (
+                                    <p className="mt-1 break-all text-xs text-slate-500">{email}</p>
+                                )}
+                                {supabaseProfile && (
+                                    <p className="mt-1 text-xs text-emerald-300">
+                                        Remote profile: {supabaseProfile.rank} / LVL {supabaseProfile.level}
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+                        {!authUser && supabaseConfigured && (
+                            <p className="mt-4 text-sm text-slate-400">
+                                Sign in to enable Supabase profile bootstrap and manual sync actions.
+                            </p>
                         )}
                     </div>
                     <div className="mt-5 flex flex-wrap gap-3">
@@ -513,32 +597,54 @@ export default function DataSettingsPage() {
                     </div>
                 </PanelCard>
 
-                <section className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
-                    <PanelCard variant="darkNexus" accent="emerald" className="p-6">
-                        <SectionHeader eyebrow="Migration" title="Migration tools" accent="emerald" />
-                        <div className="mt-5 flex flex-wrap gap-3">
-                            <AppButton type="button" variant="secondary" onClick={handlePreviewMigration}>
-                                Preview legacy migration
-                            </AppButton>
-                            <AppButton type="button" variant="primary" onClick={handleRunMigration}>
-                                Run legacy migration
-                            </AppButton>
-                        </div>
-                    </PanelCard>
-
-                    <PanelCard variant="darkNexus" accent="blue" className="p-6">
-                        <SectionHeader eyebrow="Result" title="Migration output" accent="blue" />
-                        <pre className="mt-5 max-h-80 overflow-auto rounded-xl border border-white/[0.08] bg-black/35 p-4 text-xs leading-relaxed text-slate-200">
-                            {resultJson || "{\n  \"status\": \"No migration result yet\"\n}"}
-                        </pre>
-                    </PanelCard>
-                </section>
+                <PanelCard variant="darkNexus" accent="blue" className="p-6">
+                    <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                        <SectionHeader
+                            eyebrow="Cloud Sync"
+                            title="Bootstrap status"
+                            description="Runs once after Supabase login: migrate legacy data, pull remote state, merge local-first, then push pending local queue."
+                            accent="blue"
+                        />
+                        <AppBadge
+                            variant={
+                                bootstrapStatus === "error"
+                                    ? "amber"
+                                    : bootstrapStatus === "running"
+                                        ? "blue"
+                                        : bootstrapStatus === "idle"
+                                            ? "slate"
+                                            : "emerald"
+                            }
+                        >
+                            {bootstrapStatus}
+                        </AppBadge>
+                    </div>
+                    <div className="mt-5 flex flex-wrap gap-3">
+                        <AppButton
+                            type="button"
+                            variant="secondary"
+                            onClick={handleRunBootstrapAgain}
+                            disabled={bootstrapStatus === "running"}
+                        >
+                            Run bootstrap sync again
+                        </AppButton>
+                    </div>
+                    <pre className="mt-5 max-h-64 overflow-auto rounded-xl border border-white/[0.08] bg-black/35 p-4 text-xs leading-relaxed text-slate-200">
+                        {formatJson(bootstrapResult || { status: bootstrapStatus })}
+                    </pre>
+                </PanelCard>
 
                 <PanelCard variant="darkNexus" accent="blue" className="p-6">
                     <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-                        <SectionHeader eyebrow="Queue" title="Sync queue" accent="blue" />
+                        <SectionHeader
+                            eyebrow="Cloud Sync"
+                            title="Sync queue"
+                            description="Pending local event payloads that can be pushed to Supabase when authenticated."
+                            accent="blue"
+                        />
                         <div className="flex flex-wrap gap-3">
-                            <AppBadge variant="blue">{syncQueue.length} items</AppBadge>
+                            <AppBadge variant="amber">{pendingSyncCount} pending</AppBadge>
+                            <AppBadge variant="emerald">{syncedSyncCount} synced</AppBadge>
                             <AppButton type="button" variant="secondary" onClick={handleMarkAllSynced}>
                                 Mark all as synced mock
                             </AppButton>
@@ -568,9 +674,42 @@ export default function DataSettingsPage() {
                     </div>
                 </PanelCard>
 
+                <PanelCard variant="darkNexus" accent="blue" className="p-6">
+                    <SectionHeader
+                        eyebrow="Local Cache"
+                        title="Namespace snapshots"
+                        description="Current localStorage footprint and progress namespace state."
+                        accent="blue"
+                    />
+                    <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+                        <StatusTile label="Data size" value={localDataSize} tone="blue" />
+                        <StatusTile label="Namespaces" value={`${progressCount}/${progressNamespaces.length}`} tone="blue" />
+                        <StatusTile label="Queue items" value={String(syncQueue.length)} tone={syncQueue.length > 0 ? "amber" : "emerald"} />
+                        <StatusTile label="Legacy keys" value={String(legacyDetected.length)} tone={legacyDetected.length > 0 ? "amber" : "slate"} />
+                        <StatusTile label="Migration" value={migrationStatus} tone={migrationStatus === "migrated" ? "emerald" : "slate"} />
+                    </div>
+                    <div className="mt-5 grid gap-3 md:grid-cols-4">
+                        {progressNamespaces.map((namespace) => {
+                            const state = dump.progress?.[namespace];
+                            const eventCount = state?.events?.length || 0;
+                            const dataCount = state?.data ? Object.keys(state.data).length : 0;
+
+                            return (
+                                <div key={namespace} className="rounded-xl border border-white/[0.07] bg-black/25 p-4">
+                                    <AppBadge variant={eventCount > 0 || dataCount > 0 ? "emerald" : "slate"}>
+                                        {namespace}
+                                    </AppBadge>
+                                    <p className="mt-3 text-sm text-slate-300">{eventCount} events</p>
+                                    <p className="mt-1 text-xs text-slate-500">{dataCount} data keys</p>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </PanelCard>
+
                 <section className="grid gap-6 lg:grid-cols-2">
                     <PanelCard variant="darkNexus" accent="blue" className="p-6">
-                        <SectionHeader eyebrow="Backup" title="Export local data" accent="blue" />
+                        <SectionHeader eyebrow="Local Cache" title="Export local data" accent="blue" />
                         <div className="mt-5 flex flex-wrap gap-3">
                             <AppButton type="button" variant="primary" onClick={handleExport}>
                                 Export local data
@@ -588,7 +727,7 @@ export default function DataSettingsPage() {
                     </PanelCard>
 
                     <PanelCard variant="darkNexus" accent="emerald" className="p-6">
-                        <SectionHeader eyebrow="Restore" title="Import local data" accent="emerald" />
+                        <SectionHeader eyebrow="Local Cache" title="Import local data" accent="emerald" />
                         <textarea
                             className="mt-5 min-h-80 w-full resize-y rounded-xl border border-white/[0.08] bg-black/35 p-4 font-mono text-xs text-slate-200 outline-none ring-emerald-300/20 focus:ring-2"
                             value={importJson}
@@ -604,8 +743,60 @@ export default function DataSettingsPage() {
                     </PanelCard>
                 </section>
 
+                <section className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
+                    <PanelCard variant="darkNexus" accent="emerald" className="p-6">
+                        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                            <SectionHeader
+                                eyebrow="Legacy Migration"
+                                title="Legacy migration"
+                                description="Preview and convert older localStorage keys into normalized progress events without deleting legacy data."
+                                accent="emerald"
+                            />
+                            <AppBadge variant="amber">Advanced</AppBadge>
+                        </div>
+                        <div className="mt-5 flex flex-wrap gap-3">
+                            <AppButton type="button" variant="secondary" onClick={handlePreviewMigration}>
+                                Preview legacy migration
+                            </AppButton>
+                            <AppButton type="button" variant="primary" onClick={handleRunMigration}>
+                                Run legacy migration
+                            </AppButton>
+                        </div>
+                        {legacyDetected.length > 0 && (
+                            <div className="mt-5 flex flex-wrap gap-2">
+                                {legacyDetected.map((key) => (
+                                    <AppBadge key={key} variant="amber">{key}</AppBadge>
+                                ))}
+                            </div>
+                        )}
+                    </PanelCard>
+
+                    <PanelCard variant="darkNexus" accent="blue" className="p-6">
+                        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                            <SectionHeader
+                                eyebrow="Diagnostics"
+                                title="Raw JSON outputs"
+                                description="Latest command output for migration, Supabase tests, bootstrap, import, export, and sync actions."
+                                accent="blue"
+                            />
+                            <AppBadge variant="amber">Advanced</AppBadge>
+                        </div>
+                        <pre className="mt-5 max-h-80 overflow-auto rounded-xl border border-white/[0.08] bg-black/35 p-4 text-xs leading-relaxed text-slate-200">
+                            {resultJson || "{\n  \"status\": \"No diagnostic result yet\"\n}"}
+                        </pre>
+                    </PanelCard>
+                </section>
+
                 <PanelCard variant="darkNexus" accent="danger" className="p-6">
-                    <SectionHeader eyebrow="Danger" title="Danger zone" accent="danger" />
+                    <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                        <SectionHeader
+                            eyebrow="Danger Zone"
+                            title="Reset local data"
+                            description="Destructive local actions. Confirmation is required before anything is cleared."
+                            accent="danger"
+                        />
+                        <AppBadge variant="amber">Advanced</AppBadge>
+                    </div>
                     <div className="mt-5 flex flex-wrap gap-3">
                         <AppButton type="button" variant="secondary" onClick={() => handleClearDarkData(false)}>
                             Clear Dark data only

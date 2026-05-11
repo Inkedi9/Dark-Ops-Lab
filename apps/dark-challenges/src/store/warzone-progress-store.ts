@@ -15,6 +15,10 @@ function isBrowser() {
     return typeof window !== "undefined";
 }
 
+function notifyProgressChanged() {
+    window.dispatchEvent(new Event("darkchallenges:local-progress"));
+}
+
 export function getAllWarzoneProgress(): WarzoneProgress[] {
     if (!isBrowser()) return [];
 
@@ -52,6 +56,7 @@ export function saveWarzoneProgress(progress: WarzoneProgress) {
     }
 
     localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
+    notifyProgressChanged();
 }
 
 export function resetWarzoneProgress(warzoneId: string) {
@@ -62,4 +67,5 @@ export function resetWarzoneProgress(warzoneId: string) {
     );
 
     localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+    notifyProgressChanged();
 }

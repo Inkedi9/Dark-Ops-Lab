@@ -1,8 +1,7 @@
 "use client";
 
 
-import { useState } from "react";
-import { getAllProgress } from "@/store/progress-store";
+import { useChallengeProgressSnapshot } from "@/hooks/useLocalProgressSnapshots";
 import { MissionCard } from "@/components/dc-ui/MissionCard";
 import {
     getAllChallenges,
@@ -19,9 +18,7 @@ import PanelCard from "@dark/ui/components/PanelCard";
 
 export default function ChallengesPage() {
     const challenges = getAllChallenges();
-    const [progress] = useState<ReturnType<typeof getAllProgress>>(() =>
-        getAllProgress()
-    );
+    const progress = useChallengeProgressSnapshot();
 
     const solvedCount = progress.filter((p) => p.solved).length;
 

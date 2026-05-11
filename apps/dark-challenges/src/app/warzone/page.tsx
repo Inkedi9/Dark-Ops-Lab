@@ -1,18 +1,17 @@
 "use client";
 
-import { useState } from "react";
 import { AppShell } from "@/components/layout/AppShell";
 import PanelCard from "@dark/ui/components/PanelCard";
 import AppButton from "@dark/ui/components/AppButton";
 import AppBadge from "@dark/ui/components/AppBadge";
 import ProgressBar from "@dark/ui/components/ProgressBar";
 import { getAllWarzones } from "@/warzone/registry";
-import { getAllWarzoneProgress } from "@/store/warzone-progress-store";
+import { useWarzoneProgressSnapshot } from "@/hooks/useLocalProgressSnapshots";
 import PageHeader from "@dark/ui/components/PageHeader";
 
 export default function WarzonePage() {
     const warzones = getAllWarzones();
-    const [progress] = useState(() => getAllWarzoneProgress());
+    const progress = useWarzoneProgressSnapshot();
 
     return (
         <AppShell>

@@ -2,10 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Shield } from "lucide-react";
+import { Database, Shield } from "lucide-react";
 import AppBadge from "@dark/ui/components/AppBadge";
 import ProfileMenuButton from "@dark/ui/components/ProfileMenuButton";
-import type { ReactNode } from "react";
+import type { MouseEvent, ReactNode } from "react";
+import {
+    getChallengesTelemetryImportUrl,
+    hasChallengesTelemetryEvents,
+} from "@/lib/nexusTelemetryBridge";
 
 
 type Props = {
@@ -50,6 +54,21 @@ export default function ChallengeTopbar({ level, rank }: Props) {
         localStorage.removeItem("darkchallenges:ctf-progress");
         localStorage.removeItem("darkchallenges:warzone-progress");
         window.location.assign("/");
+    }
+
+    function handleTelemetryExport(event: MouseEvent<HTMLAnchorElement>) {
+        event.preventDefault();
+
+        if (!hasChallengesTelemetryEvents()) {
+            console.info("DarkChallenges telemetry export skipped: no local events yet.");
+            return;
+        }
+
+        window.open(
+            getChallengesTelemetryImportUrl(),
+            "_blank",
+            "noopener,noreferrer",
+        );
     }
 
     function navClass(href: string) {
@@ -98,6 +117,17 @@ export default function ChallengeTopbar({ level, rank }: Props) {
                             <AppBadge variant="blue">LVL {level}</AppBadge>
                             <AppBadge variant="emerald">{rank.toUpperCase()}</AppBadge>
                         </div>
+                        <a
+                            href="#"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={handleTelemetryExport}
+                            aria-label="Export telemetry to Nexus"
+                            title="Export telemetry to Nexus"
+                            className="ml-1 grid h-10 w-10 place-items-center rounded-xl text-slate-400 ring-1 ring-white/[0.08] transition hover:bg-blue-300/[0.08] hover:text-blue-200 hover:ring-blue-300/[0.22]"
+                        >
+                            <Database className="h-4 w-4" />
+                        </a>
                         <ProfileMenuButton
                             profile={{
                                 username: "Offensive Operator",

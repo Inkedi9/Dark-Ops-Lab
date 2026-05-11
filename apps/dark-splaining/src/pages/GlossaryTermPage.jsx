@@ -1,7 +1,9 @@
+import { useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { glossaryTerms, getGlossaryTermById } from "../data/glossary";
 import { lessons } from "../data/lessons";
+import { recordConceptViewed } from "../services/splainingProgressEvents";
 
 function getRelatedTerms(term) {
     if (!term?.relatedTermIds) return [];
@@ -14,6 +16,14 @@ function getRelatedTerms(term) {
 export default function GlossaryTermPage() {
     const { termId } = useParams();
     const term = getGlossaryTermById(termId);
+
+    useEffect(() => {
+        if (term?.id) {
+            recordConceptViewed(term.id, {
+                sourcePage: "glossary",
+            });
+        }
+    }, [term?.id]);
 
     const relatedLessons = lessons.filter((lesson) =>
         lesson.relatedTermIds?.includes(termId)

@@ -6,7 +6,7 @@ import {
   getGlobalRank,
   saveGlobalProfile,
 } from "@dark/profile/profileService";
-import { appendProgressEvent } from "@dark/progress";
+import { recordPhishingAnalyzed } from "@/lib/defend/defendProgressEvents";
 
 const MODULE_ID = "darkdefend:phishing-simulator";
 
@@ -70,16 +70,14 @@ export async function recordDefendScenario({
   const completionId = scenarioCompletionId(scenarioId);
   const xpAwarded = calculateDefendXp(result, mode, streak);
 
-  appendProgressEvent("defend", {
-    type: "phishing_analyzed",
-    source: "dark-defend",
-    payload: {
-      scenarioId,
-      mode,
-      score: result.score,
-      isCorrect: result.isCorrect,
-      xp: profile.completedDefend.includes(completionId) ? 0 : xpAwarded,
-    },
+  recordPhishingAnalyzed(scenarioId, {
+    scenarioId,
+    mode,
+    score: result.score,
+    isCorrect: result.isCorrect,
+    xp: profile.completedDefend.includes(completionId) ? 0 : xpAwarded,
+    matchedFlags: result.matchedFlags,
+    confidence: result.confidence,
   });
 
   if (profile.completedDefend.includes(completionId)) {

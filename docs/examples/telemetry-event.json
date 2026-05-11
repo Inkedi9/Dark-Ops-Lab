@@ -1,0 +1,14 @@
+{
+  "namespace": "defend",
+  "source": "dark-defend",
+  "type": "phishing_analyzed",
+  "entityId": "oauth-consent-01",
+  "idempotencyKey": "defend:phishing_analyzed:oauth-consent-01",
+  "timestamp": "2026-05-10T00:00:00.000Z",
+  "payload": {
+    "scenarioId": "oauth-consent-01",
+    "verdict": "suspicious",
+    "xp": 35
+  },
+  "schemaVersion": 1
+}

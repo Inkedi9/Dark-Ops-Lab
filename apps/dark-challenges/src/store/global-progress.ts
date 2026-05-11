@@ -19,6 +19,10 @@ function getLevelFromXp(xp: number): number {
     return Math.floor(xp / 1000) + 1;
 }
 
+function notifyProgressChanged() {
+    window.dispatchEvent(new Event("darkchallenges:local-progress"));
+}
+
 export function getGlobalProgress(): GlobalProgress {
     if (typeof window === "undefined") {
         return { totalXp: 0, level: 1, rank: "novice" };
@@ -34,6 +38,7 @@ export function getGlobalProgress(): GlobalProgress {
 
 export function saveGlobalProgress(progress: GlobalProgress) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+    notifyProgressChanged();
 }
 
 export function addXp(amount: number) {

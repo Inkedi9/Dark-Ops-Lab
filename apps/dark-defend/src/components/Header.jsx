@@ -1,8 +1,12 @@
 import { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
-import { Radar, Shield } from "lucide-react";
+import { Database, Radar, Shield } from "lucide-react";
 import ProfileMenuButton from "@dark/ui/components/ProfileMenuButton";
 import { profileService } from "../lib/profile/profileService";
+import {
+    getDefendTelemetryImportUrl,
+    hasDefendTelemetryEvents,
+} from "../lib/nexusTelemetryBridge";
 
 export default function Header() {
     const [profile, setProfile] = useState(null);
@@ -26,6 +30,21 @@ export default function Header() {
         await profileService.resetProfile();
         setProfile(null);
         window.location.assign("/");
+    }
+
+    function handleTelemetryExport(event) {
+        event.preventDefault();
+
+        if (!hasDefendTelemetryEvents()) {
+            console.info("DarkDefend telemetry export skipped: no local events yet.");
+            return;
+        }
+
+        window.open(
+            getDefendTelemetryImportUrl(),
+            "_blank",
+            "noopener,noreferrer",
+        );
     }
 
     const navClass = ({ isActive }) =>
@@ -92,6 +111,18 @@ export default function Header() {
                     >
                         <Radar className="h-5 w-5" />
                     </NavLink>
+
+                    <a
+                        href="#"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={handleTelemetryExport}
+                        aria-label="Export telemetry to Nexus"
+                        title="Export telemetry to Nexus"
+                        className="grid h-10 w-10 place-items-center rounded-xl border border-blue-400/25 bg-blue-400/10 text-blue-200 transition hover:border-blue-300/45 hover:bg-blue-400/15"
+                    >
+                        <Database className="h-5 w-5" />
+                    </a>
 
                     <ProfileMenuButton
                         profile={profile}

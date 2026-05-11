@@ -6,6 +6,7 @@ import AppBadge from "@dark/ui/components/AppBadge";
 import AppButton from "@dark/ui/components/AppButton";
 import PageHeader from "@dark/ui/components/PageHeader";
 import { commandBasics } from "../data/commandBasics";
+import { recordCommandModuleCompleted } from "../services/splainingProgressEvents";
 
 const STORAGE_KEY = "darksplaining-command-basics";
 const platforms = ["Linux", "PowerShell"];
@@ -83,10 +84,16 @@ export default function CommandBasicsPage() {
                 type: "success",
                 message: exercise.success,
             });
-            setProgress((current) => ({
-                ...current,
-                [selectedModule.id]: true,
-            }));
+            setProgress((current) => {
+                if (!current[selectedModule.id]) {
+                    recordCommandModuleCompleted(selectedModule.id);
+                }
+
+                return {
+                    ...current,
+                    [selectedModule.id]: true,
+                };
+            });
             return;
         }
 

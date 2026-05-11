@@ -147,12 +147,28 @@ export default function ChallengeRunner({ slug }: Props) {
         appendProgressEvent("challenges", {
             type: "challenge_completed",
             source: "dark-challenges",
+            entityId: challenge.id,
+            idempotencyKey: `challenges:challenge_completed:${challenge.id}`,
             payload: {
+                entityId: challenge.id,
                 challengeId: challenge.id,
                 slug: challenge.slug,
-                xp: finalScore,
+                rewardXp: finalScore,
                 attempts: finalAttempts,
                 hintsUsed,
+            },
+        });
+        appendProgressEvent("challenges", {
+            type: "xp_awarded",
+            source: "dark-challenges",
+            entityId: `challenge:${challenge.id}`,
+            idempotencyKey: `challenges:xp_awarded:challenge:${challenge.id}`,
+            payload: {
+                entityId: `challenge:${challenge.id}`,
+                challengeId: challenge.id,
+                slug: challenge.slug,
+                amount: finalScore,
+                reason: "challenge_completed",
             },
         });
 

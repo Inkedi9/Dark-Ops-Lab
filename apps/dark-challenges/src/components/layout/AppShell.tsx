@@ -1,9 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
 import { usePathname } from "next/navigation";
-import { getGlobalProgress } from "@/store/global-progress";
+import { useGlobalProgressSnapshot } from "@/hooks/useLocalProgressSnapshots";
 import ProgressBar from "@dark/ui/components/ProgressBar";
 import ChallengeTopbar from "@/components/layout/ChallengeTopbar";
 import NexusBackground from "@dark/ui/components/NexusBackground";
@@ -14,8 +13,7 @@ type AppShellProps = {
 };
 
 export function AppShell({ children }: AppShellProps) {
-    const [global] = useState(() => getGlobalProgress());
-
+    const global = useGlobalProgressSnapshot();
     const pathname = usePathname();
 
     function navClass(href: string) {

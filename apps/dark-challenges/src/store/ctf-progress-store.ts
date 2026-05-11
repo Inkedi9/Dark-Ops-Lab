@@ -15,6 +15,10 @@ function isBrowser() {
     return typeof window !== "undefined";
 }
 
+function notifyProgressChanged() {
+    window.dispatchEvent(new Event("darkchallenges:local-progress"));
+}
+
 export function getAllCtfProgress(): CtfProgress[] {
     if (!isBrowser()) return [];
 
@@ -49,6 +53,7 @@ export function saveCtfProgress(progress: CtfProgress) {
     }
 
     localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
+    notifyProgressChanged();
 }
 
 export function resetCtfProgress(ctfId: string) {
@@ -56,4 +61,5 @@ export function resetCtfProgress(ctfId: string) {
 
     const next = getAllCtfProgress().filter((item) => item.ctfId !== ctfId);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+    notifyProgressChanged();
 }

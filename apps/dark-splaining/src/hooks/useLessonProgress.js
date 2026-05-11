@@ -1,8 +1,13 @@
 import { useCallback, useState } from "react";
-import { appendProgressEvent } from "@dark/progress";
 import { storageService } from "../services/storageService";
 import { XP_KEY } from "./useXp";
 import { XP_REWARDS } from "../data/rewards";
+import {
+  recordExerciseCompleted,
+  recordLessonCompleted,
+  recordLessonStarted,
+  recordQuizCompleted,
+} from "../services/splainingProgressEvents";
 
 const PROGRESS_STORAGE_KEY = "darksplaining.lessonProgress";
 
@@ -97,6 +102,8 @@ export function useLessonProgress() {
         amount: XP_REWARDS.START_LESSON,
       });
 
+      recordLessonStarted(lessonId, xpAdded);
+
       return {
         nextLessonProgress: {
           ...lessonProgress,
@@ -118,6 +125,8 @@ export function useLessonProgress() {
         amount: XP_REWARDS.COMPLETE_EXERCISE,
       });
 
+      recordExerciseCompleted(lessonId, xpAdded);
+
       return {
         nextLessonProgress: {
           ...lessonProgress,
@@ -138,16 +147,7 @@ export function useLessonProgress() {
         amount: XP_REWARDS.COMPLETE_QUIZ,
       });
 
-      if (xpAdded > 0) {
-        appendProgressEvent("splaining", {
-          type: "quiz_completed",
-          source: "dark-splaining",
-          payload: {
-            lessonId,
-            xp: xpAdded,
-          },
-        });
-      }
+      recordQuizCompleted(lessonId, xpAdded);
 
       return {
         nextLessonProgress: {
@@ -164,6 +164,7 @@ export function useLessonProgress() {
   const completeLesson = useCallback(function completeLesson(lessonId) {
     updateLessonProgress(lessonId, (currentLessonProgress) => {
       if (currentLessonProgress.status === "completed") {
+        recordLessonCompleted(lessonId, 0);
         return { nextLessonProgress: currentLessonProgress };
       }
 
@@ -173,16 +174,7 @@ export function useLessonProgress() {
         amount: XP_REWARDS.COMPLETE_LESSON,
       });
 
-      if (xpAdded > 0) {
-        appendProgressEvent("splaining", {
-          type: "lesson_completed",
-          source: "dark-splaining",
-          payload: {
-            lessonId,
-            xp: xpAdded,
-          },
-        });
-      }
+      recordLessonCompleted(lessonId, xpAdded);
 
       return {
         nextLessonProgress: {

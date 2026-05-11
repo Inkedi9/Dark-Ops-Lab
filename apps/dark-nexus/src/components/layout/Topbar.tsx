@@ -1,9 +1,12 @@
 "use client";
 
-import { Shield } from "lucide-react";
+import { Activity, Database, LogOut, Shield } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import ProfileMenuButton from "@dark/ui/components/ProfileMenuButton";
+import AppBadge from "@dark/ui/components/AppBadge";
+import { useSupabaseBootstrapSync } from "@/hooks/useSupabaseBootstrapSync";
+import { useSupabaseSession } from "@/hooks/useSupabaseSession";
 import type { ReactNode } from "react";
 
 type Profile = {
@@ -26,8 +29,9 @@ const navItems = [
     { label: "Learn", href: "/learn" },
     { label: "Practice", href: "/practice" },
     { label: "Defend", href: "/defend" },
+    { label: "Telemetry", href: "/telemetry", icon: Activity },
     ...(process.env.NODE_ENV !== "production"
-        ? [{ label: "Data", href: "/data-settings" }]
+        ? [{ label: "Data & Sync", href: "/data-settings", icon: Database }]
         : []),
 ];
 
@@ -53,6 +57,21 @@ export default function Topbar({
     onReset,
 }: TopbarProps) {
     const pathname = usePathname() ?? "";
+    const {
+        configured,
+        loading,
+        user,
+        avatarUrl,
+        displayName,
+        signOut,
+    } = useSupabaseSession();
+    const { status: bootstrapStatus } = useSupabaseBootstrapSync();
+    const syncBadge =
+        bootstrapStatus === "running"
+            ? { label: "Syncing", variant: "blue" }
+            : bootstrapStatus === "error"
+                ? { label: "Sync issue", variant: "amber" }
+                : { label: "Synced", variant: "emerald" };
 
     return (
         <nav className="sticky top-4 z-30 rounded-[1.65rem] border border-white/[0.07] bg-[#05070A]/72 px-5 py-4 shadow-[0_24px_90px_rgba(0,0,0,.55)] ring-1 ring-white/[0.045] backdrop-blur-2xl">
@@ -83,8 +102,11 @@ export default function Topbar({
                             <Link
                                 key={item.href}
                                 href={item.href}
+                                aria-label={item.label}
+                                title={item.label}
                                 className={cn(
-                                    "relative rounded-xl px-4 py-2 text-sm font-semibold uppercase tracking-[0.14em] transition-all",
+                                    "relative rounded-xl text-sm font-semibold uppercase tracking-[0.14em] transition-all",
+                                    item.icon ? "grid h-10 w-10 place-items-center p-0" : "px-4 py-2",
                                     isActive
                                         ? "bg-white/[0.06] text-white ring-1 ring-white/[0.12]"
                                         : "text-slate-400 hover:bg-white/[0.04] hover:text-white"
@@ -93,7 +115,11 @@ export default function Topbar({
                                 {isActive && (
                                     <span className="absolute -top-1 right-2 h-2 w-2 rounded-full bg-blue-300 shadow-[0_0_12px_rgba(0,229,255,.9)]" />
                                 )}
-                                {item.label}
+                                {item.icon ? (
+                                    <item.icon className="h-4 w-4" aria-hidden="true" />
+                                ) : (
+                                    item.label
+                                )}
                             </Link>
                         );
                     })}
@@ -104,6 +130,48 @@ export default function Topbar({
                     >
                         Ranking
                     </Link>
+
+                    {configured && (
+                        <div className="flex items-center gap-2 rounded-xl border border-white/[0.07] bg-white/[0.03] px-2 py-1.5">
+                            {loading ? (
+                                <AppBadge variant="blue">Sync...</AppBadge>
+                            ) : user ? (
+                                <>
+                                    {avatarUrl ? (
+                                        <span
+                                            aria-hidden="true"
+                                            className="h-8 w-8 rounded-full border border-blue-300/20 bg-blue-400/[0.08] bg-cover bg-center"
+                                            style={{ backgroundImage: `url(${avatarUrl})` }}
+                                        />
+                                    ) : (
+                                        <span className="grid h-8 w-8 place-items-center rounded-full border border-blue-300/20 bg-blue-400/[0.08] font-mono text-[10px] text-blue-100">
+                                            NX
+                                        </span>
+                                    )}
+                                    <span className="hidden max-w-28 truncate text-xs font-bold text-slate-200 md:inline">
+                                        {displayName || "Synced"}
+                                    </span>
+                                    <AppBadge variant={syncBadge.variant}>{syncBadge.label}</AppBadge>
+                                    <button
+                                        type="button"
+                                        onClick={() => void signOut()}
+                                        className="grid h-8 w-8 place-items-center rounded-lg text-slate-400 transition hover:bg-white/[0.05] hover:text-white"
+                                        aria-label="Sign out"
+                                        title="Sign out"
+                                    >
+                                        <LogOut className="h-4 w-4" />
+                                    </button>
+                                </>
+                            ) : (
+                                <Link
+                                    href="/auth"
+                                    className="rounded-lg px-3 py-1.5 text-xs font-black uppercase tracking-[0.14em] text-blue-100 transition hover:bg-blue-400/[0.10]"
+                                >
+                                    Sign in
+                                </Link>
+                            )}
+                        </div>
+                    )}
 
                     <ProfileMenuButton
                         profile={profile}
