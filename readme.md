@@ -8,7 +8,7 @@ Unlike traditional platforms focused only on lessons or isolated labs, Dark Ecos
 
 ---
 
-# ⚡ What is Dark Ecosystem?
+## ⚡ What is Dark Ecosystem?
 
 Dark Ecosystem is a collection of specialized cyber applications connected through a shared progression and telemetry architecture.
 
@@ -21,10 +21,11 @@ Understand → Exploit → Defend
 Users do not simply read about vulnerabilities.
 
 They:
-learn them
-exploit them
-analyze them
-defend against them
+
+- learn them
+- exploit them
+- analyze them
+- defend against them
 
 inside guided and simulated environments.
 
@@ -44,61 +45,67 @@ inside guided and simulated environments.
 DarkSplaining focuses on guided cybersecurity education.
 
 Features:
-interactive lessons
-visual learning flows
-concept library
-command basics (Linux / PowerShell)
-glossary & security concepts
-guided progression
+
+- interactive lessons
+- visual learning flows
+- concept library
+- command basics (Linux / PowerShell)
+- glossary & security concepts
+- guided progression
 
 The objective is to help users understand vulnerabilities before exploiting them.
 
 Examples:
-SQL Injection
-XSS
-Authentication flaws
-Session security
-MFA abuse
-Input validation
-OAuth flows
+
+- SQL Injection
+- XSS
+- Authentication flaws
+- Session security
+- MFA abuse
+- Input validation
+- OAuth flows
 
 ### 🎯 DarkChallenges — Offensive Labs
 
 DarkChallenges is the offensive practice layer of the ecosystem.
 
 It provides:
-exploit-oriented missions
-interactive sandbox simulations
-dynamic scoring
-offensive progression
-challenge telemetry
+
+- exploit-oriented missions
+- interactive sandbox simulations
+- dynamic scoring
+- offensive progression
+- challenge telemetry
 
 Modes:
-Missions
-CTF
-Warzone
+
+- Missions
+- CTF
+- Warzone
 
 The objective is to develop attacker thinking in controlled environments.
 
 ⚔️ Warzone Engine
 
 Warzone introduces:
-evolving attack scenarios
-risk & detection systems
-dynamic progression
-simulated incident pressure
+
+- evolving attack scenarios
+- risk & detection systems
+- dynamic progression
+- simulated incident pressure
 
 ### 🛡️ DarkDefend — Defensive Simulation
 
 DarkDefend focuses on defensive awareness and phishing analysis.
 
 Features:
-phishing simulations
-SOC-inspired workflows
-signal analysis
-incident generation
-analyst scoring
-defensive profiling
+
+- phishing simulations
+- SOC-inspired workflows
+- signal analysis
+- incident generation
+- analyst scoring
+- defensive profiling
 
 The objective is to build real defensive reflexes instead of passive awareness training.
 
@@ -107,13 +114,14 @@ The objective is to build real defensive reflexes instead of passive awareness t
 DarkNexus acts as the orchestration and telemetry layer of the ecosystem.
 
 Responsibilities:
-global profile
-telemetry aggregation
-sync orchestration
-Supabase authentication
-cloud synchronization
-ecosystem navigation
-cross-app visibility
+
+- global profile
+- telemetry aggregation
+- sync orchestration
+- Supabase authentication
+- cloud synchronization
+- ecosystem navigation
+- cross-app visibility
 
 DarkNexus is intentionally separated from the training apps to preserve a local-first architecture.
 
@@ -192,11 +200,11 @@ Because browser localStorage is isolated per origin/domain.
 
 This architecture preserves:
 
-modularity
-autonomy
-offline capability
-resilience
-explicit sync control
+- modularity
+- autonomy
+- offline capability
+- resilience
+- explicit sync control
 
 #### 🧠 Progress Event Model
 
@@ -214,27 +222,31 @@ Example:
 ```
 
 Namespaces:
-splaining
-defend
-challenges
-nexus
 
-☁️ Supabase Integration
+- splaining
+- defend
+- challenges
+- nexus
+
+#### ☁️ Supabase Integration
 
 Current backend layer:
-GitHub Auth
-Profile persistence
-Telemetry sync
-Progress snapshots
-Sync queue
+
+- GitHub Auth
+- Profile persistence
+- Telemetry sync
+- Progress snapshots
+- Sync queue
 
 Important:
+
 localStorage remains the temporary source of truth
 
 Cloud sync is additive, not mandatory.
 
-📦 Repository Structure
+#### 📦 Repository Structure
 
+```text
 /apps
 darknexus
 darksplaining
@@ -249,25 +261,14 @@ routes
 storage
 types
 supabase-client
+```
 
 Sync architecture
 
 Le flux de synchronisation local-first entre DarkSplaining, DarkDefend, DarkChallenges, Nexus et Supabase est documenté ici :
 [docs/SYNC_FLOW.md](docs/SYNC_FLOW.md)
 
-Structure
-/apps
-darknexus
-darksplaining
-darkchallenges
-darkdefend
-
-/packages
-ui
-engine
-store
-
-🧠 Philosophy
+#### 🧠 Philosophy
 
 Learn by doing. Not by reading.
 
@@ -281,23 +282,26 @@ Core principles:
 
 Dark Ecosystem is designed to feel closer to a training environment than a static course platform.
 
-⚠️ Current Limitations
+#### ⚠️ Current Limitations
 
 1. Product differentiation
+
    Some modules still share similar visual language and navigation patterns.
 
 Visual differentiation is actively improving.
 
 2. UX hierarchy
+
    The ecosystem hub flow is improving progressively through DarkNexus.
 
 3. Cloud sync maturity
+
    The synchronization system is operational but still evolving:
 
 - local-first remains primary
 - automatic cross-device sync is not fully enabled yet
 
-🚧 In Progress
+#### 🚧 In Progress
 
 - stronger module differentiation
 - telemetry dashboards
@@ -310,7 +314,7 @@ Visual differentiation is actively improving.
 - global achievements
 - organization/team support
 
-🔥 Why this matters
+#### 🔥 Why this matters
 
 Many cybersecurity platforms are:
 
@@ -325,7 +329,7 @@ Dark Ecosystem aims to provide:
 - realistic offensive & defensive thinking
 - ecosystem-level learning continuity
 
-🛣️ Roadmap
+#### 🛣️ Roadmap
 
 - global progression sync
 - advanced telemetry dashboards
@@ -337,13 +341,16 @@ Dark Ecosystem aims to provide:
 - attack graph visualization
 - adaptive learning paths
 
-🧪 Status
+#### 🧪 Status
 
 🚧 Active development
+
 ⚡ Rapid iteration
+
 🧠 Architecture evolving
 
-💥 TL;DR
+#### 💥 TL;DR
+
 Dark Ecosystem is a cybersecurity platform where users:
 
 - understand vulnerabilities
@@ -351,7 +358,7 @@ Dark Ecosystem is a cybersecurity platform where users:
 - learn defensive reflexes
 - progress through a connected ecosystem
 
-👤 Author
+#### 👤 Author
 
 Built with focus on:
 
