@@ -119,13 +119,14 @@ DarkNexus is intentionally separated from the training apps to preserve a local-
 
 ---
 
-🏗️ Architecture
-Frontend
-React
-Next.js
-Vite
-TypeScript migration in progress
-Multi-app monorepo architecture
+#### 🏗️ Architecture
+
+- Frontend
+- React
+- Next.js
+- Vite
+- TypeScript migration in progress
+- Multi-app monorepo architecture
 
 🎨 Shared Design System
 
