@@ -191,6 +191,7 @@ Why?
 Because browser localStorage is isolated per origin/domain.
 
 This architecture preserves:
+
 modularity
 autonomy
 offline capability
