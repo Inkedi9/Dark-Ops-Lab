@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
-import { Database, Radar, Shield } from "lucide-react";
+import { Activity, BarChart3, Database, Eye, MailWarning, Radar, Shield, ShieldCheck } from "lucide-react";
 import ProfileMenuButton from "@dark/ui/components/ProfileMenuButton";
 import { profileService } from "../lib/profile/profileService";
 import {
@@ -47,61 +47,72 @@ export default function Header() {
         );
     }
 
+    const navItems = [
+        { to: "/", label: "Home", icon: Activity },
+        { to: "/simulator", label: "Simulator", icon: MailWarning },
+        { to: "/results", label: "Results", icon: BarChart3 },
+        { to: "/about", label: "About", icon: Eye },
+    ];
+
     const navClass = ({ isActive }) =>
         [
-            "relative rounded-xl border px-4 py-2 text-xs font-bold uppercase tracking-[0.22em] transition",
+            "relative inline-flex h-9 items-center rounded-xl px-3 py-2 text-xs font-black uppercase tracking-[0.14em] transition",
             isActive
-                ? "border-blue-300/40 bg-blue-400/10 text-blue-200 shadow-[0_0_22px_rgba(0,229,255,0.12)]"
-                : "border-transparent text-slate-400 hover:border-blue-400/20 hover:bg-blue-400/5 hover:text-blue-200",
+                ? "bg-emerald-300/[0.12] text-emerald-50 ring-1 ring-emerald-300/22 shadow-[inset_0_0_16px_rgba(16,185,129,.055)]"
+                : "text-slate-400 hover:bg-white/[0.045] hover:text-white",
         ].join(" ");
     const profileClass = ({ isActive }) =>
         [
-            "grid h-10 w-10 place-items-center rounded-xl border transition",
+            "grid h-11 w-11 place-items-center rounded-2xl border transition",
             isActive
-                ? "border-blue-300/50 bg-blue-400/15 text-blue-100 shadow-[0_0_22px_rgba(0,229,255,0.14)]"
-                : "border-blue-400/25 bg-blue-400/10 text-blue-200 hover:border-blue-300/45 hover:bg-blue-400/15",
+                ? "border-emerald-300/45 bg-emerald-300/[0.12] text-emerald-100 shadow-[0_0_22px_rgba(16,185,129,0.14)]"
+                : "border-emerald-300/18 bg-emerald-300/[0.06] text-emerald-200 hover:border-emerald-300/35 hover:bg-emerald-300/[0.10]",
         ].join(" ");
 
     return (
-        <header className="sticky top-0 z-50 px-4 pt-4 md:px-8">
-            <div className="mx-auto flex max-w-7xl items-center justify-between rounded-[1.65rem] border border-white/[0.07] bg-[#05070A]/72 px-4 py-3 shadow-[0_24px_90px_rgba(0,0,0,.55)] ring-1 ring-white/[0.045] backdrop-blur-2xl">
+        <header className="sticky top-0 z-50 px-4 pt-4 md:px-8 xl:px-6">
+            <div className="relative mx-auto flex max-w-[92rem] items-center justify-between overflow-visible rounded-[1.4rem] border border-emerald-200/[0.13] bg-[#03100d]/84 px-4 py-3 shadow-[0_26px_90px_rgba(0,0,0,.70),0_0_38px_rgba(16,185,129,.075)] ring-1 ring-white/[0.05] backdrop-blur-2xl">
+                <div className="pointer-events-none absolute inset-0 rounded-[1.4rem] bg-[radial-gradient(circle_at_12%_0%,rgba(16,185,129,0.14),transparent_30%),radial-gradient(circle_at_88%_0%,rgba(96,165,250,0.08),transparent_28%)]" />
+                <div className="pointer-events-none absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-emerald-200/48 to-blue-200/24" />
+                <div className="pointer-events-none absolute right-6 top-2 hidden font-mono text-[9px] uppercase tracking-[0.28em] text-emerald-200/42 xl:block">
+                    DD-SOC / SIGNAL CONSOLE
+                </div>
                 <NavLink
                     to="/"
-                    className="flex items-center gap-3"
+                    className="relative flex items-center gap-3"
                 >
-                    <span className="grid h-10 w-10 place-items-center rounded-xl border border-blue-300/40 bg-blue-400/10 text-blue-300 shadow-[0_0_24px_rgba(0,229,255,0.22)]">
-                        <Shield className="h-5 w-5" />
+                    <span className="relative grid h-12 w-12 place-items-center rounded-2xl border border-emerald-300/24 bg-emerald-300/[0.075] text-emerald-200 shadow-[inset_0_0_18px_rgba(16,185,129,.055),0_0_26px_rgba(16,185,129,.10)]">
+                        <span className="absolute inset-1 rounded-xl border border-white/[0.045]" />
+                        <ShieldCheck className="relative h-5 w-5" />
                     </span>
                     <span>
-                        <span className="block text-xl font-semibold uppercase tracking-[0.32em] text-white">
+                        <span className="block text-xl font-black uppercase tracking-[0.26em] text-white">
                             Dark <span className="text-blue-300">Defend</span>
                         </span>
-                        <span className="block text-xs uppercase tracking-[0.3em] text-slate-400">
-                            Learn • Hack • Defend
+                        <span className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.24em] text-slate-500">
+                            <Shield className="h-3 w-3 text-emerald-300/80" />
+                            Analyst defense console
                         </span>
                     </span>
                 </NavLink>
 
-                <nav className="hidden items-center gap-2 md:flex">
-                    <NavLink to="/" className={navClass}>
-                        Home
-                    </NavLink>
-                    <NavLink to="/simulator" className={navClass}>
-                        Simulator
-                    </NavLink>
-                    <NavLink to="/results" className={navClass}>
-                        Results
-                    </NavLink>
-                    <NavLink to="/about" className={navClass}>
-                        About
-                    </NavLink>
+                <nav className="relative hidden items-center gap-1 rounded-2xl border border-white/[0.065] bg-white/[0.035] p-1 shadow-[inset_0_0_18px_rgba(255,255,255,.018)] md:flex">
+                    {navItems.map((item) => {
+                        const Icon = item.icon;
+
+                        return (
+                            <NavLink key={item.to} to={item.to} className={navClass} title={item.label}>
+                                <Icon className="h-4 w-4 xl:mr-2" />
+                                <span className="hidden xl:inline">{item.label}</span>
+                            </NavLink>
+                        );
+                    })}
                 </nav>
 
-                <div className="flex items-center gap-3">
+                <div className="relative flex items-center gap-3">
                     <div className="hidden items-center gap-6 text-xs uppercase tracking-[0.18em] text-slate-400 lg:flex">
-                        <span className="text-green-300">System Secure •</span>
-                        <span>AES-256</span>
-                        <span>Connected</span>
+                        <span className="text-emerald-300">Signals live</span>
+                        <span>Confidence 92%</span>
                     </div>
 
                     <NavLink
@@ -119,7 +130,7 @@ export default function Header() {
                         onClick={handleTelemetryExport}
                         aria-label="Export telemetry to Nexus"
                         title="Export telemetry to Nexus"
-                        className="grid h-10 w-10 place-items-center rounded-xl border border-blue-400/25 bg-blue-400/10 text-blue-200 transition hover:border-blue-300/45 hover:bg-blue-400/15"
+                        className="grid h-11 w-11 place-items-center rounded-2xl border border-emerald-300/14 bg-emerald-300/[0.055] text-emerald-100 transition hover:border-emerald-200/28 hover:bg-emerald-300/[0.10]"
                     >
                         <Database className="h-5 w-5" />
                     </a>

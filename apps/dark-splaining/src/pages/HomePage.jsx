@@ -107,6 +107,18 @@ const domains = [
     },
 ];
 
+function LearningSignal({ icon: Icon, label, value }) {
+    return (
+        <div className="rounded-2xl border border-blue-200/12 bg-black/20 p-4 shadow-[inset_0_0_20px_rgba(96,165,250,.02)]">
+            <div className="mb-3 flex items-center gap-2 text-blue-200">
+                <Icon className="h-4 w-4" />
+                <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-slate-500">{label}</span>
+            </div>
+            <p className="text-sm font-black text-white">{value}</p>
+        </div>
+    );
+}
+
 export default function HomePage() {
     const featuredLessons = lessons.filter((lesson) => lesson.featured);
 
@@ -151,19 +163,19 @@ export default function HomePage() {
         <>
             <section className="relative grid gap-10 overflow-hidden py-14 md:grid-cols-[1.1fr_0.9fr] md:items-center md:py-20">
                 <div className="pointer-events-none absolute inset-0 -z-10">
-                    <div className="absolute left-1/3 top-[-10%] h-[500px] w-[500px] -translate-x-1/2 rounded-full bg-blue-500/10 blur-[120px]" />
-                    <div className="absolute right-0 top-[20%] h-[400px] w-[400px] rounded-full bg-violet-500/10 blur-[120px]" />
-                    <div className="absolute bottom-0 left-[10%] h-[260px] w-[260px] rounded-full bg-emerald-500/10 blur-[100px]" />
+                    <div className="absolute left-1/3 top-[-10%] h-[500px] w-[500px] -translate-x-1/2 rounded-full bg-blue-500/[0.075] blur-[130px]" />
+                    <div className="absolute right-0 top-[20%] h-[400px] w-[400px] rounded-full bg-emerald-500/[0.055] blur-[130px]" />
+                    <div className="absolute inset-x-0 top-12 h-px bg-gradient-to-r from-transparent via-blue-200/18 to-transparent" />
                 </div>
 
                 <div className="relative z-10 max-w-4xl">
                     <AppBadge variant="emerald" className="mb-6">
                         <span className="mr-2 h-1.5 w-1.5 rounded-full bg-emerald-300" />
-                        DARK UI • INTERACTIVE CYBER • SAFE MOCKED LABS
+                        GUIDED LESSONS • SAFE MOCKED LABS
                     </AppBadge>
 
-                    <div className="font-mono text-xs uppercase tracking-[0.35em] text-violet-300/90">
-                        Interactive cyber learning
+                    <div className="font-mono text-xs uppercase tracking-[0.35em] text-blue-200/90">
+                        Learning path / concept first
                     </div>
 
                     <HeroTitle highlight="before someone else does.">
@@ -171,14 +183,20 @@ export default function HomePage() {
                     </HeroTitle>
 
                     <p className="mt-7 max-w-2xl text-lg leading-8 text-slate-300 md:text-xl">
-                        Understand vulnerabilities, exploit them safely, and learn how to fix them
-                        through interactive mocked labs.
+                        Understand vulnerabilities in plain language, practice them safely,
+                        then learn the fix with clear steps and small checks.
                     </p>
 
                     <div className="mt-5 flex flex-wrap gap-2">
-                        <AppBadge variant="blue">guided tracks</AppBadge>
-                        <AppBadge variant="violet">mocked exploits</AppBadge>
-                        <AppBadge variant="emerald">fix-first mindset</AppBadge>
+                        <AppBadge variant="blue">guided concepts</AppBadge>
+                        <AppBadge variant="emerald">readable lessons</AppBadge>
+                        <AppBadge variant="violet">safe practice</AppBadge>
+                    </div>
+
+                    <div className="mt-7 grid gap-3 sm:grid-cols-3">
+                        <LearningSignal icon={GraduationCap} label="Mode" value="Explain first" />
+                        <LearningSignal icon={BrainCircuit} label="Pace" value="Step by step" />
+                        <LearningSignal icon={CheckCircle2} label="Outcome" value="Fix mindset" />
                     </div>
 
                     <div className="mt-9 flex flex-wrap gap-3">
@@ -198,8 +216,14 @@ export default function HomePage() {
                 </div>
 
                 <div className="relative z-10">
-                    <div className="absolute -inset-6 rounded-[2rem] bg-blue-400/10 blur-3xl" />
-                    <div className="relative">
+                    <div className="absolute -inset-6 rounded-[2rem] bg-blue-400/[0.065] blur-3xl" />
+                    <div className="relative rounded-[2rem] border border-blue-200/10 bg-white/[0.025] p-3 shadow-[inset_0_0_30px_rgba(96,165,250,.025)]">
+                        <div className="mb-3 flex items-center justify-between rounded-2xl border border-white/[0.06] bg-black/20 px-4 py-3">
+                            <span className="font-mono text-[10px] uppercase tracking-[0.24em] text-blue-200">
+                                Lesson preview
+                            </span>
+                            <AppBadge variant="emerald">Readable</AppBadge>
+                        </div>
                         <CyberConsole />
                     </div>
                 </div>

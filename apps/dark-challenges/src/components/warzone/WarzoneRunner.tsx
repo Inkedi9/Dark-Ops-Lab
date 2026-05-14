@@ -20,6 +20,7 @@ import PanelCard from "@dark/ui/components/PanelCard";
 import AppBadge from "@dark/ui/components/AppBadge";
 import AppButton from "@dark/ui/components/AppButton";
 import ProgressBar from "@dark/ui/components/ProgressBar";
+import MissionBriefingCard from "../mission/MissionBriefingCard";
 
 type TerminalLog = ChallengeLog & {
     time: string;
@@ -490,6 +491,20 @@ export function WarzoneRunner({ slug }: Props) {
                     />
                 </div>
             </section>
+
+            <MissionBriefingCard
+                title={warzone.title}
+                objective={warzone.description}
+                difficulty={warzone.difficulty}
+                risk="Critical"
+                duration="20 min"
+                rewards={`+${warzone.xpReward || 250} XP`}
+                skills={[
+                    "SQL Injection",
+                    "Recon",
+                    "Input Analysis",
+                ]}
+            />
 
             <PanelCard variant="danger" accent="danger" className="mb-8">
                 <div className="grid gap-4 md:grid-cols-4">

@@ -5,21 +5,21 @@ import XpBadge from "../xp/XpBadge";
 import NexusBackground from "@dark/ui/components/NexusBackground";
 import ProfileMenuButton from "@dark/ui/components/ProfileMenuButton";
 import { profileService } from "@dark/profile/profileService";
-import { Database, Shield } from "lucide-react";
+import { BarChart3, BookOpen, Database, GraduationCap, Library, Route, Search, Shield } from "lucide-react";
 import { getNexusDataSettingsSyncUrl } from "../../services/nexusProgressBridge";
 
 const navItems = [
-    { to: "/", label: "Home" },
-    { to: "/lessons", label: "Learn" },
-    { to: "/tracks", label: "Tracks" },
-    { to: "/resources", label: "Resources" },
-    { to: "/analytics", label: "Analytics" },
+    { to: "/", label: "Home", icon: BookOpen },
+    { to: "/lessons", label: "Learn", icon: GraduationCap },
+    { to: "/tracks", label: "Tracks", icon: Route },
+    { to: "/resources", label: "Resources", icon: Library },
+    { to: "/analytics", label: "Analytics", icon: BarChart3 },
 ];
 
 const navLinkClass = ({ isActive }) =>
-    `hidden rounded-full px-3 py-2 text-xs font-semibold uppercase tracking-[0.16em] transition md:inline-flex ${isActive
-        ? "bg-blue-300/[0.10] text-blue-200 ring-1 ring-blue-300/[0.22] shadow-[0_0_18px_rgba(0,229,255,.10)]"
-        : "text-slate-400 hover:bg-white/[0.035] hover:text-blue-300 hover:ring-1 hover:ring-blue-300/[0.14]"
+    `relative hidden h-9 items-center rounded-xl px-3 py-2 text-xs font-black uppercase tracking-[0.14em] transition md:inline-flex ${isActive
+        ? "bg-blue-300/[0.10] text-blue-50 ring-1 ring-blue-300/[0.20] shadow-[inset_0_0_16px_rgba(96,165,250,.05)]"
+        : "text-slate-400 hover:bg-white/[0.04] hover:text-white"
     }`;
 
 export default function AppShell({ children }) {
@@ -64,54 +64,76 @@ export default function AppShell({ children }) {
             <NexusBackground />
 
             <div className="relative z-10 flex min-h-screen flex-col">
-                <header className="fixed left-0 right-0 top-0 z-[100] px-4 pt-4">
-                    <div className="mx-auto max-w-7xl overflow-visible rounded-[1.65rem] border border-white/[0.07] bg-[#05070A]/72 shadow-[0_24px_90px_rgba(0,0,0,.55)] ring-1 ring-white/[0.045] backdrop-blur-2xl">
-                        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-blue-200/25 to-indigo-200/15" />
+                <header className="fixed left-0 right-0 top-0 z-[100] px-4 pt-4 xl:px-6">
+                    <div className="relative mx-auto max-w-[92rem] overflow-visible rounded-[1.4rem] border border-blue-200/[0.12] bg-[#050913]/82 shadow-[0_24px_90px_rgba(0,0,0,.58),0_0_34px_rgba(96,165,250,.055)] ring-1 ring-white/[0.05] backdrop-blur-2xl">
+                        <div className="pointer-events-none absolute inset-0 rounded-[1.4rem] bg-[radial-gradient(circle_at_12%_0%,rgba(96,165,250,0.12),transparent_30%),radial-gradient(circle_at_88%_0%,rgba(16,185,129,0.08),transparent_28%)]" />
+                        <div className="pointer-events-none absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-blue-200/42 to-emerald-200/24" />
+                        <div className="pointer-events-none absolute right-6 top-2 hidden font-mono text-[9px] uppercase tracking-[0.28em] text-blue-200/42 xl:block">
+                            DS-LEARN / GUIDED MODE
+                        </div>
 
-                        <div className="flex items-center gap-4 px-5 py-4 md:px-6">
+                        <div className="relative flex items-center gap-4 px-5 py-3.5 md:px-6">
                             <Link
                                 to="/"
                                 className="group flex shrink-0 items-center gap-3"
                                 onClick={() => setIsMobileMenuOpen(false)}
                             >
-                                <span className="grid h-10 w-10 place-items-center rounded-xl border border-blue-300/40 bg-blue-400/10 text-blue-300 shadow-[0_0_24px_rgba(0,229,255,0.22)]">
-                                    <Shield className="h-5 w-5" />
+                                <span className="relative grid h-12 w-12 place-items-center rounded-2xl border border-blue-300/24 bg-blue-300/[0.075] text-blue-200 shadow-[inset_0_0_18px_rgba(96,165,250,.055),0_0_26px_rgba(96,165,250,.10)]">
+                                    <span className="absolute inset-1 rounded-xl border border-white/[0.045]" />
+                                    <GraduationCap className="relative h-5 w-5" />
                                 </span>
 
-                                <div>
-                                    <p className="bg-gradient-to-r from-white via-blue-200 to-emerald-200 bg-clip-text text-lg font-black uppercase tracking-[0.22em] text-transparent">
-                                        DarkSplaining
-                                    </p>
-                                    <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-slate-500">
-                                        Learn • Practice • Defend
+                                <div className="min-w-0">
+                                    <div className="flex items-center gap-2">
+                                        <p className="bg-gradient-to-r from-white via-blue-100 to-emerald-100 bg-clip-text text-lg font-black uppercase tracking-[0.22em] text-transparent">
+                                            DarkSplaining
+                                        </p>
+                                        <span className="hidden rounded-full border border-emerald-300/16 bg-emerald-300/[0.065] px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.18em] text-emerald-200 sm:inline">
+                                            Study
+                                        </span>
+                                    </div>
+                                    <p className="mt-1 flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.22em] text-slate-500">
+                                        <Shield className="h-3 w-3 text-blue-300/80" />
+                                        Guided security learning
                                     </p>
                                 </div>
                             </Link>
 
-                            <div className="hidden min-w-0 flex-1 items-center justify-center lg:flex">
+                            <div className="hidden min-w-0 flex-1 items-center justify-center px-2 lg:flex">
                                 <TopbarSearch />
                             </div>
 
                             <nav className="hidden shrink-0 items-center gap-2 md:flex">
-                                <XpBadge />
+                                <div className="flex h-11 items-center rounded-2xl border border-emerald-300/12 bg-emerald-300/[0.05] px-2">
+                                    <XpBadge />
+                                </div>
 
-                                {navItems.map((item) => (
-                                    <NavLink
-                                        key={item.to}
-                                        to={item.to}
-                                        end={item.to === "/"}
-                                        className={navLinkClass}
-                                    >
-                                        {item.label}
-                                    </NavLink>
-                                ))}
+                                <div className="flex items-center gap-1 rounded-2xl border border-white/[0.065] bg-white/[0.035] p-1 shadow-[inset_0_0_18px_rgba(255,255,255,.018)]">
+                                    {navItems.map((item) => {
+                                        const Icon = item.icon;
+
+                                        return (
+                                            <NavLink
+                                                key={item.to}
+                                                to={item.to}
+                                                end={item.to === "/"}
+                                                className={navLinkClass}
+                                                aria-label={item.label}
+                                                title={item.label}
+                                            >
+                                                <Icon className="h-4 w-4 xl:mr-2" />
+                                                <span className="hidden xl:inline">{item.label}</span>
+                                            </NavLink>
+                                        );
+                                    })}
+                                </div>
 
                                 <a
                                     href="#"
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     onClick={handleNexusTelemetrySync}
-                                    className="grid h-9 w-9 place-items-center rounded-full text-slate-400 ring-1 ring-white/[0.08] transition hover:bg-blue-300/[0.08] hover:text-blue-200 hover:ring-blue-300/[0.22]"
+                                    className="grid h-11 w-11 place-items-center rounded-2xl border border-blue-300/14 bg-blue-300/[0.055] text-blue-100 transition hover:border-blue-200/28 hover:bg-blue-300/[0.10]"
                                     aria-label="Sync progress to Nexus telemetry"
                                     title="Sync progress to Nexus telemetry"
                                 >
@@ -154,6 +176,11 @@ export default function AppShell({ children }) {
                                         variant="mobile"
                                         onNavigate={() => setIsMobileMenuOpen(false)}
                                     />
+
+                                    <div className="flex items-center gap-2 rounded-2xl border border-blue-300/10 bg-blue-300/[0.04] px-4 py-3 text-sm font-bold text-blue-100">
+                                        <Search className="h-4 w-4" />
+                                        Learning search active
+                                    </div>
 
                                     <div className="grid gap-2">
                                         {navItems.map((item) => (

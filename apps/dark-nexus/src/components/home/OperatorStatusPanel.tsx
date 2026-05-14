@@ -38,8 +38,18 @@ export default function OperatorStatusPanel({ profile }: { profile: Profile }) {
 
     return (
         <section className="py-8">
-            <PanelCard variant="darkNexusHero" accent="blue" hover>
-                <div className="mb-6 flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+            <PanelCard
+                variant="darkNexusHero"
+                accent="blue"
+                hover
+                className="relative overflow-hidden border-blue-300/12 bg-[radial-gradient(circle_at_12%_0%,rgba(96,165,250,0.12),transparent_32%),radial-gradient(circle_at_92%_18%,rgba(124,58,237,0.10),transparent_28%),linear-gradient(180deg,rgba(4,10,22,0.94),rgba(3,7,18,0.82))]"
+            >
+                <div className="pointer-events-none absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-blue-200/45 to-violet-200/25" />
+                <div className="pointer-events-none absolute right-6 top-6 hidden rounded-2xl border border-blue-300/10 bg-blue-300/[0.035] px-4 py-3 font-mono text-[10px] uppercase tracking-[0.24em] text-blue-200 lg:block">
+                    Operator ID / {profile.rank}
+                </div>
+
+                <div className="relative mb-6 flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
                     <div>
                         <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-emerald-300/20 bg-emerald-400/[0.08] px-3 py-1 font-mono text-xs font-black uppercase tracking-[0.3em] text-emerald-200">
                             <Radio size={14} />
@@ -56,7 +66,7 @@ export default function OperatorStatusPanel({ profile }: { profile: Profile }) {
                         </p>
                     </div>
 
-                    <div className="rounded-2xl border border-blue-300/20 bg-blue-400/[0.07] px-5 py-4">
+                    <div className="rounded-2xl border border-blue-300/20 bg-blue-400/[0.07] px-5 py-4 shadow-[inset_0_0_20px_rgba(96,165,250,.04)]">
                         <p className="font-mono text-[10px] font-black uppercase tracking-[0.28em] text-blue-200">
                             Readiness
                         </p>
@@ -64,14 +74,14 @@ export default function OperatorStatusPanel({ profile }: { profile: Profile }) {
                     </div>
                 </div>
 
-                <div className="grid gap-4 lg:grid-cols-4">
+                <div className="relative grid gap-4 lg:grid-cols-4">
                     <StatusMetric icon={Zap} label="XP" value={profile.xp} accent="blue" />
                     <StatusMetric icon={ShieldCheck} label="Rank" value={profile.rank} accent="emerald" />
                     <StatusMetric icon={Route} label="Focus" value={focus} accent="blue" />
                     <StatusMetric icon={Lock} label="Next unlock" value={nextUnlock} accent="amber" />
                 </div>
 
-                <div className="mt-6 rounded-2xl border border-white/[0.07] bg-black/25 p-5">
+                <div className="relative mt-6 rounded-2xl border border-white/[0.07] bg-black/25 p-5 shadow-[inset_0_0_24px_rgba(255,255,255,.018)]">
                     <div className="mb-3 flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <Activity size={17} className="text-blue-200" />

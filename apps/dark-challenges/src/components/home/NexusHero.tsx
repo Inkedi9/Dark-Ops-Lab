@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Terminal, Flag, RadioTower } from "lucide-react";
+import { Crosshair, Database, Flag, Flame, RadioTower, ShieldAlert, Terminal } from "lucide-react";
 import AppButton from "@dark/ui/components/AppButton";
 import AppBadge from "@dark/ui/components/AppBadge";
 import PanelCard from "@dark/ui/components/PanelCard";
@@ -18,22 +18,25 @@ type NexusHeroProps = {
 export function NexusHero({ nextMission, global, completion = 0 }: NexusHeroProps) {
     return (
 
-        <section className="grid min-h-[640px] items-center gap-10 pt-8 lg:grid-cols-[1.06fr_0.94fr] xl:gap-14">
-            <div className="pt-6">
-                <div className="mt-4 flex flex-wrap gap-3">
+        <section className="relative grid min-h-[610px] items-center gap-8 pt-6 lg:grid-cols-[1.02fr_0.98fr] xl:gap-12">
+            <div className="pointer-events-none absolute inset-x-0 top-8 hidden h-px bg-gradient-to-r from-transparent via-red-200/25 to-transparent lg:block" />
+            <div className="pointer-events-none absolute left-[-1rem] top-28 hidden h-40 w-px bg-gradient-to-b from-transparent via-amber-200/20 to-transparent lg:block" />
+
+            <div className="pt-4">
+                <div className="mt-4 flex flex-wrap gap-2">
                     <AppBadge variant="danger">Offensive labs</AppBadge>
-                    <AppBadge variant="blue">No walkthroughs</AppBadge>
+                    <AppBadge variant="amber">Mission briefing</AppBadge>
                     <AppBadge variant="emerald">Safe targets</AppBadge>
                 </div>
 
-                <p className="mb-5 font-mono text-sm uppercase tracking-[0.45em] text-blue-300">
-                    DarkChallenges / attack simulation
+                <p className="mb-5 mt-6 font-mono text-sm uppercase tracking-[0.45em] text-red-200">
+                    DarkChallenges / tactical operation deck
                 </p>
 
                 <h1 className="max-w-5xl text-6xl font-black leading-[0.92] tracking-tight md:text-8xl">
                     <span className="text-white">Real attack logic.</span>
                     <span className="block text-slate-300">Launch the next</span>
-                    <span className="block bg-gradient-to-b from-red-200 to-slate-400 bg-clip-text text-transparent">
+                    <span className="block bg-gradient-to-b from-red-100 via-amber-200 to-slate-400 bg-clip-text text-transparent">
                         operation.
                     </span>
                 </h1>
@@ -47,6 +50,15 @@ export function NexusHero({ nextMission, global, completion = 0 }: NexusHeroProp
                     <AppButton to="/challenges" variant="danger">
                         Launch your first exploit →
                     </AppButton>
+                    <AppButton to="/warzone" variant="secondary">
+                        Enter warzone
+                    </AppButton>
+                </div>
+
+                <div className="mt-8 grid gap-3 sm:grid-cols-3">
+                    <OperationMeta icon={Crosshair} label="Objective" value={nextMission?.title || "Mission board"} tone="danger" />
+                    <OperationMeta icon={Flame} label="Clearance" value={`LVL ${global?.level ?? 1}`} tone="amber" />
+                    <OperationMeta icon={Database} label="Campaign" value={`${completion}% cleared`} tone="blue" />
                 </div>
 
                 <div className="mt-10 grid gap-4 sm:grid-cols-3">
@@ -76,25 +88,29 @@ export function NexusHero({ nextMission, global, completion = 0 }: NexusHeroProp
                 variant="danger"
                 accent="danger"
                 hover
-                className="relative p-6 md:p-7"
+                className="relative overflow-hidden border-red-300/16 bg-[radial-gradient(circle_at_50%_8%,rgba(248,113,113,0.16),transparent_36%),radial-gradient(circle_at_88%_16%,rgba(251,191,36,0.10),transparent_28%),linear-gradient(180deg,rgba(18,5,8,0.96),rgba(3,7,18,0.88))] p-5 md:p-6"
             >
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(248,113,113,0.10),transparent_58%)]" />
+                <div className="pointer-events-none absolute inset-0 opacity-[0.18] bg-[linear-gradient(rgba(255,255,255,0.045)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.035)_1px,transparent_1px)] bg-[size:34px_34px]" />
+                <div className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-red-200/50 to-amber-200/30" />
+                <div className="pointer-events-none absolute right-5 top-5 hidden rounded-2xl border border-red-300/12 bg-red-300/[0.05] px-4 py-3 font-mono text-[10px] uppercase tracking-[0.22em] text-red-100 lg:block">
+                    Target Core / Armed
+                </div>
 
-                <div className="relative z-10 flex h-full min-h-[500px] flex-col items-center justify-center">
+                <div className="relative z-10 flex h-full min-h-[480px] flex-col items-center justify-center">
                     <NexusOrb />
 
-                    <div className="mt-10 text-center">
+                    <div className="mt-8 text-center">
                         <p className="font-mono text-xs uppercase tracking-[0.45em] text-slate-500">
-                            Target Core
+                            Operation Core
                         </p>
 
-                        <h2 className="mt-3 bg-gradient-to-r from-white via-red-200 to-emerald-300 bg-clip-text text-5xl font-black uppercase tracking-[0.22em] text-transparent md:text-6xl">
+                        <h2 className="mt-3 bg-gradient-to-r from-white via-red-200 to-amber-200 bg-clip-text text-5xl font-black uppercase tracking-[0.22em] text-transparent md:text-6xl">
                             Armed
                         </h2>
 
                         <p className="mt-4 font-mono text-sm uppercase tracking-[0.32em] text-slate-400">
-                            Recon <span className="text-blue-300">/</span> Exploit{" "}
-                            <span className="text-emerald-300">/</span> Capture
+                            Recon <span className="text-red-300">/</span> Exploit{" "}
+                            <span className="text-amber-300">/</span> Capture
                         </p>
                     </div>
                     {nextMission && (
@@ -108,6 +124,35 @@ export function NexusHero({ nextMission, global, completion = 0 }: NexusHeroProp
             </PanelCard>
         </section>
 
+    );
+}
+
+function OperationMeta({
+    icon: Icon,
+    label,
+    value,
+    tone,
+}: {
+    icon: React.ElementType;
+    label: string;
+    value: string;
+    tone: "danger" | "amber" | "blue";
+}) {
+    const classes =
+        tone === "danger"
+            ? "border-red-300/16 bg-red-300/[0.055] text-red-200"
+            : tone === "amber"
+                ? "border-amber-300/16 bg-amber-300/[0.055] text-amber-200"
+                : "border-blue-300/14 bg-blue-300/[0.045] text-blue-200";
+
+    return (
+        <div className={`rounded-2xl border p-4 ${classes}`}>
+            <div className="mb-3 flex items-center gap-2">
+                <Icon className="h-4 w-4" />
+                <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-slate-500">{label}</span>
+            </div>
+            <p className="line-clamp-2 text-sm font-black text-white">{value}</p>
+        </div>
     );
 }
 
@@ -153,17 +198,17 @@ function ModePill({
 
 function NexusOrb() {
     return (
-        <div className="relative w-[280px] md:w-[360px] aspect-square animate-[pulseGlow_3s_ease-in-out_infinite]">
-            <div className="absolute inset-0 rounded-full border-[3px] border-blue-300/60 border-l-transparent border-b-green-300/70 animate-[rotateSlow_8s_linear_infinite] shadow-[0_0_38px_rgba(0,229,255,.28)]" />
-            <div className="absolute inset-[8%] rounded-full border border-dashed border-green-300/45 animate-[rotateReverse_13s_linear_infinite]" />
-            <div className="absolute inset-[16%] rounded-full border border-blue-300/25" />
-            <div className="absolute inset-0 rounded-full bg-[conic-gradient(from_90deg,transparent_0deg,transparent_225deg,rgba(0,229,255,.42),rgba(57,255,20,.48),transparent_310deg)] [mask:radial-gradient(circle,transparent_56%,black_59%,black_68%,transparent_72%)] animate-[rotateSlow_3.2s_linear_infinite]" />
+        <div className="relative aspect-square w-[260px] animate-[pulseGlow_3s_ease-in-out_infinite] md:w-[340px]">
+            <div className="absolute inset-0 rounded-full border-[3px] border-red-300/60 border-b-amber-300/70 border-l-transparent animate-[rotateSlow_8s_linear_infinite] shadow-[0_0_38px_rgba(248,113,113,.30)]" />
+            <div className="absolute inset-[8%] rounded-full border border-dashed border-amber-300/45 animate-[rotateReverse_13s_linear_infinite]" />
+            <div className="absolute inset-[16%] rounded-full border border-red-300/25" />
+            <div className="absolute inset-0 rounded-full bg-[conic-gradient(from_90deg,transparent_0deg,transparent_225deg,rgba(248,113,113,.42),rgba(251,191,36,.48),transparent_310deg)] [mask:radial-gradient(circle,transparent_56%,black_59%,black_68%,transparent_72%)] animate-[rotateSlow_3.2s_linear_infinite]" />
 
             <svg className="absolute inset-[12%] w-[76%] h-[76%]" viewBox="0 0 400 400">
                 <defs>
                     <linearGradient id="nexusGrad" x1="0" y1="0" x2="1" y2="1">
-                        <stop offset="0%" stopColor="#00e5ff" />
-                        <stop offset="100%" stopColor="#39ff14" />
+                        <stop offset="0%" stopColor="#fb7185" />
+                        <stop offset="100%" stopColor="#fbbf24" />
                     </linearGradient>
                     <filter id="nexusGlow">
                         <feGaussianBlur stdDeviation="4" result="blur" />
@@ -183,6 +228,7 @@ function NexusOrb() {
                     <circle className="dn-node" cx="200" cy="200" r="7" />
                 </g>
                 <g filter="url(#nexusGlow)" fill="rgba(5,7,10,.78)" stroke="url(#nexusGrad)" strokeWidth="8">
+                    <path d="M200 96 L232 152 L296 166 L252 214 L258 282 L200 254 L142 282 L148 214 L104 166 L168 152 Z" opacity=".28" />
                     <path d="M200 145 L248 166 V213 C248 247 228 275 200 289 C172 275 152 247 152 213 V166 Z" />
                     <circle cx="200" cy="210" r="14" fill="none" />
                     <path d="M200 224 L190 252 H210 Z" fill="none" />
@@ -199,7 +245,7 @@ function TargetBriefing({
 }: Required<Pick<NexusHeroProps, "nextMission">> &
     Pick<NexusHeroProps, "global" | "completion">) {
     return (
-        <div className="mt-7 w-full rounded-2xl border border-red-300/14 bg-black/35 p-4 text-left">
+        <div className="mt-6 w-full rounded-2xl border border-red-300/14 bg-black/35 p-4 text-left shadow-[inset_0_0_24px_rgba(248,113,113,.035)]">
             <p className="font-mono text-xs uppercase tracking-[0.3em] text-red-200">
                 Target briefing
             </p>
@@ -216,7 +262,8 @@ function TargetBriefing({
             </div>
 
             <div className="mt-5 rounded-xl border border-red-300/12 bg-red-400/[0.045] p-4">
-                <p className="font-mono text-xs uppercase tracking-[0.25em] text-red-200">
+                <p className="flex items-center gap-2 font-mono text-xs uppercase tracking-[0.25em] text-red-200">
+                    <ShieldAlert className="h-4 w-4" />
                     Recon signals
                 </p>
                 <ul className="mt-3 space-y-2 text-sm text-slate-400">

@@ -54,9 +54,9 @@ export default function Home() {
             <main className="relative z-10 mx-auto max-w-7xl px-4 py-8 md:px-8 md:py-10">
                 <section className="grid gap-10 lg:grid-cols-2 lg:items-center">
                     <div>
-                        <div className="inline-flex items-center gap-2 rounded-full border border-blue-400/25 bg-blue-400/10 px-4 py-1.5 font-mono text-xs font-bold uppercase tracking-[0.28em] text-blue-200">
+                        <div className="inline-flex items-center gap-2 rounded-full border border-emerald-400/25 bg-emerald-400/10 px-4 py-1.5 font-mono text-xs font-bold uppercase tracking-[0.28em] text-emerald-200">
                             <Activity className="h-3.5 w-3.5" />
-                            Learn • Hack • Defend
+                            Analyst console / incident triage
                         </div>
 
                         <h1 className="mt-8 max-w-5xl text-5xl font-black leading-[1.05] tracking-tight text-white md:text-6xl xl:text-7xl">
@@ -75,6 +75,12 @@ export default function Home() {
                             <PhishBadge tone="blue">Realistic scenarios</PhishBadge>
                             <PhishBadge tone="slate">SOC-driven training</PhishBadge>
                             <PhishBadge tone="green">Human-layer defense</PhishBadge>
+                        </div>
+
+                        <div className="mt-7 grid gap-3 sm:grid-cols-3">
+                            <SignalMetric icon={MailWarning} label="Incident" value={`${scenarios.length} scenarios`} tone="blue" />
+                            <SignalMetric icon={Radar} label="Confidence" value="92%" tone="green" />
+                            <SignalMetric icon={ShieldAlert} label="Queue" value="Triage ready" tone="amber" />
                         </div>
 
                         <div className="mt-8 flex flex-wrap gap-3">
@@ -106,7 +112,9 @@ export default function Home() {
                     </div>
 
                     <div className="relative">
-                        <PhishPanel className="relative min-h-[560px] overflow-hidden p-6">
+                        <PhishPanel className="relative min-h-[560px] overflow-hidden border-emerald-300/14 bg-[radial-gradient(circle_at_18%_0%,rgba(16,185,129,0.14),transparent_34%),radial-gradient(circle_at_90%_14%,rgba(96,165,250,0.09),transparent_28%),linear-gradient(180deg,rgba(3,16,13,0.94),rgba(3,7,18,0.86))] p-6">
+                            <div className="pointer-events-none absolute inset-0 opacity-[0.16] bg-[linear-gradient(rgba(255,255,255,0.045)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.035)_1px,transparent_1px)] bg-[size:34px_34px]" />
+                            <div className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-emerald-200/45 to-blue-200/25" />
                             <div className="pointer-events-none absolute -right-28 -bottom-32 opacity-25 scale-90">
                                 <NexusOrb />
                             </div>
@@ -114,11 +122,11 @@ export default function Home() {
                             <div className="relative z-10">
                                 <div className="mb-5 flex items-center justify-between">
                                     <div>
-                                        <p className="font-mono text-xs uppercase tracking-[0.25em] text-blue-300">
-                                            Training Console
+                                        <p className="font-mono text-xs uppercase tracking-[0.25em] text-emerald-300">
+                                            Analyst Console
                                         </p>
                                         <h2 className="mt-2 text-2xl font-black text-white">
-                                            Human-risk defense active
+                                            Incident review active
                                         </h2>
                                     </div>
 
@@ -127,15 +135,21 @@ export default function Home() {
                                     </div>
                                 </div>
 
-                                <div className="mb-5 rounded-2xl border border-blue-400/15 bg-black/40 p-4 font-mono text-sm leading-7 text-green-300 backdrop-blur-xl">
-                                    <p>&gt; boot_phishing_lab</p>
-                                    <p className="text-blue-200">[INFO] Scenario engine connected</p>
-                                    <p>[READY] Analyst training session live</p>
+                                <div className="mb-5 rounded-2xl border border-emerald-400/15 bg-black/40 p-4 font-mono text-sm leading-7 text-green-300 backdrop-blur-xl shadow-[inset_0_0_24px_rgba(16,185,129,.035)]">
+                                    <p>&gt; boot_incident_console</p>
+                                    <p className="text-blue-200">[INFO] Signal engine connected</p>
+                                    <p>[READY] Analyst triage session live</p>
                                     <p className="text-amber-300">[TASK] Inspect sender, links, tone, and intent</p>
-                                    <p className="text-blue-300">
+                                    <p className="text-emerald-300">
                                         root@dark-defend:~${" "}
                                         <span className="terminal-cursor">█</span>
                                     </p>
+                                </div>
+
+                                <div className="mb-5 grid gap-3 sm:grid-cols-3">
+                                    <ConsoleStat label="Signal" value="Suspicious" tone="amber" />
+                                    <ConsoleStat label="Confidence" value="High" tone="green" />
+                                    <ConsoleStat label="Action" value="Classify" tone="blue" />
                                 </div>
 
                                 <div className="space-y-4">
@@ -240,6 +254,39 @@ function ScenarioCard({ icon, label, title, tone = "blue" }) {
 
                 {createElement(icon, { className: "h-5 w-5" })}
             </div>
+        </div>
+    );
+}
+
+function SignalMetric({ icon, label, value, tone = "blue" }) {
+    const tones = {
+        blue: "border-blue-300/16 bg-blue-300/[0.055] text-blue-200",
+        green: "border-emerald-300/16 bg-emerald-300/[0.055] text-emerald-200",
+        amber: "border-amber-300/16 bg-amber-300/[0.055] text-amber-200",
+    };
+
+    return (
+        <div className={`rounded-2xl border p-4 ${tones[tone]}`}>
+            <div className="mb-3 flex items-center gap-2">
+                {createElement(icon, { className: "h-4 w-4" })}
+                <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-slate-500">{label}</span>
+            </div>
+            <p className="text-sm font-black text-white">{value}</p>
+        </div>
+    );
+}
+
+function ConsoleStat({ label, value, tone = "blue" }) {
+    const tones = {
+        blue: "border-blue-300/14 bg-blue-300/[0.045] text-blue-200",
+        green: "border-emerald-300/14 bg-emerald-300/[0.045] text-emerald-200",
+        amber: "border-amber-300/14 bg-amber-300/[0.045] text-amber-200",
+    };
+
+    return (
+        <div className={`rounded-xl border px-3 py-3 ${tones[tone]}`}>
+            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500">{label}</p>
+            <p className="mt-1 text-sm font-black text-white">{value}</p>
         </div>
     );
 }

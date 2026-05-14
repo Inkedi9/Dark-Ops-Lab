@@ -20,6 +20,7 @@ import AppBadge from "@dark/ui/components/AppBadge";
 import AppButton from "@dark/ui/components/AppButton";
 import ProgressBar from "@dark/ui/components/ProgressBar";
 import SectionHeader from "@dark/ui/components/SectionHeader";
+import MissionBriefingCard from "../mission/MissionBriefingCard";
 
 
 type TerminalLog = ChallengeLog & {
@@ -285,6 +286,20 @@ export function CtfRunner({ slug }: Props) {
                         </div>
                     </div>
                 }
+            />
+
+            <MissionBriefingCard
+                title={ctf.title}
+                objective={ctf.description}
+                difficulty={ctf.difficulty}
+                risk="Hight"
+                duration="20 min"
+                rewards={`+${ctf.xpReward || 250} XP`}
+                skills={[
+                    "SQL Injection",
+                    "Recon",
+                    "Input Analysis",
+                ]}
             />
 
             <PanelCard variant="darkNexus" accent="violet" className="mb-8">

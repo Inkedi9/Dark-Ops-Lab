@@ -4,7 +4,11 @@ import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import {
   ArrowRight,
+  Activity,
   BookOpen,
+  Database,
+  Fingerprint,
+  RadioTower,
   Route,
   ShieldCheck,
   Swords,
@@ -232,6 +236,7 @@ export default function DarkNexusHub() {
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#05070A] text-slate-100 selection:bg-blue-300 selection:text-black">
       <NexusBackground />
+      <LiveTacticalLayer />
 
       <section className="relative z-10 mx-auto max-w-7xl px-5 py-5 md:px-8 xl:py-8">
 
@@ -240,9 +245,16 @@ export default function DarkNexusHub() {
           onReset={handleResetProfile}
         />
 
-        <header className="grid items-center gap-10 py-12 lg:grid-cols-[1.08fr_0.92fr]">
+        <header className="relative grid items-center gap-10 py-12 lg:grid-cols-[1.08fr_0.92fr]">
+          <div className="pointer-events-none absolute inset-x-0 top-7 hidden h-px bg-gradient-to-r from-transparent via-blue-200/25 to-transparent lg:block" />
+          <div className="pointer-events-none absolute -left-8 top-24 hidden h-40 w-px bg-gradient-to-b from-transparent via-emerald-200/20 to-transparent lg:block" />
           <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.55 }}>
             <BrandPill />
+            <div className="mt-5 flex flex-wrap gap-2">
+              <CommandChip icon={RadioTower} label="Ecosystem live" value="4 modules" tone="blue" />
+              <CommandChip icon={Database} label="Telemetry" value="Local-first" tone="emerald" />
+              <CommandChip icon={Fingerprint} label="Operator" value={profile.rank} tone="violet" />
+            </div>
             <h2 className="mt-6 max-w-4xl text-6xl font-black leading-[0.95] tracking-tight text-white md:text-8xl">
               Continue your
               <span className="block text-slate-300">operator path.</span>
@@ -263,6 +275,12 @@ export default function DarkNexusHub() {
               <AppButton href="#paths" variant="secondary">
                 View operator routes
               </AppButton>
+            </div>
+
+            <div className="mt-8 grid gap-3 sm:grid-cols-3">
+              <HeroMetric label="Lessons" value={profile.completedLessons.length} />
+              <HeroMetric label="Missions" value={profile.completedMissions.length} />
+              <HeroMetric label="Defend" value={profile.completedDefend.length} />
             </div>
           </motion.div>
 
@@ -321,6 +339,45 @@ export default function DarkNexusHub() {
       </section>
       <NexusAIButton />
     </main>
+  );
+}
+
+function CommandChip({
+  icon: Icon,
+  label,
+  value,
+  tone,
+}: {
+  icon: React.ElementType;
+  label: string;
+  value: string;
+  tone: "blue" | "emerald" | "violet";
+}) {
+  const styles =
+    tone === "emerald"
+      ? "border-emerald-300/16 bg-emerald-300/[0.055] text-emerald-200"
+      : tone === "violet"
+        ? "border-violet-300/16 bg-violet-300/[0.055] text-violet-200"
+        : "border-blue-300/16 bg-blue-300/[0.055] text-blue-200";
+
+  return (
+    <div className={`inline-flex items-center gap-2 rounded-2xl border px-3 py-2 ${styles}`}>
+      <Icon className="h-4 w-4" />
+      <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-500">{label}</span>
+      <span className="text-xs font-black text-white">{value}</span>
+    </div>
+  );
+}
+
+function HeroMetric({ label, value }: { label: string; value: string | number }) {
+  return (
+    <div className="rounded-2xl border border-blue-300/12 bg-black/24 p-4 shadow-[inset_0_0_22px_rgba(96,165,250,.025)]">
+      <div className="mb-3 flex items-center gap-2 text-blue-200">
+        <Activity className="h-4 w-4" />
+        <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-slate-500">{label}</span>
+      </div>
+      <p className="text-2xl font-black text-white">{value}</p>
+    </div>
   );
 }
 

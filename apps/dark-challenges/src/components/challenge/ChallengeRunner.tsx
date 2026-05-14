@@ -26,6 +26,7 @@ import StatCard from "@dark/ui/components/StatCard";
 import AppButton from "@dark/ui/components/AppButton";
 import AppBadge from "@dark/ui/components/AppBadge";
 import SectionHeader from "@dark/ui/components/SectionHeader";
+import MissionBriefingCard from "../mission/MissionBriefingCard";
 
 type TerminalLog = ChallengeLog & {
     time: string;
@@ -271,6 +272,20 @@ export default function ChallengeRunner({ slug }: Props) {
                     }
                 />
 
+                <MissionBriefingCard
+                    title={challenge.title}
+                    objective={challenge.description}
+                    difficulty={challenge.difficulty}
+                    risk="Medium"
+                    duration="20 min"
+                    rewards={`+${challenge.xpReward || 250} XP`}
+                    skills={[
+                        "SQL Injection",
+                        "Recon",
+                        "Input Analysis",
+                    ]}
+                />
+
                 <div className="mt-4 flex flex-wrap gap-2">
                     <AppBadge variant="blue">{challenge.category}</AppBadge>
                     <AppBadge
@@ -291,37 +306,10 @@ export default function ChallengeRunner({ slug }: Props) {
             </div>
 
             <PanelCard variant="darkNexus" accent="danger" className="mb-8">
-                <div className="grid gap-5 lg:grid-cols-[1fr_1fr_1fr_1.2fr]">
-                    <OperationMetric
-                        icon={Crosshair}
-                        label="Target"
-                        value={challenge.category}
-                    />
-
-                    <OperationMetric
-                        icon={ShieldAlert}
-                        label="Difficulty"
-                        value={challenge.difficulty}
-                    />
-
-                    <OperationMetric
-                        icon={Clock}
-                        label="Estimated"
-                        value={`${challenge.estimatedMinutes} min`}
-                    />
-
-                    <OperationMetric
-                        icon={Trophy}
-                        label="Reward"
-                        value={`${score} XP`}
-                    />
-                </div>
-
+                <AppBadge variant="danger">
+                    Operation flow
+                </AppBadge>
                 <div className="mt-6 rounded-2xl border border-red-300/15 bg-red-400/[0.045] p-4">
-                    <p className="font-mono text-xs uppercase tracking-[0.28em] text-red-200">
-                        Operation flow
-                    </p>
-
                     <div className="mt-4 grid gap-2 md:grid-cols-4">
                         {["Recon", "Payload", "Bypass", "Capture"].map((step, index) => (
                             <div

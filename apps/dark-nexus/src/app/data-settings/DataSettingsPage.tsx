@@ -466,26 +466,38 @@ export default function DataSettingsPage() {
                     Back home
                 </Link>
 
-                <PageHeader
-                    eyebrow="Advanced"
-                    title="Data & Sync"
-                    description="Advanced local-first storage, cloud sync and diagnostics."
+                <PanelCard
+                    variant="darkNexusHero"
                     accent="blue"
-                    badges={[
-                        { label: "localStorage", variant: "blue" },
-                        { label: "sync-ready", variant: "emerald" },
-                        {
-                            label: `Supabase ${sessionLoading ? "checking" : supabaseConfigured ? "yes" : "no"}`,
-                            variant: supabaseConfigured ? "emerald" : "slate",
-                        },
-                        {
-                            label: `Auth ${sessionLoading ? "checking" : authUser ? "yes" : "no"}`,
-                            variant: authUser ? "emerald" : "slate",
-                        },
-                    ]}
-                />
+                    className="border-blue-300/15 bg-[radial-gradient(circle_at_14%_0%,rgba(96,165,250,0.15),transparent_32%),radial-gradient(circle_at_86%_16%,rgba(16,185,129,0.10),transparent_30%),linear-gradient(135deg,rgba(4,10,22,0.96),rgba(7,12,24,0.80)_52%,rgba(3,7,18,0.96))] p-7"
+                >
+                    <PageHeader
+                        eyebrow="Advanced"
+                        title="Data & Sync"
+                        description="Advanced local-first storage, cloud sync and diagnostics."
+                        accent="blue"
+                        badges={[
+                            { label: "localStorage", variant: "blue" },
+                            { label: "sync-ready", variant: "emerald" },
+                            {
+                                label: `Supabase ${sessionLoading ? "checking" : supabaseConfigured ? "yes" : "no"}`,
+                                variant: supabaseConfigured ? "emerald" : "slate",
+                            },
+                            {
+                                label: `Auth ${sessionLoading ? "checking" : authUser ? "yes" : "no"}`,
+                                variant: authUser ? "emerald" : "slate",
+                            },
+                        ]}
+                    />
+                    <div className="mt-6 grid gap-3 md:grid-cols-4">
+                        <StatusTile label="Local size" value={localDataSize} tone="blue" />
+                        <StatusTile label="Pending queue" value={String(pendingSyncCount)} tone={pendingSyncCount > 0 ? "amber" : "emerald"} />
+                        <StatusTile label="Active namespaces" value={`${progressCount}/${progressNamespaces.length}`} tone="violet" />
+                        <StatusTile label="Migration" value={migrationStatus} tone={migrationStatus === "migrated" ? "emerald" : "slate"} />
+                    </div>
+                </PanelCard>
 
-                <PanelCard variant="darkNexus" accent="amber" className="p-4">
+                <PanelCard variant="darkNexus" accent="amber" className="border-amber-300/14 bg-amber-300/[0.055] p-4">
                     <div className="flex flex-wrap items-center gap-3">
                         <AppBadge variant="amber">Local-first</AppBadge>
                         <p className="text-sm leading-6 text-amber-100/90">
@@ -495,14 +507,22 @@ export default function DataSettingsPage() {
                 </PanelCard>
 
                 {feedback && (
-                    <PanelCard variant="darkNexus" accent={feedback.tone === "error" ? "danger" : "blue"} className="p-4">
+                    <PanelCard
+                        variant="darkNexus"
+                        accent={feedback.tone === "error" ? "danger" : "blue"}
+                        className={feedback.tone === "error" ? "border-red-300/16 bg-red-300/[0.055] p-4" : "border-blue-300/14 bg-blue-300/[0.05] p-4"}
+                    >
                         <p className={feedback.tone === "error" ? "text-sm text-red-200" : "text-sm text-blue-100"}>
                             {feedback.message}
                         </p>
                     </PanelCard>
                 )}
 
-                <PanelCard variant="darkNexus" accent="blue" className="p-6">
+                <PanelCard
+                    variant="darkNexus"
+                    accent="blue"
+                    className="border-blue-300/12 bg-[linear-gradient(180deg,rgba(96,165,250,0.08),rgba(3,7,18,0.78))] p-6"
+                >
                     <SectionHeader
                         eyebrow="Connection"
                         title="Connection status"
@@ -526,7 +546,11 @@ export default function DataSettingsPage() {
                     </div>
                 </PanelCard>
 
-                <PanelCard variant="darkNexus" accent="emerald" className="p-6">
+                <PanelCard
+                    variant="darkNexus"
+                    accent="emerald"
+                    className="border-emerald-300/12 bg-[linear-gradient(180deg,rgba(16,185,129,0.095),rgba(3,7,18,0.78))] p-6"
+                >
                     <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                         <SectionHeader
                             eyebrow="Cloud Sync"
@@ -538,7 +562,7 @@ export default function DataSettingsPage() {
                             {supabaseConfigured ? "configured" : "not configured"}
                         </AppBadge>
                     </div>
-                    <div className="mt-2 rounded-xl border border-white/[0.07] bg-black/25 p-4">
+                    <div className="mt-2 rounded-xl border border-emerald-300/12 bg-emerald-300/[0.045] p-4">
                         <div className="flex flex-wrap items-center gap-4">
                             {avatarUrl ? (
                                 <span
@@ -597,13 +621,17 @@ export default function DataSettingsPage() {
                     </div>
                 </PanelCard>
 
-                <PanelCard variant="darkNexus" accent="blue" className="p-6">
+                <PanelCard
+                    variant="darkNexus"
+                    accent="violet"
+                    className="border-violet-300/12 bg-[linear-gradient(180deg,rgba(124,58,237,0.09),rgba(3,7,18,0.78))] p-6"
+                >
                     <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                         <SectionHeader
                             eyebrow="Cloud Sync"
                             title="Bootstrap status"
                             description="Runs once after Supabase login: migrate legacy data, pull remote state, merge local-first, then push pending local queue."
-                            accent="blue"
+                            accent="violet"
                         />
                         <AppBadge
                             variant={
@@ -629,12 +657,16 @@ export default function DataSettingsPage() {
                             Run bootstrap sync again
                         </AppButton>
                     </div>
-                    <pre className="mt-5 max-h-64 overflow-auto rounded-xl border border-white/[0.08] bg-black/35 p-4 text-xs leading-relaxed text-slate-200">
+                    <pre className="mt-5 max-h-64 overflow-auto rounded-xl border border-violet-300/14 bg-[#05020d]/70 p-4 text-xs leading-relaxed text-violet-50">
                         {formatJson(bootstrapResult || { status: bootstrapStatus })}
                     </pre>
                 </PanelCard>
 
-                <PanelCard variant="darkNexus" accent="blue" className="p-6">
+                <PanelCard
+                    variant="darkNexus"
+                    accent="blue"
+                    className="border-blue-300/12 bg-[linear-gradient(180deg,rgba(59,130,246,0.08),rgba(3,7,18,0.78))] p-6"
+                >
                     <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                         <SectionHeader
                             eyebrow="Cloud Sync"
@@ -656,11 +688,11 @@ export default function DataSettingsPage() {
 
                     <div className="mt-5 overflow-hidden rounded-xl border border-white/[0.08]">
                         {latestQueueItems.length === 0 ? (
-                            <p className="bg-black/25 p-4 text-sm text-slate-400">No sync queue items.</p>
+                            <p className="bg-blue-300/[0.035] p-4 text-sm text-slate-400">No sync queue items.</p>
                         ) : (
                             <div className="divide-y divide-white/[0.06]">
                                 {latestQueueItems.map((item) => (
-                                    <div key={item.id} className="grid gap-2 bg-black/25 p-4 text-sm md:grid-cols-[1fr_auto_auto] md:items-center">
+                                    <div key={item.id} className="grid gap-2 bg-blue-300/[0.03] p-4 text-sm md:grid-cols-[1fr_auto_auto] md:items-center">
                                         <div>
                                             <p className="font-semibold text-slate-100">{item.payload?.type || "event"}</p>
                                             <p className="mt-1 break-all text-xs text-slate-400">{item.idempotencyKey}</p>
@@ -674,7 +706,11 @@ export default function DataSettingsPage() {
                     </div>
                 </PanelCard>
 
-                <PanelCard variant="darkNexus" accent="blue" className="p-6">
+                <PanelCard
+                    variant="darkNexus"
+                    accent="blue"
+                    className="border-blue-300/12 bg-[linear-gradient(180deg,rgba(14,165,233,0.07),rgba(3,7,18,0.80))] p-6"
+                >
                     <SectionHeader
                         eyebrow="Local Cache"
                         title="Namespace snapshots"
@@ -695,7 +731,7 @@ export default function DataSettingsPage() {
                             const dataCount = state?.data ? Object.keys(state.data).length : 0;
 
                             return (
-                                <div key={namespace} className="rounded-xl border border-white/[0.07] bg-black/25 p-4">
+                                <div key={namespace} className="rounded-xl border border-blue-300/10 bg-blue-300/[0.035] p-4">
                                     <AppBadge variant={eventCount > 0 || dataCount > 0 ? "emerald" : "slate"}>
                                         {namespace}
                                     </AppBadge>
@@ -708,7 +744,11 @@ export default function DataSettingsPage() {
                 </PanelCard>
 
                 <section className="grid gap-6 lg:grid-cols-2">
-                    <PanelCard variant="darkNexus" accent="blue" className="p-6">
+                    <PanelCard
+                        variant="darkNexus"
+                        accent="blue"
+                        className="border-blue-300/12 bg-[linear-gradient(180deg,rgba(96,165,250,0.08),rgba(3,7,18,0.78))] p-6"
+                    >
                         <SectionHeader eyebrow="Local Cache" title="Export local data" accent="blue" />
                         <div className="mt-5 flex flex-wrap gap-3">
                             <AppButton type="button" variant="primary" onClick={handleExport}>
@@ -719,17 +759,21 @@ export default function DataSettingsPage() {
                             </AppButton>
                         </div>
                         <textarea
-                            className="mt-5 min-h-80 w-full resize-y rounded-xl border border-white/[0.08] bg-black/35 p-4 font-mono text-xs text-slate-200 outline-none ring-blue-300/20 focus:ring-2"
+                            className="mt-5 min-h-80 w-full resize-y rounded-xl border border-blue-300/14 bg-[#020817]/85 p-4 font-mono text-xs text-blue-50 outline-none ring-blue-300/20 focus:ring-2"
                             value={exportJson}
                             onChange={(event) => setExportJson(event.target.value)}
                             spellCheck={false}
                         />
                     </PanelCard>
 
-                    <PanelCard variant="darkNexus" accent="emerald" className="p-6">
+                    <PanelCard
+                        variant="darkNexus"
+                        accent="emerald"
+                        className="border-emerald-300/12 bg-[linear-gradient(180deg,rgba(16,185,129,0.085),rgba(3,7,18,0.78))] p-6"
+                    >
                         <SectionHeader eyebrow="Local Cache" title="Import local data" accent="emerald" />
                         <textarea
-                            className="mt-5 min-h-80 w-full resize-y rounded-xl border border-white/[0.08] bg-black/35 p-4 font-mono text-xs text-slate-200 outline-none ring-emerald-300/20 focus:ring-2"
+                            className="mt-5 min-h-80 w-full resize-y rounded-xl border border-emerald-300/14 bg-[#02110c]/80 p-4 font-mono text-xs text-emerald-50 outline-none ring-emerald-300/20 focus:ring-2"
                             value={importJson}
                             onChange={(event) => setImportJson(event.target.value)}
                             placeholder="{ }"
@@ -744,7 +788,11 @@ export default function DataSettingsPage() {
                 </section>
 
                 <section className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
-                    <PanelCard variant="darkNexus" accent="emerald" className="p-6">
+                    <PanelCard
+                        variant="darkNexus"
+                        accent="emerald"
+                        className="border-emerald-300/12 bg-[linear-gradient(180deg,rgba(5,150,105,0.08),rgba(3,7,18,0.80))] p-6"
+                    >
                         <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                             <SectionHeader
                                 eyebrow="Legacy Migration"
@@ -771,23 +819,31 @@ export default function DataSettingsPage() {
                         )}
                     </PanelCard>
 
-                    <PanelCard variant="darkNexus" accent="blue" className="p-6">
+                    <PanelCard
+                        variant="darkNexus"
+                        accent="violet"
+                        className="border-violet-300/12 bg-[linear-gradient(180deg,rgba(109,40,217,0.08),rgba(3,7,18,0.80))] p-6"
+                    >
                         <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                             <SectionHeader
                                 eyebrow="Diagnostics"
                                 title="Raw JSON outputs"
                                 description="Latest command output for migration, Supabase tests, bootstrap, import, export, and sync actions."
-                                accent="blue"
+                                accent="violet"
                             />
                             <AppBadge variant="amber">Advanced</AppBadge>
                         </div>
-                        <pre className="mt-5 max-h-80 overflow-auto rounded-xl border border-white/[0.08] bg-black/35 p-4 text-xs leading-relaxed text-slate-200">
+                        <pre className="mt-5 max-h-80 overflow-auto rounded-xl border border-violet-300/14 bg-[#060211]/80 p-4 text-xs leading-relaxed text-violet-50">
                             {resultJson || "{\n  \"status\": \"No diagnostic result yet\"\n}"}
                         </pre>
                     </PanelCard>
                 </section>
 
-                <PanelCard variant="darkNexus" accent="danger" className="p-6">
+                <PanelCard
+                    variant="danger"
+                    accent="danger"
+                    className="border-red-300/14 bg-[linear-gradient(180deg,rgba(248,113,113,0.095),rgba(3,7,18,0.82))] p-6"
+                >
                     <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                         <SectionHeader
                             eyebrow="Danger Zone"
@@ -820,8 +876,19 @@ function StatusTile({
     value: string;
     tone: string;
 }) {
+    const toneClass =
+        tone === "emerald"
+            ? "border-emerald-300/14 bg-emerald-300/[0.045]"
+            : tone === "amber"
+                ? "border-amber-300/14 bg-amber-300/[0.045]"
+                : tone === "violet"
+                    ? "border-violet-300/14 bg-violet-300/[0.045]"
+                    : tone === "blue"
+                        ? "border-blue-300/14 bg-blue-300/[0.045]"
+                        : "border-white/[0.07] bg-white/[0.025]";
+
     return (
-        <div className="rounded-xl border border-white/[0.07] bg-black/25 p-4">
+        <div className={`rounded-xl border p-4 ${toneClass}`}>
             <p className="text-xs uppercase tracking-[0.18em] text-slate-500">{label}</p>
             <div className="mt-3">
                 <AppBadge variant={tone}>{value}</AppBadge>
