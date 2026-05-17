@@ -96,7 +96,7 @@ export default function ModuleCard({
             className="block h-full"
         >
             <PanelCard
-                variant="darkNexus"
+                variant="darkOps"
                 accent={accent.accent}
                 hover
                 className="group relative h-full overflow-hidden"

@@ -1,6 +1,5 @@
 import { safeRead, safeRemove, safeWrite } from "@dark/storage";
 import { STORAGE_SCHEMA_VERSION } from "@dark/types";
-import { supabaseProgressProvider } from "./providers/supabaseProgressProvider";
 import type {
   AppProgressState,
   GlobalProfile,
@@ -328,6 +327,7 @@ type SupabaseSyncResult = {
 export async function syncProgressWithSupabase(
   options: { mode?: SupabaseSyncMode } = {},
 ): Promise<SupabaseSyncResult> {
+  const { supabaseProgressProvider } = await import("./providers/supabaseProgressProvider");
   const mode = options.mode || "push";
 
   if (mode === "pull") {

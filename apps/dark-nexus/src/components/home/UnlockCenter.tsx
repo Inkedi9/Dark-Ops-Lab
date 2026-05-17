@@ -69,7 +69,7 @@ export default function UnlockCenter() {
     const [active, setActive] = useState(unlocks[0]);
 
     return (
-        <PanelCard variant="darkNexus" accent="emerald" hover className="h-full">
+        <PanelCard variant="darkOps" accent="emerald" hover className="h-full">
             <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                 <div>
                     <p className="font-mono text-xs font-black uppercase tracking-[0.35em] text-emerald-200">

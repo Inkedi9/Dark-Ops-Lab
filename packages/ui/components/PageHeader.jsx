@@ -17,7 +17,7 @@ export default function PageHeader({
 
     return (
         <PanelCard
-            variant={isNexus ? "darkNexusHero" : variant}
+            variant={isNexus ? "darkOpsHero" : variant}
             accent={accent}
             animated
             className={`${spacing.sectionBottom} p-7 md:p-10`}

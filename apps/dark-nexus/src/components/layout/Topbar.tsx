@@ -27,7 +27,7 @@ function cn(...classes: Array<string | false | null | undefined>) {
 const navItems = [
     { label: "Command", href: "/" },
     { label: "Learn", href: "/learn" },
-    { label: "Practice", href: "/practice" },
+    { label: "Challenges", href: "/challenges" },
     { label: "Defend", href: "/defend" },
     { label: "Telemetry", href: "/telemetry", icon: Activity },
     ...(process.env.NODE_ENV !== "production"
@@ -93,7 +93,7 @@ export default function Topbar({
                         <div className="min-w-0">
                             <div className="flex items-center gap-2">
                                 <h1 className="font-[var(--font-display)] text-lg font-black uppercase tracking-[0.28em] text-white">
-                                    Dark Nexus
+                                    Dark Ops
                                 </h1>
                                 <span className="hidden rounded-full border border-emerald-300/18 bg-emerald-300/[0.07] px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.18em] text-emerald-200 sm:inline">
                                     Live

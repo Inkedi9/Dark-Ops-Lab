@@ -63,7 +63,7 @@ export default function RouteDependencyGraph({ profile }: { profile: Profile }) 
 
     return (
         <section className="py-8">
-            <PanelCard variant="darkNexus" accent="violet" hover>
+            <PanelCard variant="darkOps" accent="violet" hover>
                 <div className="mb-7">
                     <p className="font-mono text-xs font-black uppercase tracking-[0.35em] text-indigo-200">
                         Route Dependency Graph
@@ -72,7 +72,7 @@ export default function RouteDependencyGraph({ profile }: { profile: Profile }) 
                         How this route unlocks the next capability.
                     </h2>
                     <p className="mt-3 max-w-2xl leading-7 text-slate-300">
-                        DarkNexus maps every concept to its lab, defense scenario and next operator route.
+                        DarkOps maps every concept to its lab, defense scenario and next operator route.
                     </p>
                 </div>
 

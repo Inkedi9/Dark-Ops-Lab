@@ -80,7 +80,7 @@ export default function OperatorRouteMap({ profile }: { profile: Profile }) {
 
     return (
         <section className="py-8">
-            <PanelCard variant="darkNexus" accent="blue" hover>
+            <PanelCard variant="darkOps" accent="blue" hover>
                 <div className="mb-7 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
                     <div>
                         <p className="font-mono text-xs font-black uppercase tracking-[0.35em] text-blue-200">

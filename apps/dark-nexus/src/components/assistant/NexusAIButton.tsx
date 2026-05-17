@@ -34,7 +34,7 @@ function getMockAnswer(question: string) {
         return "L’XP représente ta progression opérateur. Chaque leçon, mission et simulation défense augmente ton niveau et débloque de nouvelles routes.";
     }
 
-    return "Je peux te guider dans DarkNexus : choisir ta prochaine action, comprendre une route, expliquer un concept ou t’aider à décider entre Learn, Practice et Defend.";
+    return "Je peux te guider dans DarkOps : choisir ta prochaine action, comprendre une route, expliquer un concept ou t’aider à décider entre Learn, Practice et Defend.";
 }
 
 export default function NexusAIButton() {
@@ -43,7 +43,7 @@ export default function NexusAIButton() {
     const [messages, setMessages] = useState<Message[]>([
         {
             role: "assistant",
-            text: "Bienvenue opérateur. Je peux t’aider à comprendre quoi faire ensuite dans DarkNexus.",
+            text: "Bienvenue opérateur. Je peux t’aider à comprendre quoi faire ensuite dans DarkOps.",
         },
     ]);
 

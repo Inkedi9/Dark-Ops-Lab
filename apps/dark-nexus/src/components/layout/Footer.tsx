@@ -5,7 +5,7 @@ export default function Footer() {
         <footer className="flex flex-col gap-4 border-t border-white/[0.06] py-8 text-sm text-slate-500 md:flex-row md:items-center md:justify-between">
             <div>
                 <p className="font-semibold text-slate-300">
-                    DarkNexus — Cyber learning ecosystem.
+                    DarkOps — Cyber learning ecosystem.
                 </p>
                 <p className="mt-1 flex items-center gap-2">
                     <CheckCircle2 size={16} className="text-emerald-300" />

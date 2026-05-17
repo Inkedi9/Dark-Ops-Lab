@@ -72,7 +72,7 @@ function toneClass(accent: string) {
 export default function NextActionsPanel({ profile }: { profile: Profile }) {
     return (
         <section className="py-8">
-            <PanelCard variant="darkNexus" accent="blue" hover>
+            <PanelCard variant="darkOps" accent="blue" hover>
                 <div className="mb-6">
                     <p className="font-mono text-xs font-black uppercase tracking-[0.35em] text-blue-200">
                         Next Actions
@@ -81,7 +81,7 @@ export default function NextActionsPanel({ profile }: { profile: Profile }) {
                         Choose the right move.
                     </h2>
                     <p className="mt-3 max-w-2xl leading-7 text-slate-300">
-                        DarkNexus prioritizes your next action based on what you have already completed.
+                        DarkOps prioritizes your next action based on what you have already completed.
                     </p>
                 </div>
 

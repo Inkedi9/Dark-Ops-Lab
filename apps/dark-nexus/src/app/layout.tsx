@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Dark Nexus Hub",
+  title: "Dark Ops Lab",
   description: "Hub: Learn to Practice to Defend your code",
 };
 

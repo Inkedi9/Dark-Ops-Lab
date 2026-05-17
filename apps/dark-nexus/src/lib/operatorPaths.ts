@@ -6,7 +6,7 @@ export type OperatorPathAction = {
     description: string;
     ctaLabel: string;
     href: string;
-    app: "DarkSplaining" | "DarkChallenges" | "DarkDefend" | "DarkNexus";
+    app: "DarkSplaining" | "DarkChallenges" | "DarkDefend" | "DarkOps";
     priority: number;
 };
 

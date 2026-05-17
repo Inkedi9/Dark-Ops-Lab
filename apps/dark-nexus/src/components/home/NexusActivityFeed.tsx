@@ -49,7 +49,7 @@ function toneClass(tone: string) {
 
 export default function NexusActivityFeed() {
     return (
-        <PanelCard variant="darkNexus" accent="blue" hover className="h-full">
+        <PanelCard variant="darkOps" accent="blue" hover className="h-full">
             <div className="mb-6 flex items-center gap-3">
                 <div className="grid h-11 w-11 place-items-center rounded-xl border border-blue-300/20 bg-blue-400/[0.08] text-blue-200">
                     <Radio size={22} />

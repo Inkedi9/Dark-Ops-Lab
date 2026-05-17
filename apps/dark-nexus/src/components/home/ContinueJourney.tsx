@@ -1,4 +1,5 @@
 import { ArrowRight, BookOpen, CheckCircle2, Flame, ShieldCheck, Target } from "lucide-react";
+import Link from "next/link";
 import PanelCard from "@dark/ui/components/PanelCard";
 
 type Profile = {
@@ -19,7 +20,7 @@ export default function ContinueJourney({ profile }: { profile: Profile }) {
                 title: "SQL Injection Basics",
                 description:
                     "Understand how unsafe database queries expose accounts before attempting your first exploit.",
-                href: "https://darksplaining.vercel.app",
+                href: "/learn",
                 cta: "Start SQLi lesson",
                 icon: BookOpen,
                 unlock: "Unlocks Login Bypass mission",
@@ -31,7 +32,7 @@ export default function ContinueJourney({ profile }: { profile: Profile }) {
                     title: "Login Bypass",
                     description:
                         "Use what you learned to bypass authentication in a safe mocked target.",
-                    href: "https://darkchallenges.vercel.app",
+                    href: "/challenges",
                     cta: "Launch first exploit",
                     icon: Target,
                     unlock: "Unlocks defensive auth checks",
@@ -43,7 +44,7 @@ export default function ContinueJourney({ profile }: { profile: Profile }) {
                         title: "Spot the same weakness from the defender side",
                         description:
                             "Review the risk pattern, identify warning signs, and learn how to prevent weak authentication failures.",
-                        href: "https://darkdefend.vercel.app",
+                        href: "/defend",
                         cta: "Start defense simulation",
                         icon: ShieldCheck,
                         unlock: "Completes the SQLi operator route",
@@ -54,7 +55,7 @@ export default function ContinueJourney({ profile }: { profile: Profile }) {
                         title: "Cross-Site Scripting Path",
                         description:
                             "Start the next vulnerability route: learn reflected XSS, exploit safely, then defend against unsafe rendering.",
-                        href: "https://darksplaining.vercel.app",
+                        href: "/learn",
                         cta: "Open next route",
                         icon: Flame,
                         unlock: "Next operator capability",
@@ -65,7 +66,7 @@ export default function ContinueJourney({ profile }: { profile: Profile }) {
 
     return (
         <section id="next-action" className="py-8">
-            <PanelCard variant="darkNexus" accent="blue" hover>
+            <PanelCard variant="darkOps" accent="blue" hover>
                 <div className="grid gap-6 lg:grid-cols-[0.75fr_1.25fr] lg:items-center">
                     <div>
                         <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-blue-300/20 bg-blue-400/[0.08] px-3 py-1 font-mono text-xs font-black uppercase tracking-[0.3em] text-blue-100">
@@ -77,15 +78,13 @@ export default function ContinueJourney({ profile }: { profile: Profile }) {
                         </h2>
 
                         <p className="mt-3 leading-7 text-slate-300">
-                            DarkNexus connects each step into one route: learn the concept,
+                            DarkOps connects each step into one route: learn the concept,
                             exploit it safely, then recognize the same risk from the defender side.
                         </p>
                     </div>
 
-                    <a
+                    <Link
                         href={nextItem.href}
-                        target="_blank"
-                        rel="noreferrer"
                         className="group rounded-2xl border border-white/[0.07] bg-white/[0.035] p-5 transition-all hover:-translate-y-[1px] hover:border-blue-300/25 hover:bg-white/[0.055]"
                     >
                         <div className="flex items-start gap-4">
@@ -126,7 +125,7 @@ export default function ContinueJourney({ profile }: { profile: Profile }) {
                                 </div>
                             </div>
                         </div>
-                    </a>
+                    </Link>
                 </div>
             </PanelCard>
         </section>

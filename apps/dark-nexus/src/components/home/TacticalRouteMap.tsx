@@ -120,7 +120,7 @@ export default function TacticalRouteMap({ profile }: { profile: Profile }) {
 
     return (
         <section className="py-8">
-            <PanelCard variant="darkNexus" accent="violet" hover>
+            <PanelCard variant="darkOps" accent="violet" hover>
                 <div className="mb-7 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                     <div>
                         <p className="font-mono text-xs font-black uppercase tracking-[0.35em] text-indigo-200">

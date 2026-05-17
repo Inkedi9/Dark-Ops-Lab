@@ -39,7 +39,7 @@ export default function OperatorStatusPanel({ profile }: { profile: Profile }) {
     return (
         <section className="py-8">
             <PanelCard
-                variant="darkNexusHero"
+                variant="darkOpsHero"
                 accent="blue"
                 hover
                 className="relative overflow-hidden border-blue-300/12 bg-[radial-gradient(circle_at_12%_0%,rgba(96,165,250,0.12),transparent_32%),radial-gradient(circle_at_92%_18%,rgba(124,58,237,0.10),transparent_28%),linear-gradient(180deg,rgba(4,10,22,0.94),rgba(3,7,18,0.82))]"
@@ -61,7 +61,7 @@ export default function OperatorStatusPanel({ profile }: { profile: Profile }) {
                         </h2>
 
                         <p className="mt-3 max-w-2xl leading-7 text-slate-300">
-                            DarkNexus monitors your current route, readiness and next unlock.
+                            DarkOps monitors your current route, readiness and next unlock.
                             Your command path updates as you complete lessons, labs and defense simulations.
                         </p>
                     </div>

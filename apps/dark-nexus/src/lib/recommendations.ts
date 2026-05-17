@@ -8,7 +8,7 @@ export type RecommendedAction = {
     reason: string;
     ctaLabel: string;
     href: string;
-    app: "DarkSplaining" | "DarkChallenges" | "DarkDefend" | "DarkNexus";
+    app: "DarkSplaining" | "DarkChallenges" | "DarkDefend" | "DarkOps";
     priority: number;
 };
 
@@ -159,7 +159,7 @@ export function getRecommendedActions(
             reason: "Your cockpit is currently local-first only.",
             ctaLabel: "Open sync",
             href: "/data-settings",
-            app: "DarkNexus",
+            app: "DarkOps",
             priority: 68,
         });
     }
@@ -199,7 +199,7 @@ export function getRecommendedActions(
             reason: `${primaryPath.affinity}% affinity / ${primaryPath.progression}% path progression.`,
             ctaLabel: "View operator",
             href: "/operator",
-            app: "DarkNexus",
+            app: "DarkOps",
             priority: 58,
         });
     }

@@ -37,10 +37,10 @@ const variants = {
     nexusHero:
         "border border-blue-300/12 bg-[radial-gradient(circle_at_top_right,rgba(99,102,241,0.055),transparent_40%),linear-gradient(to_bottom,rgba(255,255,255,0.035),rgba(255,255,255,0.01))] ring-1 ring-white/[0.05] backdrop-blur-2xl shadow-[0_18px_70px_rgba(0,0,0,.62)]",
 
-    darkNexus:
+    darkOps:
         "border border-white/[0.055] bg-[#03070c]/72 ring-1 ring-white/[0.04] backdrop-blur-2xl shadow-[inset_0_0_22px_rgba(96,165,250,.012),0_14px_45px_rgba(0,0,0,.55)]",
 
-    darkNexusHero:
+    darkOpsHero:
         "border border-white/[0.065] bg-[radial-gradient(circle_at_top_right,rgba(99,102,241,0.055),transparent_40%),linear-gradient(to_bottom,rgba(255,255,255,0.038),rgba(255,255,255,0.011))] ring-1 ring-white/[0.055] backdrop-blur-2xl shadow-[0_24px_85px_rgba(0,0,0,.64)]",
 
 };
@@ -57,8 +57,8 @@ export default function PanelCard({
     const isNexus =
         variant === "nexus" ||
         variant === "nexusHero" ||
-        variant === "darkNexus" ||
-        variant === "darkNexusHero";
+        variant === "darkOps" ||
+        variant === "darkOpsHero";
 
     return (
         <div

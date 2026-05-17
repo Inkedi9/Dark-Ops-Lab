@@ -4,7 +4,7 @@ export default function StatCard({ icon: Icon, label, value, tone = "blue" }) {
     const iconClass = tone === "emerald" ? "text-emerald-300" : "text-blue-200";
 
     return (
-        <PanelCard variant="darkNexus" accent={tone === "emerald" ? "emerald" : "blue"} hover className="p-5">
+        <PanelCard variant="darkOps" accent={tone === "emerald" ? "emerald" : "blue"} hover className="p-5">
             <div className="mb-4 flex items-center justify-between">
                 <p className="font-mono text-xs uppercase tracking-widest text-slate-500">
                     {label}

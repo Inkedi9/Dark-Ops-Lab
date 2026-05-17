@@ -17,7 +17,7 @@ function BlueprintLine({
 export default function ConnectionBlueprint() {
     return (
         <section className="py-12">
-            <PanelCard variant="darkNexus" accent="blue" hover className="p-8">
+            <PanelCard variant="darkOps" accent="blue" hover className="p-8">
                 <div className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
                     <div>
                         <p className="font-mono text-xs font-bold uppercase tracking-[0.45em] text-blue-200">

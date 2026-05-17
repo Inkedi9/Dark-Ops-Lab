@@ -1,4 +1,5 @@
 import { AlertTriangle, ArrowRight } from "lucide-react";
+import Link from "next/link";
 import PanelCard from "@dark/ui/components/PanelCard";
 
 function BlueprintLine({
@@ -40,14 +41,12 @@ export default function DefendHighlight() {
                             can apply immediately.
                         </p>
 
-                        <a
-                            href="https://darkdefend.vercel.app"
-                            target="_blank"
-                            rel="noreferrer"
+                        <Link
+                            href="/defend"
                             className="mt-7 inline-flex items-center gap-2 rounded-xl border border-emerald-300/20 bg-emerald-400/[0.08] px-5 py-3 font-black text-emerald-100 transition hover:bg-emerald-400/[0.15]"
                         >
                             Start phishing test <ArrowRight size={18} />
-                        </a>
+                        </Link>
                     </div>
 
                     {/* RIGHT */}

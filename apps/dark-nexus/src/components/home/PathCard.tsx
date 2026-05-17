@@ -13,7 +13,7 @@ type PathItem = {
 export default function PathCard({ path }: { path: PathItem }) {
     return (
         <a href={path.href} target="_blank" rel="noreferrer" className="group block">
-            <PanelCard variant="darkNexus" accent="blue" hover>
+            <PanelCard variant="darkOps" accent="blue" hover>
                 <div className="mb-4 flex items-center justify-between gap-3">
                     <div>
                         <span className="mb-2 inline-flex rounded-full border border-blue-300/18 bg-blue-400/[0.07] px-3 py-1 font-mono text-[10px] font-black uppercase tracking-widest text-blue-100">

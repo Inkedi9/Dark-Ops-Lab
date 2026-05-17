@@ -1,400 +1,204 @@
-# 🧠 Dark Ecosystem
+# 🧠 Dark Ops Lab
 
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](./LICENSE)
 ![Status](https://img.shields.io/badge/status-active%20development-blueviolet)
-![Stack](https://img.shields.io/badge/stack-Next.js%20%7C%20React%20%7C%20Supabase-black)
-![Architecture](https://img.shields.io/badge/architecture-monorepo%20%7C%20local--first-0f172a)
+![Stack](https://img.shields.io/badge/stack-Next.js%20%7C%20TypeScript%20%7C%20Supabase-black)
+![Architecture](https://img.shields.io/badge/architecture-monorepo%20%7C%20single--app-0f172a)
 ![Cyber OS](https://img.shields.io/badge/concept-Cyber%20Operating%20System-7c3aed)
 
 > Learn. Practice. Attack. Defend.
 
-Dark Ecosystem is a modern cybersecurity training platform designed to bridge the gap between theory, offensive practice, and defensive thinking — through immersive and modular experiences.
-
-Unlike traditional platforms focused only on lessons or isolated labs, Dark Ecosystem connects learning, exploitation, simulation, and telemetry into a unified ecosystem.
+Dark Ops Lab is a modern cybersecurity training platform that connects learning, offensive practice, and defensive simulation into one immersive environment — deployed as a single Next.js application on a unified domain.
 
 ---
 
-## ⚡ What is Dark Ecosystem?
+## ⚡ What is Dark Ops Lab?
 
-Dark Ecosystem is a collection of specialized cyber applications connected through a shared progression and telemetry architecture.
+Dark Ops Lab is a consolidated cyber operating system where users move fluidly between four specialized sections, sharing a single progression, profile, and localStorage state.
 
-The goal is simple:
-
-```txt
+```
 Understand → Exploit → Defend
 ```
 
-Users do not simply read about vulnerabilities.
+Users do not simply read about vulnerabilities. They:
 
-They:
-
-- learn them
-- exploit them
-- analyze them
-- defend against them
-
-inside guided and simulated environments.
+- learn them through guided, interactive lessons
+- exploit them inside sandboxed offensive labs
+- analyze them through SOC-inspired workflows
+- defend against them in realistic simulations
 
 ---
 
-## 🧩 Product Breakdown
+## 🧩 Sections
 
-| Module            | Role              | Description                              |
-| ----------------- | ----------------- | ---------------------------------------- |
-| 📚 DarkSplaining  | Learn             | Guided vulnerability education           |
-| 🎯 DarkChallenges | Practice / Attack | Interactive offensive labs & simulations |
-| 🛡️ DarkDefend     | Defend            | Phishing & defensive awareness simulator |
-| 🧠 DarkNexus      | Hub               | Global telemetry, sync, orchestration    |
-
-## 🧠 Why “Cyber Operating System”?
-
-Most cybersecurity platforms isolate:
-
-- learning
-- labs
-- defensive simulations
-- telemetry
-- progression
-
-Dark Ecosystem connects them.
-
-The objective is not to create separate cyber apps.
-
-The objective is to create:
-
-- a persistent operator identity
-- connected workflows
-- shared progression
-- ecosystem-wide telemetry
-- modular cyber specializations
-
-inside one immersive operational environment.
-
-### 🧠 DarkNexus — Cyber Operating System Layer
-
-DarkNexus acts as the orchestration and telemetry layer of the ecosystem.
-
-Responsibilities:
-
-- global profile
-- telemetry aggregation
-- sync orchestration
-- Supabase authentication
-- cloud synchronization
-- ecosystem navigation
-- cross-app visibility
-
-DarkNexus is intentionally separated from the training apps to preserve a local-first architecture.
-
-### 📚 DarkSplaining — Learning Platform
-
-DarkSplaining focuses on guided cybersecurity education.
-
-Features:
-
-- interactive lessons
-- visual learning flows
-- concept library
-- command basics (Linux / PowerShell)
-- glossary & security concepts
-- guided progression
-
-The objective is to help users understand vulnerabilities before exploiting them.
-
-Examples:
-
-- SQL Injection
-- XSS
-- Authentication flaws
-- Session security
-- MFA abuse
-- Input validation
-- OAuth flows
-
-### 🎯 DarkChallenges — Offensive Labs
-
-DarkChallenges is the offensive practice layer of the ecosystem.
-
-It provides:
-
-- exploit-oriented missions
-- interactive sandbox simulations
-- dynamic scoring
-- offensive progression
-- challenge telemetry
-
-Modes:
-
-- Missions
-- CTF
-- Warzone
-
-The objective is to develop attacker thinking in controlled environments.
-
-⚔️ Warzone Engine
-
-Warzone introduces:
-
-- evolving attack scenarios
-- risk & detection systems
-- dynamic progression
-- simulated incident pressure
-
-### 🛡️ DarkDefend — Defensive Simulation
-
-DarkDefend focuses on defensive awareness and phishing analysis.
-
-Features:
-
-- phishing simulations
-- SOC-inspired workflows
-- signal analysis
-- incident generation
-- analyst scoring
-- defensive profiling
-
-The objective is to build real defensive reflexes instead of passive awareness training.
+| Section | URL prefix | Role |
+|---------|-----------|------|
+| 📚 Learn | `/learn` | Guided vulnerability education (ex DarkSplaining) |
+| 🎯 Challenges | `/challenges` | Offensive labs, CTF, Warzone (ex DarkChallenges) |
+| 🛡️ Defend | `/defend` | Phishing simulator & SOC workflows (ex DarkDefend) |
+| 🧠 Nexus | `/` | Hub, profile, telemetry, leaderboard |
 
 ---
 
-#### 🏗️ Architecture
+## 🏗️ Architecture
 
-- Frontend
-- React
-- Next.js
-- Vite
-- TypeScript migration in progress
-- Multi-app monorepo architecture
+### Single-app monorepo
 
-#### 🎨 Shared Design System
+The ecosystem was consolidated from 4 separate apps into one Next.js App Router application. All sections share the same origin — meaning localStorage, progression, and authentication are natively unified.
 
-Shared UI components:
+```
+Dark Ops Lab/
+├── apps/
+│   └── dark-nexus/          ← Single Next.js application
+└── packages/
+    ├── ui/                  ← Shared component library (@dark/ui)
+    ├── storage/             ← localStorage abstraction (@dark/storage)
+    ├── progress/            ← Cross-section progress tracking (@dark/progress)
+    ├── profile/             ← User profile (@dark/profile)
+    ├── types/               ← Shared TypeScript types (@dark/types)
+    ├── supabase-client/     ← Shared Supabase client
+    └── routes/              ← Centralized route definitions
+```
 
-- PanelCard
-- AppButton
-- AppBadge
-- SectionHeader
-- ProgressBar
-- EmptyState
-- Status indicators
-- Shared telemetry UI
+### URL structure
 
-The ecosystem uses a unified dark blue/slate visual language while progressively differentiating each module.
+```
+darknexus.vercel.app/                        ← Hub home
+darknexus.vercel.app/profile                 ← Unified profile (XP, badges, all sections)
+darknexus.vercel.app/leaderboard
+darknexus.vercel.app/telemetry
 
-#### 🧪 Engines
+darknexus.vercel.app/learn                   ← Learning platform
+darknexus.vercel.app/learn/lessons/[id]
+darknexus.vercel.app/learn/tracks/[id]
+darknexus.vercel.app/learn/resources/glossary
+darknexus.vercel.app/learn/certificates/[trackId]
+darknexus.vercel.app/learn/analytics
 
-Challenge Engine
+darknexus.vercel.app/challenges              ← Offensive labs
+darknexus.vercel.app/challenges/[slug]
+darknexus.vercel.app/challenges/ctf/[slug]
+darknexus.vercel.app/challenges/warzone/[slug]
+darknexus.vercel.app/challenges/missions
 
-Used inside DarkChallenges:
+darknexus.vercel.app/defend                  ← Defensive simulation
+darknexus.vercel.app/defend/simulator
+darknexus.vercel.app/defend/soc
+darknexus.vercel.app/defend/soc/alerts
+darknexus.vercel.app/defend/soc/intel
+darknexus.vercel.app/defend/soc/playbooks
+darknexus.vercel.app/defend/security-check
+darknexus.vercel.app/defend/defense-profile
+```
 
-- exploit simulation
-- answer validation
+Full source structure → [ARCHITECTURE.md](./ARCHITECTURE.md)
+
+---
+
+## 🧠 Why "Cyber Operating System"?
+
+Most cybersecurity platforms isolate learning, labs, simulations, telemetry, and progression into separate silos. Dark Ops Lab connects them through:
+
+- a **persistent operator identity** (profile, XP, badges unified across sections)
+- **connected workflows** (learn a concept → exploit it → analyze it in SOC)
+- **shared localStorage** (same origin = no cross-domain sync complexity)
+- **ecosystem-wide telemetry** (single progression model)
+- **modular cyber specializations** under one cohesive environment
+
+---
+
+## 🎨 Design System
+
+Shared UI from `@dark/ui`:
+
+- `PanelCard` — dark panel with accent variants
+- `AppButton`, `AppBadge` — consistent interactive elements
+- `SectionHeader`, `EmptyState` — layout primitives
+- `ProgressBar`, `StatCard` — data display
+
+The ecosystem uses a unified dark blue/slate visual language with section-specific accents (blue for learn, red/amber for challenges, emerald for defend/SOC).
+
+---
+
+## 🧪 Engines
+
+### Challenge Engine (`src/engine/`)
+
+Used inside `/challenges`:
+
+- exploit simulation & answer validation
 - dynamic scoring
 - mission progression
-- Telemetry Engine
+- CTF and Warzone modes
 
-Used across all apps:
+### Progress Model
 
-- normalized progress events
-- idempotent sync model
-- cross-app telemetry
-- local-first event queue
-- Supabase-ready synchronization
-
-#### 🔄 Local-First Sync Architecture
-
-Dark Ecosystem uses a local-first architecture.
-
-Each application:
-
-- stores its own progress locally
-- works independently
-- can function offline
-- exports telemetry explicitly to Nexus
-
-Flow:
-
-App local progress
-
-→ telemetry export bridge
-
-→ DarkNexus import
-
-→ telemetry merge
-
-→ optional Supabase sync
-
-Why?
-
-Because browser localStorage is isolated per origin/domain.
-
-This architecture preserves:
-
-- modularity
-- autonomy
-- offline capability
-- resilience
-- explicit sync control
-
-#### 🧠 Progress Event Model
-
-The ecosystem uses normalized progress events.
-
-Example:
+Normalized progress events shared across sections:
 
 ```json
 {
-  "namespace": "defend",
-  "type": "phishing_analyzed",
-  "entityId": "oauth-consent-01",
-  "idempotencyKey": "defend:phishing_analyzed:oauth-consent-01"
+  "namespace": "learn",
+  "type": "lesson_completed",
+  "entityId": "sql-injection-01",
+  "idempotencyKey": "learn:lesson_completed:sql-injection-01"
 }
 ```
 
-Namespaces:
+Namespaces: `learn` · `challenges` · `defend` · `nexus`
 
-- splaining
-- defend
-- challenges
-- nexus
+---
 
-#### ☁️ Supabase Integration
+## ☁️ Supabase Integration
 
-Current backend layer:
-
-- GitHub Auth
+- GitHub OAuth
 - Profile persistence
-- Telemetry sync
 - Progress snapshots
 - Sync queue
 
-Important:
+localStorage is the primary source of truth. Cloud sync is additive and optional.
 
-localStorage remains the temporary source of truth
+---
 
-Cloud sync is additive, not mandatory.
+## 🚧 In Progress
 
-#### 📦 Repository Structure
+- stronger section differentiation
+- telemetry dashboards
+- attack maps
+- guided pathways
+- advanced Warzone scenarios
+- multi-step CTFs
+- defensive analytics
+- global achievements
+- organization / team support
+- AI-assisted feedback (long-term)
 
-```text
-/apps
-darknexus
-darksplaining
-darkchallenges
-darkdefend
+---
 
-/packages
-ui
-progress
-profile
-routes
-storage
-types
-supabase-client
-```
+## 🛣️ Roadmap
 
-Sync architecture
+- cloud saves & multi-device continuity
+- advanced telemetry dashboards
+- AI-assisted analysis
+- attack graph visualization
+- adaptive learning paths
+- organization / team features
 
-Le flux de synchronisation local-first entre DarkSplaining, DarkDefend, DarkChallenges, Nexus et Supabase est documenté ici :
-[docs/SYNC_FLOW.md](docs/SYNC_FLOW.md)
+---
 
-#### 🧠 Philosophy
+## 🧠 Philosophy
 
 Learn by doing. Not by reading.
 
 Core principles:
 
-- active exploration
-- no instant walkthrough dependency
+- active exploration over passive content
 - simulation-first learning
-- modular architecture
-- realistic defensive/offensive workflows
-
-Dark Ecosystem is designed to feel closer to a training environment than a static course platform.
-
-#### ⚠️ Current Limitations
-
-1. Product differentiation
-
-   Some modules still share similar visual language and navigation patterns.
-
-Visual differentiation is actively improving.
-
-2. UX hierarchy
-
-   The ecosystem hub flow is improving progressively through DarkNexus.
-
-3. Cloud sync maturity
-
-   The synchronization system is operational but still evolving:
-
-- local-first remains primary
-- automatic cross-device sync is not fully enabled yet
-
-#### 🚧 In Progress
-
-- stronger module differentiation
-- telemetry dashboards
-- attack maps
-- guided pathways
-- AI-assisted feedback (long-term)
-- advanced Warzone scenarios
-- multi-step CTFs
-- defensive analytics
-- global achievements
-- organization/team support
-
-#### 🔥 Why this matters
-
-Many cybersecurity platforms are:
-
-- too theoretical
-- overly gamified
-- disconnected from realistic workflows
-
-Dark Ecosystem aims to provide:
-
-- credible simulations
-- modular progression
-- realistic offensive & defensive thinking
-- ecosystem-level learning continuity
-
-#### 🛣️ Roadmap
-
-- global progression sync
-- advanced telemetry dashboards
-- cloud saves
-- multi-device continuity
-- AI-assisted analysis
-- organization/team features
-- advanced detection simulations
-- attack graph visualization
-- adaptive learning paths
-
-#### 🧪 Status
-
-🚧 Active development
-
-⚡ Rapid iteration
-
-🧠 Architecture evolving
-
-#### 💥 TL;DR
-
-Dark Ecosystem is a cybersecurity platform where users:
-
-- understand vulnerabilities
-- exploit them in simulated environments
-- learn defensive reflexes
-- progress through a connected ecosystem
-
-#### 👤 Author
-
-Built with focus on:
-
-- UX
-- realism
-- modular architecture
-- product thinking
+- realistic offensive & defensive workflows
+- modular architecture, single coherent product
 - local-first engineering
-- immersive cyber training
+
+---
+
+## 👤 Author
+
+Built with focus on UX, realism, modular architecture, product thinking, and immersive cyber training.

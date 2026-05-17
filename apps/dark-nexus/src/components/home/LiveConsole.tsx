@@ -40,7 +40,7 @@ export default function LiveConsole() {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.55, delay: 0.12 }}
         >
-            <PanelCard variant="darkNexusHero" accent="blue" hover>
+            <PanelCard variant="darkOpsHero" accent="blue" hover>
                 <div className="mb-4 flex items-center gap-2 text-xs uppercase tracking-[0.22em] text-blue-200">
                     <Terminal className="h-4 w-4" />
                     <span>Live Console</span>

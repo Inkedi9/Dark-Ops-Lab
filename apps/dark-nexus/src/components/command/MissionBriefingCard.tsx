@@ -78,7 +78,7 @@ export default function MissionBriefingCard({
 }: MissionBriefingCardProps) {
     const content = (
         <PanelCard
-            variant="darkNexusHero"
+            variant="darkOpsHero"
             accent={accent}
             hover={!locked}
             className={locked ? "opacity-65" : ""}

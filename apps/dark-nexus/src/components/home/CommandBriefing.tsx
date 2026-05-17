@@ -6,7 +6,7 @@ import AppButton from "@dark/ui/components/AppButton";
 export default function CommandBriefing() {
     return (
         <PanelCard
-            variant="darkNexusHero"
+            variant="darkOpsHero"
             accent="blue"
             className="relative overflow-hidden border-blue-300/14 bg-[radial-gradient(circle_at_15%_0%,rgba(96,165,250,0.16),transparent_34%),radial-gradient(circle_at_85%_12%,rgba(16,185,129,0.10),transparent_32%),linear-gradient(180deg,rgba(5,12,26,0.96),rgba(3,7,18,0.86))]"
         >
@@ -60,7 +60,7 @@ export default function CommandBriefing() {
                 </div>
 
                 <div className="mt-6">
-                    <AppButton href="https://darksplaining.vercel.app" variant="primary">
+                    <AppButton href="/learn" variant="primary">
                         Start SQLi lesson <ArrowRight size={16} />
                     </AppButton>
                 </div>
