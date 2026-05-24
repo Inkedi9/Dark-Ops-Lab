@@ -13,7 +13,6 @@ export const adminTakeoverCtf: MiniCtf = {
     difficulty: "advanced",
     rewardXp: 5000,
     badge: "Admin Ghost",
-    finalFlag: "flag{admin_takeover_token_complete}",
     steps: [
         adminTakeoverLoginStep,
         adminTakeoverXssStep,

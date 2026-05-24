@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/joho/godotenv"
@@ -52,9 +53,10 @@ func main() {
 		// Public
 		r.Get("/leaderboard", leaderboard.List)
 
-		// Authenticated
+		// Authenticated — 10 flag submissions per minute per user
 		r.Group(func(r chi.Router) {
 			r.Use(middleware.Auth(sb))
+			r.Use(middleware.RateLimit(10, time.Minute))
 			r.Post("/challenges/{id}/submit", challenges.Submit)
 		})
 	})

@@ -6,8 +6,9 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "npm --workspace=apps/dark-nexus run dev",
+    "dev": "concurrently -n nexus,api -c cyan,magenta \"npm run dev:nexus\" \"npm run dev:api\"",
     "dev:nexus": "npm --workspace=apps/dark-nexus run dev",
+    "dev:api": "cd apps/dark-api && go run ./cmd/server",
     "build": "npm --workspace=apps/dark-nexus run build"
   },
   "devDependencies": {

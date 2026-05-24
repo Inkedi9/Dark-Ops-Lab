@@ -31,6 +31,5 @@ export type MiniCtf = {
     difficulty: "beginner" | "intermediate" | "advanced";
     rewardXp: number;
     badge: string;
-    finalFlag: string;
     steps: CtfStep[];
 };

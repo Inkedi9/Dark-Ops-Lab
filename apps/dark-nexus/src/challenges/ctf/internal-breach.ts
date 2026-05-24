@@ -12,7 +12,6 @@ export const internalBreachCtf: MiniCtf = {
     difficulty: "intermediate",
     rewardXp: 2500,
     badge: "Internal Breacher",
-    finalFlag: "flag{internal_system_compromised}",
     steps: [
         internalBreachReconStep,
         internalBreachAuthStep,

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { useSubmitChallenge } from "@/hooks/useSubmitChallenge";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
@@ -40,7 +41,6 @@ const fallbackCtf: MiniCtf = {
     difficulty: "beginner",
     rewardXp: 0,
     badge: "Unavailable",
-    finalFlag: "",
     steps: [
         {
             id: "missing-step",
@@ -76,7 +76,7 @@ export function CtfRunner({ slug }: Props) {
     ]);
     const [startedAt] = useState(() => Date.now());
     const [attempts, setAttempts] = useState(0);
-    const { submitToApi, isSubmitting } = useSubmitChallenge();
+    const { submitToApi, isSubmitting, isAuthenticated, authChecked } = useSubmitChallenge();
 
     const activeStep = ctf.steps[activeStepIndex];
     const isClientReady = mounted;
@@ -157,27 +157,23 @@ export function CtfRunner({ slug }: Props) {
 
     async function submitFinalFlag() {
         const elapsedSeconds = Math.floor((Date.now() - startedAt) / 1000);
+        const outcome = await submitToApi(ctf.id, submittedFlag.trim());
 
-        // Backend validation takes priority — flag never leaves the server.
-        // Falls back to local comparison when unauthenticated or API not configured.
-        const result = await submitToApi(ctf.id, submittedFlag.trim());
-        const success = result ? result.correct : submittedFlag.trim() === ctf.finalFlag;
-        const awardedXp = result?.xp ?? ctf.rewardXp;
-
-        if (!success) {
-            setLogs((current) => [
-                ...current,
-                {
-                    time: getTime(),
-                    level: "error",
-                    message: "final flag rejected",
-                },
-            ]);
+        if (outcome.status === "incorrect") {
+            appendLogs([{ level: "error", message: "final flag rejected" }]);
+            return;
+        }
+        if (outcome.status === "unauthenticated") {
+            appendLogs([{ level: "error", message: "sign in to submit the final flag" }]);
+            return;
+        }
+        if (outcome.status === "error") {
+            appendLogs([{ level: "error", message: "api unavailable — try again later" }]);
             return;
         }
 
         setCompleted(true);
-        addXp(awardedXp);
+        addXp(outcome.xp);
         appendProgressEvent("challenges", {
             type: "ctf_completed",
             source: "dark-challenges",
@@ -188,7 +184,7 @@ export function CtfRunner({ slug }: Props) {
                 challengeId: ctf.id,
                 slug: ctf.slug,
                 kind: "ctf",
-                rewardXp: ctf.rewardXp,
+                rewardXp: outcome.xp,
                 attempts,
             },
         });
@@ -202,7 +198,7 @@ export function CtfRunner({ slug }: Props) {
                 challengeId: ctf.id,
                 slug: ctf.slug,
                 kind: "ctf",
-                amount: ctf.rewardXp,
+                amount: outcome.xp,
                 reason: "ctf_completed",
             },
         });
@@ -461,21 +457,38 @@ export function CtfRunner({ slug }: Props) {
                             Final flag
                         </p>
 
-                        <input
-                            value={submittedFlag}
-                            onChange={(event) => setSubmittedFlag(event.target.value)}
-                            className="w-full rounded-xl border border-slate-700 bg-[#05070d] px-4 py-3 font-mono text-slate-100 outline-none transition placeholder:text-slate-700 focus:border-green-300/45 focus:shadow-[0_0_15px_rgba(88,240,167,0.12)]"
-                            placeholder="flag{...}"
-                        />
+                        {authChecked && !isAuthenticated ? (
+                            <div className="rounded-xl border border-emerald-300/15 bg-emerald-400/[0.05] p-5 text-center">
+                                <p className="font-mono text-xs leading-6 text-slate-400">
+                                    Sign in to submit the final flag and earn XP.
+                                </p>
+                                <Link
+                                    href="/auth"
+                                    className="mt-3 inline-block font-mono text-sm font-bold text-emerald-300 transition hover:text-emerald-200"
+                                >
+                                    Sign in →
+                                </Link>
+                            </div>
+                        ) : (
+                            <>
+                                <input
+                                    value={submittedFlag}
+                                    onChange={(event) => setSubmittedFlag(event.target.value)}
+                                    className="w-full rounded-xl border border-slate-700 bg-[#05070d] px-4 py-3 font-mono text-slate-100 outline-none transition placeholder:text-slate-700 focus:border-green-300/45 focus:shadow-[0_0_15px_rgba(88,240,167,0.12)]"
+                                    placeholder="flag{...}"
+                                    disabled={!authChecked}
+                                />
 
-                        <AppButton
-                            onClick={submitFinalFlag}
-                            variant={displayCompleted ? "emerald" : "danger"}
-                            disabled={completed || isSubmitting || solvedStepIds.length < ctf.steps.length}
-                            className="mt-4 w-full"
-                        >
-                            {displayCompleted ? "Flag captured" : isSubmitting ? "Verifying..." : "Submit final flag"}
-                        </AppButton >
+                                <AppButton
+                                    onClick={submitFinalFlag}
+                                    variant={displayCompleted ? "emerald" : "danger"}
+                                    disabled={completed || isSubmitting || !authChecked || solvedStepIds.length < ctf.steps.length}
+                                    className="mt-4 w-full"
+                                >
+                                    {displayCompleted ? "Flag captured" : isSubmitting ? "Verifying..." : "Submit final flag"}
+                                </AppButton >
+                            </>
+                        )}
 
                         <AppButton
                             onClick={resetOperation}
