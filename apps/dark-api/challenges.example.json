@@ -1,0 +1,20 @@
+{
+  "ctf-xss-001": {
+    "flag": "DARK{xss_stored_in_session_cookie}",
+    "xp": 200,
+    "title": "XSS Cookie Theft",
+    "namespace": "challenges"
+  },
+  "ctf-sqli-001": {
+    "flag": "DARK{union_based_sqli_auth_bypass}",
+    "xp": 300,
+    "title": "SQLi Auth Bypass",
+    "namespace": "challenges"
+  },
+  "warzone-recon-001": {
+    "flag": "DARK{passive_recon_osint_complete}",
+    "xp": 150,
+    "title": "Passive Recon",
+    "namespace": "challenges"
+  }
+}

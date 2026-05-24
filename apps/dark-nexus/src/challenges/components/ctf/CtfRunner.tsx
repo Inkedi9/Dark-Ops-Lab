@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useSubmitChallenge } from "@/hooks/useSubmitChallenge";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
@@ -75,6 +76,7 @@ export function CtfRunner({ slug }: Props) {
     ]);
     const [startedAt] = useState(() => Date.now());
     const [attempts, setAttempts] = useState(0);
+    const { submitToApi, isSubmitting } = useSubmitChallenge();
 
     const activeStep = ctf.steps[activeStepIndex];
     const isClientReady = mounted;
@@ -153,9 +155,14 @@ export function CtfRunner({ slug }: Props) {
         setInputValues({});
     }
 
-    function submitFinalFlag() {
+    async function submitFinalFlag() {
         const elapsedSeconds = Math.floor((Date.now() - startedAt) / 1000);
-        const success = submittedFlag.trim() === ctf.finalFlag;
+
+        // Backend validation takes priority — flag never leaves the server.
+        // Falls back to local comparison when unauthenticated or API not configured.
+        const result = await submitToApi(ctf.id, submittedFlag.trim());
+        const success = result ? result.correct : submittedFlag.trim() === ctf.finalFlag;
+        const awardedXp = result?.xp ?? ctf.rewardXp;
 
         if (!success) {
             setLogs((current) => [
@@ -170,7 +177,7 @@ export function CtfRunner({ slug }: Props) {
         }
 
         setCompleted(true);
-        addXp(ctf.rewardXp);
+        addXp(awardedXp);
         appendProgressEvent("challenges", {
             type: "ctf_completed",
             source: "dark-challenges",
@@ -464,10 +471,10 @@ export function CtfRunner({ slug }: Props) {
                         <AppButton
                             onClick={submitFinalFlag}
                             variant={displayCompleted ? "emerald" : "danger"}
-                            disabled={completed || solvedStepIds.length < ctf.steps.length}
+                            disabled={completed || isSubmitting || solvedStepIds.length < ctf.steps.length}
                             className="mt-4 w-full"
                         >
-                            {displayCompleted ? "Flag captured" : "Submit final flag"}
+                            {displayCompleted ? "Flag captured" : isSubmitting ? "Verifying..." : "Submit final flag"}
                         </AppButton >
 
                         <AppButton

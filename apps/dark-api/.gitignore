@@ -1,0 +1,4 @@
+.env
+# challenges.json contains server-side flags — never commit it
+challenges.json
+dark-api
