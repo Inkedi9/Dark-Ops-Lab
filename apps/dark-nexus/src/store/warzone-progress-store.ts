@@ -1,4 +1,6 @@
 import type { WarzoneState } from "@/challenges/warzone/types";
+import { safeRead, safeWrite } from "@dark/storage";
+import { notifyProgressChanged } from "./events";
 
 const STORAGE_KEY = "darkchallenges:warzone-progress";
 
@@ -11,22 +13,8 @@ export type WarzoneProgress = {
     actionsCount: number;
 };
 
-function isBrowser() {
-    return typeof window !== "undefined";
-}
-
-function notifyProgressChanged() {
-    window.dispatchEvent(new Event("darkchallenges:local-progress"));
-}
-
 export function getAllWarzoneProgress(): WarzoneProgress[] {
-    if (!isBrowser()) return [];
-
-    try {
-        return JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "[]");
-    } catch {
-        return [];
-    }
+    return safeRead<WarzoneProgress[]>(STORAGE_KEY, []);
 }
 
 export function getWarzoneProgress(
@@ -44,8 +32,6 @@ export function getWarzoneProgress(
 }
 
 export function saveWarzoneProgress(progress: WarzoneProgress) {
-    if (!isBrowser()) return;
-
     const all = getAllWarzoneProgress();
     const index = all.findIndex((item) => item.warzoneId === progress.warzoneId);
 
@@ -55,17 +41,14 @@ export function saveWarzoneProgress(progress: WarzoneProgress) {
         all.push(progress);
     }
 
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
+    safeWrite(STORAGE_KEY, all);
     notifyProgressChanged();
 }
 
 export function resetWarzoneProgress(warzoneId: string) {
-    if (!isBrowser()) return;
-
     const next = getAllWarzoneProgress().filter(
         (item) => item.warzoneId !== warzoneId
     );
-
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+    safeWrite(STORAGE_KEY, next);
     notifyProgressChanged();
 }

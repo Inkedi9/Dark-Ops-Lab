@@ -1,3 +1,6 @@
+import { safeRead, safeWrite } from "@dark/storage";
+import { notifyProgressChanged } from "./events";
+
 const STORAGE_KEY = "dc_global_progress";
 
 export type GlobalProgress = {
@@ -5,6 +8,8 @@ export type GlobalProgress = {
     level: number;
     rank: string;
 };
+
+const DEFAULT_PROGRESS: GlobalProgress = { totalXp: 0, level: 1, rank: "novice" };
 
 function getRankFromLevel(level: number): string {
     if (level < 2) return "novice";
@@ -19,31 +24,17 @@ function getLevelFromXp(xp: number): number {
     return Math.floor(xp / 1000) + 1;
 }
 
-function notifyProgressChanged() {
-    window.dispatchEvent(new Event("darkchallenges:local-progress"));
-}
-
 export function getGlobalProgress(): GlobalProgress {
-    if (typeof window === "undefined") {
-        return { totalXp: 0, level: 1, rank: "novice" };
-    }
-
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) {
-        return { totalXp: 0, level: 1, rank: "novice" };
-    }
-
-    return JSON.parse(raw);
+    return safeRead<GlobalProgress>(STORAGE_KEY, DEFAULT_PROGRESS);
 }
 
 export function saveGlobalProgress(progress: GlobalProgress) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+    safeWrite(STORAGE_KEY, progress);
     notifyProgressChanged();
 }
 
 export function addXp(amount: number) {
     const current = getGlobalProgress();
-
     const newXp = current.totalXp + amount;
     const newLevel = getLevelFromXp(newXp);
 

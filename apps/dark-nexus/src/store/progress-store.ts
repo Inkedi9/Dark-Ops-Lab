@@ -1,3 +1,6 @@
+import { safeRead, safeWrite } from "@dark/storage";
+import { notifyProgressChanged } from "./events";
+
 export type ChallengeProgress = {
     challengeId: string;
     solved: boolean;
@@ -9,26 +12,8 @@ export type ChallengeProgress = {
 
 const STORAGE_KEY = "darkchallenges:progress";
 
-function isBrowser() {
-    return typeof window !== "undefined";
-}
-
-function notifyProgressChanged() {
-    window.dispatchEvent(new Event("darkchallenges:local-progress"));
-}
-
 export function getAllProgress(): ChallengeProgress[] {
-    if (!isBrowser()) return [];
-
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-
-    if (!raw) return [];
-
-    try {
-        return JSON.parse(raw) as ChallengeProgress[];
-    } catch {
-        return [];
-    }
+    return safeRead<ChallengeProgress[]>(STORAGE_KEY, []);
 }
 
 export function getChallengeProgress(
@@ -41,10 +26,7 @@ export function getChallengeProgress(
 }
 
 export function saveChallengeProgress(progress: ChallengeProgress) {
-    if (!isBrowser()) return;
-
     const allProgress = getAllProgress();
-
     const existingIndex = allProgress.findIndex(
         (item) => item.challengeId === progress.challengeId
     );
@@ -64,17 +46,14 @@ export function saveChallengeProgress(progress: ChallengeProgress) {
         allProgress.push(progress);
     }
 
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(allProgress));
+    safeWrite(STORAGE_KEY, allProgress);
     notifyProgressChanged();
 }
 
 export function resetChallengeProgress(challengeId: string) {
-    if (!isBrowser()) return;
-
     const nextProgress = getAllProgress().filter(
         (progress) => progress.challengeId !== challengeId
     );
-
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(nextProgress));
+    safeWrite(STORAGE_KEY, nextProgress);
     notifyProgressChanged();
 }

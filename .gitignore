@@ -22,3 +22,7 @@ coverage
 
 # system
 .DS_Store
+
+# secrets / MCP config (contain API keys)
+.claude/settings.json
+.vscode/mcp.json

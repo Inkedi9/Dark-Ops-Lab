@@ -1,3 +1,6 @@
+import { safeRead, safeWrite } from "@dark/storage";
+import { notifyProgressChanged } from "./events";
+
 const STORAGE_KEY = "darkchallenges:ctf-progress";
 
 export type CtfProgress = {
@@ -11,22 +14,8 @@ export type CtfProgress = {
     bestAttempts?: number;
 };
 
-function isBrowser() {
-    return typeof window !== "undefined";
-}
-
-function notifyProgressChanged() {
-    window.dispatchEvent(new Event("darkchallenges:local-progress"));
-}
-
 export function getAllCtfProgress(): CtfProgress[] {
-    if (!isBrowser()) return [];
-
-    try {
-        return JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "[]");
-    } catch {
-        return [];
-    }
+    return safeRead<CtfProgress[]>(STORAGE_KEY, []);
 }
 
 export function getCtfProgress(ctfId: string): CtfProgress {
@@ -41,8 +30,6 @@ export function getCtfProgress(ctfId: string): CtfProgress {
 }
 
 export function saveCtfProgress(progress: CtfProgress) {
-    if (!isBrowser()) return;
-
     const all = getAllCtfProgress();
     const index = all.findIndex((item) => item.ctfId === progress.ctfId);
 
@@ -52,14 +39,12 @@ export function saveCtfProgress(progress: CtfProgress) {
         all.push(progress);
     }
 
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
+    safeWrite(STORAGE_KEY, all);
     notifyProgressChanged();
 }
 
 export function resetCtfProgress(ctfId: string) {
-    if (!isBrowser()) return;
-
     const next = getAllCtfProgress().filter((item) => item.ctfId !== ctfId);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+    safeWrite(STORAGE_KEY, next);
     notifyProgressChanged();
 }
