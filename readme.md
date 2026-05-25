@@ -1,3 +1,15 @@
+/** ---------------------------------------------------------------
+**
+** ██████╗ █████╗ ██████╗ ██╗ ██╗ ██████╗ ██████╗ ███████╗ ██╗ █████╗ ██████╗
+** ██╔══██╗██╔══██╗██╔══██╗██║ ██╔╝ ██╔═══██╗██╔══██╗██╔════╝ ██║ ██╔══██╗██╔══██╗
+** ██║ ██║███████║██████╔╝█████╔╝ ██║ ██║██████╔╝███████╗ ██║ ███████║██████╔╝
+** ██║ ██║██╔══██║██╔══██╗██╔═██╗ ██║ ██║██╔═══╝ ╚════██║ ██║ ██╔══██║██╔══██╗
+** ██████╔╝██║ ██║██║ ██║██║ ██╗ ╚██████╔╝██║ ███████║ ███████╗██║ ██║██████╔╝
+** ╚═════╝ ╚═╝ ╚═╝╚═╝ ╚═╝╚═╝ ╚═╝ ╚═════╝ ╚═╝ ╚══════╝ ╚══════╝╚═╝ ╚═╝╚═════╝ \*_
+** —— Version 1.0.0
+** ---------------------------------------------------------------
+_/
+
 # Dark Ops Lab
 
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](./LICENSE)
@@ -26,12 +38,12 @@ Users learn vulnerabilities through guided lessons, exploit them in sandboxed of
 
 ## Sections
 
-| Section | Route | Description |
-|---------|-------|-------------|
-| **Nexus** | `/` | Hub — profile, XP, leaderboard, telemetry |
-| **Learn** | `/learn` | Guided vulnerability education with interactive lessons and quizzes |
-| **Challenges** | `/challenges` | Offensive labs — standalone exploits, CTF chains, and Warzone scenarios |
-| **Defend** | `/defend` | Defensive training — phishing simulator, SOC dashboard, incident analysis |
+| Section        | Route         | Description                                                               |
+| -------------- | ------------- | ------------------------------------------------------------------------- |
+| **Nexus**      | `/`           | Hub — profile, XP, leaderboard, telemetry                                 |
+| **Learn**      | `/learn`      | Guided vulnerability education with interactive lessons and quizzes       |
+| **Challenges** | `/challenges` | Offensive labs — standalone exploits, CTF chains, and Warzone scenarios   |
+| **Defend**     | `/defend`     | Defensive training — phishing simulator, SOC dashboard, incident analysis |
 
 ---
 
@@ -94,23 +106,23 @@ Full source structure → [ARCHITECTURE.md](./ARCHITECTURE.md)
 
 ### Frontend — `apps/dark-nexus`
 
-| Layer | Technology |
-|-------|-----------|
-| Framework | Next.js 16.2 (App Router) |
-| Language | TypeScript 5 (strict) |
-| UI | React 19, Tailwind CSS 4, Framer Motion |
-| Icons | Lucide React |
-| Charts | Recharts |
-| Auth & DB | Supabase (GitHub OAuth, PostgreSQL) |
-| Storage | localStorage via `@dark/storage` |
+| Layer     | Technology                              |
+| --------- | --------------------------------------- |
+| Framework | Next.js 16.2 (App Router)               |
+| Language  | TypeScript 5 (strict)                   |
+| UI        | React 19, Tailwind CSS 4, Framer Motion |
+| Icons     | Lucide React                            |
+| Charts    | Recharts                                |
+| Auth & DB | Supabase (GitHub OAuth, PostgreSQL)     |
+| Storage   | localStorage via `@dark/storage`        |
 
 ### Backend — `apps/dark-api`
 
-| Layer | Technology |
-|-------|-----------|
-| Language | Go 1.23 |
-| Router | chi v5 |
-| Auth | Supabase JWT validation |
+| Layer    | Technology                            |
+| -------- | ------------------------------------- |
+| Language | Go 1.23                               |
+| Router   | chi v5                                |
+| Auth     | Supabase JWT validation               |
 | Database | Supabase (via REST API, service role) |
 
 The Go backend handles operations that require server-side authority: **challenge flag validation** (flags are never sent to the client) and the **global leaderboard**. The frontend remains fully functional without the backend — unauthenticated users fall back to local validation.
