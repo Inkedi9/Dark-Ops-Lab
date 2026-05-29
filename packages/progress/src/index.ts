@@ -299,15 +299,6 @@ export function getProgressTelemetry(): ProgressTelemetry {
   };
 }
 
-export async function syncProgress(provider?: { name?: string }) {
-  // TODO: plug Supabase/API adapters here when a backend exists.
-  return {
-    status: "local-only",
-    provider: provider?.name || "none",
-    telemetry: getProgressTelemetry(),
-  };
-}
-
 type SupabaseSyncMode = "push" | "pull" | "both";
 type SupabaseProviderResult<T = unknown> = {
   ok: boolean;
