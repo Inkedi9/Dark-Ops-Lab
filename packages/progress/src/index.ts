@@ -1,3 +1,5 @@
+"use client";
+
 import { safeRead, safeRemove, safeWrite } from "@dark/storage";
 import { STORAGE_SCHEMA_VERSION } from "@dark/types";
 import type {

@@ -1,3 +1,5 @@
+"use client";
+
 import { DarkProfile, ProfileAdapter } from "./types";
 
 const STORAGE_KEY = "darknexus_profile";

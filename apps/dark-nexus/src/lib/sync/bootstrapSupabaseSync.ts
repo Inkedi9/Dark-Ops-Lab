@@ -1,3 +1,5 @@
+"use client";
+
 import { safeRead, safeWrite } from "@dark/storage";
 import { progressNamespaces, syncProgressWithSupabase } from "@dark/progress";
 import { migrateLegacyProgress } from "@dark/progress/migrations";
