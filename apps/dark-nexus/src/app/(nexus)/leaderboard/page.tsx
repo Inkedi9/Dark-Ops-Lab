@@ -45,6 +45,7 @@ export default function LeaderboardPage() {
     const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
     const [isLive, setIsLive] = useState(false);
     const [loading, setLoading] = useState(true);
+    const [apiError, setApiError] = useState(false);
 
     useEffect(() => {
         async function load() {
@@ -60,6 +61,8 @@ export default function LeaderboardPage() {
                 }));
                 setEntries(withYou);
                 setIsLive(true);
+            } else if (process.env.NEXT_PUBLIC_DARK_API_URL && liveData === null) {
+                setApiError(true);
             }
 
             setLoading(false);
@@ -161,9 +164,11 @@ export default function LeaderboardPage() {
                     <PanelCard variant="darkOps" className="p-16 text-center">
                         <Trophy className="mx-auto mb-4 text-slate-700" size={40} />
                         <p className="font-mono text-sm text-slate-500">
-                            {process.env.NEXT_PUBLIC_DARK_API_URL
-                                ? "No operators ranked yet. Complete a challenge to appear here."
-                                : "Backend offline — set NEXT_PUBLIC_DARK_API_URL to enable live rankings."}
+                            {!process.env.NEXT_PUBLIC_DARK_API_URL
+                                ? "Backend offline — set NEXT_PUBLIC_DARK_API_URL to enable live rankings."
+                                : apiError
+                                ? "API unreachable — make sure dark-api is running."
+                                : "No operators ranked yet. Complete a challenge to appear here."}
                         </p>
                     </PanelCard>
                 )}

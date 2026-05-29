@@ -19,11 +19,13 @@ npm --workspace=apps/dark-nexus run lint  # ESLint on the Next.js app
 ```
 
 Go backend (from `apps/dark-api`):
+
 ```bash
 go run ./cmd/server       # Start the API server (default port 8080)
 ```
 
 There are no automated tests. TypeScript type-checking runs via `next build` or can be triggered separately:
+
 ```bash
 npx --prefix apps/dark-nexus tsc --noEmit
 ```
@@ -31,10 +33,12 @@ npx --prefix apps/dark-nexus tsc --noEmit
 ## Environment Setup
 
 **Frontend** — `apps/dark-nexus/.env.local`:
+
 - `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (required for auth)
 - `NEXT_PUBLIC_DARK_API_URL` (optional — enables server-side CTF flag validation)
 
 **Backend** — `apps/dark-api/.env`:
+
 - `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` (required)
 - `PORT` (default: 8080), `ALLOWED_ORIGIN`, `CHALLENGES_CONFIG` (default: `challenges.json`)
 - `challenges.json` — gitignored, server-side flag definitions; copy from `challenges.example.json`
@@ -49,7 +53,7 @@ Dark Ops Lab/
 │   ├── dark-nexus/          ← Next.js 16.2 App Router — the entire frontend
 │   └── dark-api/            ← Go 1.23 (chi v5) — server-side flag validation & leaderboard
 └── packages/
-    ├── ui/                  ← @dark/ui — shared React component library
+    ├── ui/                  ← @dark/ui — shared React component library, plus de packages/routes/ ni packages/public/
     ├── storage/             ← @dark/storage — typed localStorage abstraction
     ├── progress/            ← @dark/progress — cross-section event system & sync queue
     ├── profile/             ← @dark/profile — user profile adapter (local + Supabase)
@@ -66,6 +70,7 @@ All packages are consumed via npm workspaces and transpiled by Next.js (`transpi
 **Critical**: This is Next.js 16 with breaking API changes from earlier versions. Before writing Next.js-specific code, consult `apps/dark-nexus/node_modules/next/dist/docs/`.
 
 **Section convention**: every section has two parallel directories:
+
 - `src/app/<section>/` — Next.js route pages
 - `src/<section>/` — components, data, hooks, utils for that section
 
@@ -74,12 +79,14 @@ Sections: `(nexus)` (hub, `/`), `learn` (`/learn`), `challenges` (`/challenges`)
 Shared cross-section code lives in `src/components/`, `src/engine/`, `src/store/`, `src/lib/`, and `src/hooks/`.
 
 **Path aliases** (defined in `tsconfig.json`):
+
 - `@/*` → `src/*`
 - `@dark/ui/*`, `@dark/storage`, `@dark/progress`, `@dark/profile/*`, `@dark/types`, `@dark/supabase-client`
 
 ### Go backend — `apps/dark-api/`
 
 Minimal HTTP service using chi v5. Three endpoints:
+
 - `GET /health` — healthcheck
 - `GET /v1/leaderboard` — top 50 by XP (public)
 - `POST /v1/challenges/{id}/submit` — flag validation (requires Supabase JWT; rate-limited to 10/min per user)
@@ -91,6 +98,7 @@ The frontend operates fully without this service — unauthenticated users fall 
 localStorage is the primary source of truth. Supabase sync is additive (pull-on-login, push-on-event).
 
 Progression is event-sourced. Every user action appends an idempotent `ProgressEvent`:
+
 ```typescript
 {
   idempotencyKey: "challenges:ctf_completed:ctf-internal-breach",  // deduplication key
