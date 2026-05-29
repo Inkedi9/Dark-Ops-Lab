@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 
@@ -68,7 +69,7 @@ func (h *Challenges) Submit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if req.Flag != cfg.Flag {
+	if strings.TrimSpace(req.Flag) != cfg.Flag {
 		jsonResponse(w, submitResponse{Correct: false, Message: "incorrect flag, try again"}, http.StatusOK)
 		return
 	}

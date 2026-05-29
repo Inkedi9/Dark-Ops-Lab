@@ -43,7 +43,7 @@ func main() {
 
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
-	r.Use(middleware.CORS(os.Getenv("ALLOWED_ORIGIN")))
+	r.Use(middleware.CORS(mustEnv("ALLOWED_ORIGIN")))
 
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, "ok")

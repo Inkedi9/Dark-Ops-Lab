@@ -3,11 +3,8 @@ package middleware
 import "net/http"
 
 // CORS sets permissive but origin-restricted CORS headers.
+// allowedOrigin must be non-empty; pass ALLOWED_ORIGIN env var from main.
 func CORS(allowedOrigin string) func(http.Handler) http.Handler {
-	if allowedOrigin == "" {
-		allowedOrigin = "http://localhost:3000"
-	}
-
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Access-Control-Allow-Origin", allowedOrigin)
