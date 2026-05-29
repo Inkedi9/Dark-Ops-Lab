@@ -1,4 +1,5 @@
 .env
-# challenges.json contains server-side flags — never commit it
+# challenges.json and warzones.json contain server-side flags — never commit them
 challenges.json
+warzones.json
 dark-api

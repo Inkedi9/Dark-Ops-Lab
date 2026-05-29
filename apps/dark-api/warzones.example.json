@@ -1,0 +1,10 @@
+{
+  "warzone-production-breach": {
+    "flag": "flag{prod_access_root_exfil}",
+    "objectives": ["recon", "initial-access", "privilege-escalation", "exfiltration"],
+    "xp": 7500,
+    "title": "Production Breach",
+    "badge": "Warzone Operator",
+    "namespace": "challenges"
+  }
+}

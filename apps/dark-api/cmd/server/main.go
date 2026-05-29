@@ -26,6 +26,11 @@ func main() {
 		challengesPath = "challenges.json"
 	}
 
+	warzonesPath := os.Getenv("WARZONES_CONFIG")
+	if warzonesPath == "" {
+		warzonesPath = "warzones.json"
+	}
+
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
@@ -36,6 +41,12 @@ func main() {
 	challenges, err := handler.NewChallenges(sb, challengesPath)
 	if err != nil {
 		slog.Error("failed to load challenges config", "err", err)
+		os.Exit(1)
+	}
+
+	warzones, err := handler.NewWarzones(sb, warzonesPath)
+	if err != nil {
+		slog.Error("failed to load warzones config", "err", err)
 		os.Exit(1)
 	}
 
@@ -58,6 +69,7 @@ func main() {
 			r.Use(middleware.Auth(sb))
 			r.Use(middleware.RateLimit(10, time.Minute))
 			r.Post("/challenges/{id}/submit", challenges.Submit)
+			r.Post("/warzone/{id}/complete", warzones.Complete)
 		})
 	})
 

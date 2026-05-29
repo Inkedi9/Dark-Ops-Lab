@@ -16,6 +16,7 @@ import {
 } from "@/store/warzone-progress-store";
 import { addXp } from "@/store/global-progress";
 import { appendProgressEvent } from "@dark/progress";
+import { useSupabaseSession } from "@/hooks/useSupabaseSession";
 import PanelCard from "@dark/ui/components/PanelCard";
 import AppBadge from "@dark/ui/components/AppBadge";
 import AppButton from "@dark/ui/components/AppButton";
@@ -58,6 +59,7 @@ export function WarzoneRunner({ slug }: Props) {
     const foundWarzone = getWarzoneBySlug(slug);
     const warzone = foundWarzone ?? fallbackWarzone;
 
+    const { session } = useSupabaseSession();
     const [mounted, setMounted] = useState(false);
     const [action, setAction] = useState("");
     const [state, setState] = useState<WarzoneState>(warzone.initialState);
@@ -362,6 +364,23 @@ export function WarzoneRunner({ slug }: Props) {
                         reason: "warzone_completed",
                     },
                 });
+
+                const darkApiUrl = process.env.NEXT_PUBLIC_DARK_API_URL;
+                if (darkApiUrl && session?.access_token) {
+                    fetch(`${darkApiUrl}/v1/warzone/${warzone.id}/complete`, {
+                        method: "POST",
+                        headers: {
+                            Authorization: `Bearer ${session.access_token}`,
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({
+                            flagParts: nextState.flagParts ?? [],
+                            objectivesCompleted: nextState.objectivesCompleted ?? [],
+                            bestTimeSeconds: elapsedSeconds,
+                            actionsCount: nextActionsCount,
+                        }),
+                    }).catch(() => { /* best-effort — local progress is the source of truth */ });
+                }
             }
 
             saveWarzoneProgress({
