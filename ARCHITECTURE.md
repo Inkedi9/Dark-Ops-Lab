@@ -43,26 +43,40 @@ Service HTTP minimal gérant les opérations qui nécessitent une autorité serv
 ```
 apps/dark-api/
 ├── cmd/server/
-│   └── main.go                  ← Entrypoint — routing, démarrage serveur
+│   └── main.go                  ← Entrypoint — routing, graceful shutdown (SIGTERM/SIGINT, 30 s drain)
 ├── internal/
 │   ├── supabase/
-│   │   └── client.go            ← Wrapper REST Supabase (GetUser, InsertEvent, AddXP, GetLeaderboard)
+│   │   ├── client.go            ← Interface Client + implémentation HTTP (GetUser, InsertEvent, AddXP, GetLeaderboard)
+│   │   └── client_test.go       ← Tests unitaires via httptest.NewServer (29 cas, 0 appel réseau réel)
 │   ├── middleware/
-│   │   ├── auth.go              ← Validation JWT Supabase, injection user dans contexte
+│   │   ├── auth.go              ← Validation JWT Supabase, injection user dans contexte, ContextWithUser (tests)
 │   │   ├── cors.go              ← CORS restreint à l'origine autorisée
 │   │   ├── logger.go            ← Logging structuré (slog) method/path/status/latency
-│   │   └── ratelimit.go         ← Sliding window 10 req/min par user (in-memory)
+│   │   ├── ratelimit.go         ← Sliding window 10 req/min par user (in-memory)
+│   │   └── *_test.go            ← Tests Auth, RateLimit, slidingWindow, CORS (22 cas)
 │   └── handler/
 │       ├── challenges.go        ← POST /v1/challenges/{id}/submit
 │       ├── warzone.go           ← POST /v1/warzone/{id}/complete
 │       ├── leaderboard.go       ← GET /v1/leaderboard
-│       └── json.go              ← Helpers jsonResponse / jsonError
+│       ├── json.go              ← Helpers jsonResponse / jsonError
+│       ├── testdata/            ← Fixtures JSON pour les tests
+│       └── *_test.go            ← Tests Challenges, Warzones, Leaderboard (22 cas)
 ├── challenges.example.json      ← Template — flags CTF (challenges.json est gitignored)
 ├── warzones.example.json        ← Template — flags + objectifs warzone (warzones.json est gitignored)
 ├── .env.example
 ├── Dockerfile
 └── go.mod
 ```
+
+**Suite de tests Go** — `go test ./...` depuis `apps/dark-api`, aucune variable d'environnement requise :
+
+| Package | Stratégie | Cas |
+| ------- | --------- | --- |
+| `internal/supabase` | `httptest.NewServer` — fake Supabase, assertions sur méthode/chemin/headers/body | 29 |
+| `internal/middleware` | `httptest.ResponseRecorder` + `mockSB` + accès direct à `slidingWindow` (même package) | 22 |
+| `internal/handler` | `mockClient` satisfaisant `supabase.Client` + chi route context injecté | 22 |
+
+L'interface `supabase.Client` (définie dans `internal/supabase/client.go`) rend les handlers et le middleware testables sans dépendance concrète sur le réseau. Le struct `client` est unexported — `New()` retourne l'interface.
 
 ### Endpoints
 
@@ -295,6 +309,7 @@ src/
 │   └── warzone-progress-store.ts ← Progression Warzone (state, actions)
 │
 ├── lib/           ← Utilitaires globaux
+│   ├── api/       ← Schémas Valibot + helper parseOrWarn (schemas.ts)
 │   ├── profile/   ← Gestion profil (badges, milestones, adapters)
 │   └── sync/      ← Synchronisation Supabase (bootstrapSupabaseSync)
 │
@@ -317,7 +332,6 @@ src/
 | `packages/profile`         | `@dark/profile`         | Adapter profil (local + Supabase), XP, badges, milestones                  |
 | `packages/types`           | `@dark/types`           | Types TypeScript partagés (ProgressEvent, DarkProfile, SyncQueueItem…)     |
 | `packages/supabase-client` | `@dark/supabase-client` | Client Supabase unique (browser + server), détection de configuration      |
-| `packages/routes`          | —                       | Définitions de routes centralisées                                         |
 
 ---
 

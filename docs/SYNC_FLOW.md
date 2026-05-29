@@ -22,6 +22,14 @@ appendProgressEvent() → @dark/progress queue
         |
         v
 Bootstrap sync on login (pull + push) → Supabase
+        |
+        v  ← API/Supabase responses validated here
+parseOrWarn(Schema, data) via src/lib/api/schemas.ts
+  • SubmitResponseSchema     — POST /v1/challenges/{id}/submit
+  • WarzoneCompleteResponseSchema — POST /v1/warzone/{id}/complete
+  • LeaderboardResponseSchema — GET /v1/leaderboard
+  • SupabaseProfileSchema    — profiles table (maybeSingle)
+  shape mismatch → console.warn + safe fallback, never a runtime crash
 ```
 
 **Server path (dark-api — authenticated only)**

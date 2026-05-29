@@ -106,15 +106,16 @@ Full source structure → [ARCHITECTURE.md](./ARCHITECTURE.md)
 
 ### Frontend — `apps/dark-nexus`
 
-| Layer     | Technology                              |
-| --------- | --------------------------------------- |
-| Framework | Next.js 16.2 (App Router)               |
-| Language  | TypeScript 5 (strict)                   |
-| UI        | React 19, Tailwind CSS 4, Framer Motion |
-| Icons     | Lucide React                            |
-| Charts    | Recharts                                |
-| Auth & DB | Supabase (GitHub OAuth, PostgreSQL)     |
-| Storage   | localStorage via `@dark/storage`        |
+| Layer      | Technology                              |
+| ---------- | --------------------------------------- |
+| Framework  | Next.js 16.2 (App Router)               |
+| Language   | TypeScript 5 (strict)                   |
+| UI         | React 19, Tailwind CSS 4, Framer Motion |
+| Icons      | Lucide React                            |
+| Charts     | Recharts                                |
+| Auth & DB  | Supabase (GitHub OAuth, PostgreSQL)     |
+| Storage    | localStorage via `@dark/storage`        |
+| Validation | Valibot — runtime schema validation on all API and Supabase responses |
 
 ### Backend — `apps/dark-api`
 
@@ -126,6 +127,10 @@ Full source structure → [ARCHITECTURE.md](./ARCHITECTURE.md)
 | Database | Supabase (via REST API, service role) |
 
 The Go backend handles operations that require server-side authority: **challenge flag validation**, **warzone completion validation** (flags and required objectives are never sent to the client), **atomic XP increments** via the `add_xp()` Postgres RPC, and the **global leaderboard**. The frontend remains fully functional without the backend — unauthenticated users fall back to local validation.
+
+The server shuts down gracefully on `SIGTERM`/`SIGINT` with a 30-second drain window so in-flight requests complete before the process exits.
+
+All three internal packages (`handler`, `middleware`, `supabase`) have unit tests with no network calls or environment variables required (`go test ./...` from `apps/dark-api`).
 
 ---
 
