@@ -9,14 +9,25 @@ import (
 	"time"
 )
 
-type Client struct {
+// Client is the interface that handlers and middleware depend on.
+// The concrete HTTP implementation is unexported; callers receive this
+// interface from New() and can substitute a mock in tests.
+type Client interface {
+	GetUser(ctx context.Context, token string) (*User, error)
+	InsertEvent(ctx context.Context, event ProgressEvent) (bool, error)
+	AddXP(ctx context.Context, userID string, amount int) (*XPResult, error)
+	GetLeaderboard(ctx context.Context, limit int) ([]LeaderboardEntry, error)
+}
+
+type client struct {
 	url            string
 	serviceRoleKey string
 	http           *http.Client
 }
 
-func New(url, serviceRoleKey string) *Client {
-	return &Client{
+// New constructs the real Supabase HTTP client and returns it as Client.
+func New(url, serviceRoleKey string) Client {
+	return &client{
 		url:            url,
 		serviceRoleKey: serviceRoleKey,
 		http:           &http.Client{Timeout: 10 * time.Second},
@@ -30,7 +41,7 @@ type User struct {
 
 // GetUser validates a user JWT by calling Supabase /auth/v1/user.
 // The apikey header uses the service role key; the user's own JWT goes in Authorization.
-func (c *Client) GetUser(ctx context.Context, userToken string) (*User, error) {
+func (c *client) GetUser(ctx context.Context, userToken string) (*User, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, c.url+"/auth/v1/user", nil)
 	if err != nil {
 		return nil, err
@@ -73,7 +84,7 @@ type ProgressEvent struct {
 // InsertEvent writes a progress event to Supabase using the service role key.
 // Duplicate idempotency keys (same user_id + idempotency_key) are silently ignored.
 // Returns true if a new row was inserted, false if the event was a duplicate.
-func (c *Client) InsertEvent(ctx context.Context, event ProgressEvent) (bool, error) {
+func (c *client) InsertEvent(ctx context.Context, event ProgressEvent) (bool, error) {
 	body, err := json.Marshal(event)
 	if err != nil {
 		return false, err
@@ -113,7 +124,7 @@ type XPResult struct {
 // AddXP calls the add_xp Postgres function which atomically increments profiles.xp
 // and recomputes level/rank in a single serialised UPDATE.
 // Returns an error (and nil result) if the user's profile does not exist yet.
-func (c *Client) AddXP(ctx context.Context, userID string, amount int) (*XPResult, error) {
+func (c *client) AddXP(ctx context.Context, userID string, amount int) (*XPResult, error) {
 	body, err := json.Marshal(map[string]any{
 		"p_user_id": userID,
 		"p_amount":  amount,
@@ -158,7 +169,7 @@ type LeaderboardEntry struct {
 }
 
 // GetLeaderboard returns the top users ordered by XP descending.
-func (c *Client) GetLeaderboard(ctx context.Context, limit int) ([]LeaderboardEntry, error) {
+func (c *client) GetLeaderboard(ctx context.Context, limit int) ([]LeaderboardEntry, error) {
 	url := fmt.Sprintf(
 		"%s/rest/v1/profiles?select=id,username,xp,level,rank&order=xp.desc&limit=%d",
 		c.url, limit,
@@ -187,7 +198,7 @@ func (c *Client) GetLeaderboard(ctx context.Context, limit int) ([]LeaderboardEn
 	return entries, nil
 }
 
-func (c *Client) setServiceHeaders(req *http.Request) {
+func (c *client) setServiceHeaders(req *http.Request) {
 	req.Header.Set("Authorization", "Bearer "+c.serviceRoleKey)
 	req.Header.Set("apikey", c.serviceRoleKey)
 	req.Header.Set("Content-Type", "application/json")

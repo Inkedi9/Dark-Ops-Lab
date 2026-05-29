@@ -14,7 +14,7 @@ const userKey contextKey = "user"
 
 // Auth validates the Supabase JWT in the Authorization header.
 // Attaches the authenticated user to the request context on success.
-func Auth(sb *supabase.Client) func(http.Handler) http.Handler {
+func Auth(sb supabase.Client) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			auth := r.Header.Get("Authorization")
@@ -40,4 +40,10 @@ func Auth(sb *supabase.Client) func(http.Handler) http.Handler {
 func UserFromContext(ctx context.Context) *supabase.User {
 	u, _ := ctx.Value(userKey).(*supabase.User)
 	return u
+}
+
+// ContextWithUser attaches user to ctx under the package-private key.
+// Use in tests to bypass the Auth middleware without duplicating the key type.
+func ContextWithUser(ctx context.Context, user *supabase.User) context.Context {
+	return context.WithValue(ctx, userKey, user)
 }

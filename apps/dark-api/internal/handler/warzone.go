@@ -24,11 +24,11 @@ type WarzoneConfig struct {
 }
 
 type Warzones struct {
-	sb      *supabase.Client
+	sb      supabase.Client
 	configs map[string]WarzoneConfig
 }
 
-func NewWarzones(sb *supabase.Client, configPath string) (*Warzones, error) {
+func NewWarzones(sb supabase.Client, configPath string) (*Warzones, error) {
 	data, err := os.ReadFile(configPath)
 	if err != nil {
 		return nil, fmt.Errorf("read warzones config %q: %w", configPath, err)

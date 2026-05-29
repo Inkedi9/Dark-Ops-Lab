@@ -7,10 +7,10 @@ import (
 )
 
 type Leaderboard struct {
-	sb *supabase.Client
+	sb supabase.Client
 }
 
-func NewLeaderboard(sb *supabase.Client) *Leaderboard {
+func NewLeaderboard(sb supabase.Client) *Leaderboard {
 	return &Leaderboard{sb: sb}
 }
 

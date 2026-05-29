@@ -24,11 +24,11 @@ type ChallengeConfig struct {
 }
 
 type Challenges struct {
-	sb      *supabase.Client
+	sb      supabase.Client
 	configs map[string]ChallengeConfig
 }
 
-func NewChallenges(sb *supabase.Client, configPath string) (*Challenges, error) {
+func NewChallenges(sb supabase.Client, configPath string) (*Challenges, error) {
 	data, err := os.ReadFile(configPath)
 	if err != nil {
 		return nil, fmt.Errorf("read challenges config %q: %w", configPath, err)
