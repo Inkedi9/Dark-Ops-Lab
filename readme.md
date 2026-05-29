@@ -160,7 +160,7 @@ cd apps/dark-api
 
 # Configure environment
 cp .env.example .env
-# Fill in SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY
+# Fill in SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, and ALLOWED_ORIGIN
 
 # Create your challenges config (server-side flags — never committed)
 cp challenges.example.json challenges.json

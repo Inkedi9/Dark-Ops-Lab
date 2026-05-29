@@ -140,23 +140,23 @@ Nexus is responsible for cloud sync.
 Current flow:
 
 - User signs in through Nexus GitHub auth.
-- Nexus stores or updates the user profile.
-- Nexus can push local progress to Supabase from Data & Sync.
-- Bootstrap sync can run after login to reconcile local and remote state.
+- Bootstrap sync runs once per user on login: pulls remote profile, events, and snapshots; merges into localStorage; pushes pending local state.
+- Profile fields (`xp`, `level`, `rank`, `badges`) are kept in sync automatically via `createSupabaseProfileAdapter` — every local mutation (addXp, addBadge, completeLesson…) writes to localStorage first, then upserts to the `profiles` table in the background (fire-and-forget). A Supabase failure does not block or roll back the local action.
+- Progress events (`completedLessons`, `completedMissions`, `completedDefend`) are not written through the profile adapter — they live in `progress_events` and are synced via the bootstrap push queue.
 
 Main Supabase tables:
 
-- `profiles`
-- `progress_events`
-- `app_progress_snapshots`
+- `profiles` — `xp`, `level`, `rank`, `badges` (write-through on every mutation)
+- `progress_events` — append-only event log (synced via bootstrap push queue)
+- `app_progress_snapshots` — namespace snapshots (pulled and merged at bootstrap)
 
 Important behavior:
 
 - Row Level Security protects per-user data.
 - The sync queue pushes pending events.
-- `progress_events` should enforce uniqueness with `unique(user_id, idempotency_key)`.
-- Bootstrap sync runs on login to pull, merge, and push pending local state.
-- Local-first remains the temporary source of truth until the architecture moves to fully automatic cloud sync.
+- `progress_events` enforces uniqueness with `unique(user_id, idempotency_key)`.
+- Bootstrap sync runs once per user per session (keyed by `dark:supabase:bootstrap:<userId>`); use `{ force: true }` to re-run.
+- `ALLOWED_ORIGIN` is required on the Go API (`dark-api`) — the server refuses to start without it.
 
 ## 8. Manual QA Checklist
 
