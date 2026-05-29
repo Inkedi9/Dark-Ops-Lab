@@ -4,40 +4,53 @@ This document explains the current local-first sync architecture for the Dark mo
 
 ## 1. Architecture
 
+All sections (Learn, Challenges, Defend, Nexus) run on the same origin inside a single Next.js app. localStorage is shared. The sync model has two paths:
+
+**Client path (local-first)**
+
 ```text
-DarkSplaining / DarkDefend / DarkChallenges
+User action (lesson, challenge, phishing…)
         |
         v
-Local progress events
+localStorage write (progress-store / warzone-progress-store / global-progress…)
         |
         v
-Export bridge button
+notifyProgressChanged() → React components re-render
         |
         v
-Nexus /telemetry/import
+appendProgressEvent() → @dark/progress queue
         |
         v
-Idempotent merge
-        |
-        v
-Nexus /telemetry
-        |
-        v
-Data & Sync
-        |
-        v
-Supabase
+Bootstrap sync on login (pull + push) → Supabase
 ```
 
-DarkSplaining, DarkDefend, and DarkChallenges each write progress events in their own browser origin. Nexus acts as the hub for auth, telemetry import, diagnostics, and cloud sync.
+**Server path (dark-api — authenticated only)**
+
+```text
+User submits CTF flag or Warzone completion
+        |
+        v
+POST /v1/challenges/{id}/submit  or  POST /v1/warzone/{id}/complete
+        |
+        v
+dark-api validates (flags/objectives in server config, never sent to browser)
+        |
+        v
+InsertEvent → progress_events (idempotent, ON CONFLICT DO NOTHING)
+        |        returns isNew=true for genuine completions
+        v
+AddXP → add_xp() Postgres RPC
+           UPDATE profiles SET xp = xp + amount  (atomic, row-locked)
+           recomputes level and rank
+```
 
 ## 2. Why This Model
 
-- `localStorage` is isolated by origin, so one app cannot directly read another app's local progress.
-- Each app remains autonomous, offline-capable, and local-first.
-- Nexus orchestrates authentication, telemetry, and cloud persistence.
-- The individual apps do not need direct Supabase auth/session logic.
-- Auth and session handling stay centralized, avoiding duplicated client state across apps.
+- Single origin: all sections share the same localStorage — no export bridge needed between sections.
+- Local-first: every action writes locally first. The app remains fully functional offline and without Supabase.
+- Authoritative backend: flags and warzone objectives live only on the server. The browser never sees them.
+- Atomic XP: concurrent completions on the server use `xp = xp + amount` (never read-modify-write from the client), eliminating race conditions.
+- Additive sync: Supabase is append-only for events. A sync failure never rolls back local state.
 
 ## 3. Progress Event Model
 
@@ -110,17 +123,15 @@ Nexus:
 
 ## 6. Import Bridge
 
-Each app builds a compact JSON payload containing its local progress namespace, and includes profile data when useful. The payload is encoded using the same compatibility method:
+The import bridge (`/telemetry/import`) is still available for importing external progress payloads (e.g., from a previous installation, another device, or a data export). Within the app, all sections write to the same localStorage — no bridge is needed between sections.
+
+Payload encoding (for external imports):
 
 1. Serialize JSON.
 2. Encode JSON as UTF-8 bytes.
 3. Convert bytes to a binary string.
 4. Encode with `btoa`.
-5. Navigate to:
-
-```text
-/telemetry/import#payload=...
-```
+5. Navigate to `telemetry/import#payload=...`
 
 Nexus reads the hash payload, decodes it, and calls `importProgressDump()`.
 
@@ -129,9 +140,6 @@ Import behavior:
 - Merges incoming progress by namespace.
 - Merges events by `idempotencyKey`.
 - Does not replace unrelated namespaces.
-- Does not delete source app local data.
-- Keeps the source apps as local-first sources of truth for now.
-- Preserves the existing DarkSplaining import behavior.
 
 ## 7. Supabase Sync
 
@@ -139,24 +147,31 @@ Nexus is responsible for cloud sync.
 
 Current flow:
 
-- User signs in through Nexus GitHub auth.
+- User signs in through GitHub OAuth.
 - Bootstrap sync runs once per user on login: pulls remote profile, events, and snapshots; merges into localStorage; pushes pending local state.
-- Profile fields (`xp`, `level`, `rank`, `badges`) are kept in sync automatically via `createSupabaseProfileAdapter` — every local mutation (addXp, addBadge, completeLesson…) writes to localStorage first, then upserts to the `profiles` table in the background (fire-and-forget). A Supabase failure does not block or roll back the local action.
-- Progress events (`completedLessons`, `completedMissions`, `completedDefend`) are not written through the profile adapter — they live in `progress_events` and are synced via the bootstrap push queue.
+- Progress events live in `progress_events` and are synced via the bootstrap push queue.
+
+**dark-api XP path (server-authoritative):**
+- When a CTF flag or Warzone completion is validated by dark-api, the server calls `InsertEvent` then `add_xp()`.
+- `InsertEvent` uses `ON CONFLICT DO NOTHING` — safe to retry.
+- `InsertEvent` returns `isNew=true` only for genuine first inserts. `add_xp()` is only called then, preventing double XP on retry.
+- `add_xp()` does `UPDATE profiles SET xp = xp + amount` — atomic, race-free.
 
 Main Supabase tables:
 
-- `profiles` — `xp`, `level`, `rank`, `badges` (write-through on every mutation)
-- `progress_events` — append-only event log (synced via bootstrap push queue)
+- `profiles` — `xp`, `level`, `rank`, `badges`
+- `progress_events` — append-only event log (`unique(user_id, idempotency_key)`)
 - `app_progress_snapshots` — namespace snapshots (pulled and merged at bootstrap)
+
+Supabase functions:
+
+- `add_xp(p_user_id uuid, p_amount int)` — atomic XP increment + level/rank recomputation. `SECURITY DEFINER`, `service_role` only. See `supabase/migrations/20260529_add_xp_function.sql`.
 
 Important behavior:
 
 - Row Level Security protects per-user data.
-- The sync queue pushes pending events.
-- `progress_events` enforces uniqueness with `unique(user_id, idempotency_key)`.
 - Bootstrap sync runs once per user per session (keyed by `dark:supabase:bootstrap:<userId>`); use `{ force: true }` to re-run.
-- `ALLOWED_ORIGIN` is required on the Go API (`dark-api`) — the server refuses to start without it.
+- `ALLOWED_ORIGIN` is required on dark-api — the server refuses to start without it.
 
 ## 8. Manual QA Checklist
 
@@ -183,13 +198,17 @@ Important behavior:
 
 ### C. Challenges
 
-- [ ] Complete a challenge, CTF, or Warzone.
-- [ ] Click the Database export button.
-- [ ] Confirm Nexus opens `/telemetry/import`.
+- [ ] Complete a standalone challenge, CTF, or Warzone.
 - [ ] Confirm the Challenges telemetry card shows events greater than `0`.
 - [ ] Open Data & Sync.
 - [ ] Push sync queue.
 - [ ] Verify Supabase `progress_events` rows.
+
+**With dark-api configured (`NEXT_PUBLIC_DARK_API_URL` set, user authenticated):**
+
+- [ ] Submit a valid CTF flag → confirm `progress_events` row inserted, `profiles.xp` incremented.
+- [ ] Submit the same flag again → confirm `profiles.xp` is NOT incremented a second time (idempotency).
+- [ ] Complete a Warzone → confirm `POST /v1/warzone/{id}/complete` returns `valid: true`, `profiles.xp` incremented.
 
 ### D. Idempotency
 
@@ -352,32 +371,13 @@ function isLegacyCompleted(value: any) {
 
 Do not migrate unlocked, available, started or open missions as completed.
 
-### 4. localStorage is isolated by origin
+### 4. localStorage origin isolation (historical)
 
-Progress created on:
+Before the monorepo consolidation, the four apps ran on separate origins (`dark-splaining.vercel.app`, `dark-defend.vercel.app`, `dark-challenges.vercel.app`, `dark-nexus.vercel.app`). localStorage is isolated by origin, so each app had its own storage silo and required a manual export bridge to share progress with Nexus.
 
-```text
-dark-splaining.vercel.app
-dark-defend.vercel.app
-dark-challes.vercel.app
-```
+**This no longer applies.** All sections now run on the same origin inside a single Next.js app. localStorage is unified — no bridge is needed between sections.
 
-connot automatically appaer inside:
-
-dark-nexus.vercel.app
-
-Each app must explicity export its local progress to Nexus throught the telemetry bridge:
-
-```text
-App localStorage
-→ Database export button
-→ /telemetry/import#payload=...
-→ Nexus import/merge
-→ Nexus telemetry
-→ Supabase sync
-```
-
-If Nexus shows 0 events but the source app has local data, the bridge was not run or the source app did not create normalized progress events.
+The import bridge (`/telemetry/import`) remains available for importing data from external sources (old devices, data exports, migration from the legacy multi-app setup).
 
 ### 5. Duplicate exports must be idempotent
 

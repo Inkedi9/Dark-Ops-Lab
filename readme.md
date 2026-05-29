@@ -125,7 +125,7 @@ Full source structure → [ARCHITECTURE.md](./ARCHITECTURE.md)
 | Auth     | Supabase JWT validation               |
 | Database | Supabase (via REST API, service role) |
 
-The Go backend handles operations that require server-side authority: **challenge flag validation** (flags are never sent to the client) and the **global leaderboard**. The frontend remains fully functional without the backend — unauthenticated users fall back to local validation.
+The Go backend handles operations that require server-side authority: **challenge flag validation**, **warzone completion validation** (flags and required objectives are never sent to the client), **atomic XP increments** via the `add_xp()` Postgres RPC, and the **global leaderboard**. The frontend remains fully functional without the backend — unauthenticated users fall back to local validation.
 
 ---
 
@@ -153,7 +153,7 @@ npm run dev
 
 ### Backend (optional)
 
-The application works without the backend. Start it to enable server-side flag validation and the live leaderboard.
+The application works without the backend. Start it to enable server-side flag validation, warzone completion recording, and the live leaderboard.
 
 ```bash
 cd apps/dark-api
@@ -162,12 +162,21 @@ cd apps/dark-api
 cp .env.example .env
 # Fill in SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, and ALLOWED_ORIGIN
 
-# Create your challenges config (server-side flags — never committed)
+# Create config files (server-side flags — never committed)
 cp challenges.example.json challenges.json
+cp warzones.example.json   warzones.json
 
 # Run
 go run ./cmd/server
 ```
+
+### Supabase migrations
+
+SQL migrations live in `supabase/migrations/`. Run them manually in the Supabase SQL editor:
+
+| File | Description |
+|---|---|
+| `20260529_add_xp_function.sql` | `add_xp(user_id, amount)` — atomic XP increment + level/rank recomputation |
 
 ---
 
@@ -203,7 +212,7 @@ localStorage is the primary source of truth. Supabase sync is additive — data 
 
 ## Roadmap
 
-- [ ] Server-side validation for Warzone scenarios
+- [x] Server-side validation for Warzone scenarios
 - [ ] Telemetry dashboards
 - [ ] Attack maps & graph visualization
 - [ ] Adaptive learning paths

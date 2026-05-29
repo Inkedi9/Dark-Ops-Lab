@@ -19,18 +19,19 @@ darknexus.vercel.app/defend      ← Simulations défensives (ex DarkDefend)
 Dark Ops Lab/
 ├── apps/
 │   ├── dark-nexus/              ← Application principale (Next.js 16 App Router)
-│   ├── dark-api/                ← Backend Go (validation flags, leaderboard)
+│   ├── dark-api/                ← Backend Go (validation flags, leaderboard, XP)
 │   ├── dark-splaining.old/      ← Archivé après migration
 │   ├── dark-challenges.old/     ← Archivé après migration
 │   └── dark-defend.old/         ← Archivé après migration
-└── packages/
-    ├── ui/                      ← Composants partagés (@dark/ui)
-    ├── storage/                 ← Abstraction localStorage (@dark/storage)
-    ├── progress/                ← Suivi de progression (@dark/progress)
-    ├── profile/                 ← Profil utilisateur (@dark/profile)
-    ├── types/                   ← Types partagés (@dark/types)
-    ├── supabase-client/         ← Client Supabase partagé (@dark/supabase-client)
-    └── routes/                  ← Définitions de routes centralisées
+├── packages/
+│   ├── ui/                      ← Composants partagés (@dark/ui)
+│   ├── storage/                 ← Abstraction localStorage (@dark/storage)
+│   ├── progress/                ← Suivi de progression (@dark/progress)
+│   ├── profile/                 ← Profil utilisateur (@dark/profile)
+│   ├── types/                   ← Types partagés (@dark/types)
+│   └── supabase-client/         ← Client Supabase partagé (@dark/supabase-client)
+└── supabase/
+    └── migrations/              ← Migrations SQL (à appliquer via SQL Editor Supabase)
 ```
 
 ---
@@ -45,16 +46,19 @@ apps/dark-api/
 │   └── main.go                  ← Entrypoint — routing, démarrage serveur
 ├── internal/
 │   ├── supabase/
-│   │   └── client.go            ← Wrapper REST Supabase (GetUser, InsertEvent, GetLeaderboard)
+│   │   └── client.go            ← Wrapper REST Supabase (GetUser, InsertEvent, AddXP, GetLeaderboard)
 │   ├── middleware/
 │   │   ├── auth.go              ← Validation JWT Supabase, injection user dans contexte
 │   │   ├── cors.go              ← CORS restreint à l'origine autorisée
-│   │   └── logger.go            ← Logging structuré (slog) method/path/status/latency
+│   │   ├── logger.go            ← Logging structuré (slog) method/path/status/latency
+│   │   └── ratelimit.go         ← Sliding window 10 req/min par user (in-memory)
 │   └── handler/
 │       ├── challenges.go        ← POST /v1/challenges/{id}/submit
+│       ├── warzone.go           ← POST /v1/warzone/{id}/complete
 │       ├── leaderboard.go       ← GET /v1/leaderboard
 │       └── json.go              ← Helpers jsonResponse / jsonError
-├── challenges.example.json      ← Template — flags serveur (challenges.json est gitignored)
+├── challenges.example.json      ← Template — flags CTF (challenges.json est gitignored)
+├── warzones.example.json        ← Template — flags + objectifs warzone (warzones.json est gitignored)
 ├── .env.example
 ├── Dockerfile
 └── go.mod
@@ -62,11 +66,12 @@ apps/dark-api/
 
 ### Endpoints
 
-| Méthode | Route                        | Auth         | Description                  |
-| ------- | ---------------------------- | ------------ | ---------------------------- |
-| `GET`   | `/health`                    | Non          | Healthcheck                  |
-| `GET`   | `/v1/leaderboard`            | Non          | Top 50 users par XP          |
-| `POST`  | `/v1/challenges/{id}/submit` | JWT Supabase | Validation flag côté serveur |
+| Méthode | Route                        | Auth         | Rate limit    | Description                               |
+| ------- | ---------------------------- | ------------ | ------------- | ----------------------------------------- |
+| `GET`   | `/health`                    | Non          | —             | Healthcheck                               |
+| `GET`   | `/v1/leaderboard`            | Non          | —             | Top 50 users par XP                       |
+| `POST`  | `/v1/challenges/{id}/submit` | JWT Supabase | 10/min / user | Validation flag CTF côté serveur          |
+| `POST`  | `/v1/warzone/{id}/complete`  | JWT Supabase | 10/min / user | Validation completion warzone côté serveur |
 
 ### Flux de validation
 
@@ -75,9 +80,23 @@ Frontend (CTF)
   └─► POST /v1/challenges/{id}/submit  { flag: "DARK{...}" }
         ├─ Auth middleware valide le JWT → Supabase /auth/v1/user
         ├─ Handler compare flag contre challenges.json (jamais exposé au client)
-        ├─ Si correct → InsertEvent dans Supabase (service role key, idempotent)
+        ├─ Si correct → InsertEvent (idempotent, retourne isNew bool)
+        ├─ Si isNew → AddXP : appel RPC add_xp(user_id, amount) → UPDATE atomique
         └─ Retourne { correct: bool, xp: number, message: string }
+
+Frontend (Warzone)
+  └─► POST /v1/warzone/{id}/complete  { flagParts, objectivesCompleted, bestTimeSeconds, actionsCount }
+        ├─ Auth middleware valide le JWT
+        ├─ Handler reconstruit le flag : strings.Join(flagParts, "") == warzones.json[id].flag
+        ├─ Handler vérifie que tous les requiredObjectives sont présents
+        ├─ Si valide → InsertEvent (idempotent, retourne isNew bool)
+        ├─ Si isNew → AddXP : appel RPC add_xp(user_id, amount) → UPDATE atomique
+        └─ Retourne { valid: bool, xp: number, message: string }
 ```
+
+**Idempotence :** `InsertEvent` utilise `Prefer: resolution=ignore-duplicates,return=representation` — PostgREST retourne `[]` si l'event existait déjà, `[{…}]` pour un vrai insert. `AddXP` n'est appelé que dans ce second cas, évitant tout doublement d'XP sur retry.
+
+**Atomicité XP :** `add_xp()` est une fonction PostgreSQL `SECURITY DEFINER` qui fait `UPDATE profiles SET xp = xp + amount` — le lock de ligne de PostgreSQL sérialise les appels concurrents sans race condition.
 
 ---
 
@@ -335,13 +354,25 @@ La progression est event-sourced. Chaque action utilisateur crée un `ProgressEv
 
 ---
 
-## Supabase — Tables
+## Supabase — Tables & fonctions
+
+### Tables
 
 | Table                    | Rôle                                                            |
 | ------------------------ | --------------------------------------------------------------- |
 | `profiles`               | Profil utilisateur (xp, level, rank, badges)                    |
 | `progress_events`        | Events de progression (unique sur user_id + idempotency_key)    |
 | `app_progress_snapshots` | Snapshots d'état par namespace (unique sur user_id + namespace) |
+
+### Fonctions SQL
+
+| Fonction | Signature | Description |
+| -------- | --------- | ----------- |
+| `add_xp` | `add_xp(p_user_id uuid, p_amount int) → TABLE(xp, level, rank)` | Incrément atomique XP + recalcul level/rank. `SECURITY DEFINER`, accessible uniquement via `service_role`. Migration : `supabase/migrations/20260529_add_xp_function.sql`. |
+
+**Formule level/rank** (cohérente avec `localProfileAdapter.ts`) :
+- `level = floor(xp / 100) + 1`
+- `rank` : `ROOKIE` (< 10) · `HUNTER` (< 25) · `OPERATOR` (< 50) · `GHOST` (≥ 50)
 
 ---
 
