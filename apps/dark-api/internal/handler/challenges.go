@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"os"
 	"strings"
@@ -94,9 +95,17 @@ func (h *Challenges) Submit(w http.ResponseWriter, r *http.Request) {
 		SchemaVersion: 1,
 	}
 
-	if err := h.sb.InsertEvent(r.Context(), event); err != nil {
+	isNew, err := h.sb.InsertEvent(r.Context(), event)
+	if err != nil {
 		jsonError(w, "failed to record completion", http.StatusInternalServerError)
 		return
+	}
+
+	// Only award XP for a genuine new completion, not a duplicate submission.
+	if isNew {
+		if _, err := h.sb.AddXP(r.Context(), user.ID, cfg.XP); err != nil {
+			slog.Warn("add_xp failed after challenge completion", "user", user.ID, "xp", cfg.XP, "err", err)
+		}
 	}
 
 	jsonResponse(w, submitResponse{

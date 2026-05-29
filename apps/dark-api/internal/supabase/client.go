@@ -72,29 +72,81 @@ type ProgressEvent struct {
 
 // InsertEvent writes a progress event to Supabase using the service role key.
 // Duplicate idempotency keys (same user_id + idempotency_key) are silently ignored.
-func (c *Client) InsertEvent(ctx context.Context, event ProgressEvent) error {
+// Returns true if a new row was inserted, false if the event was a duplicate.
+func (c *Client) InsertEvent(ctx context.Context, event ProgressEvent) (bool, error) {
 	body, err := json.Marshal(event)
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.url+"/rest/v1/progress_events", bytes.NewReader(body))
 	if err != nil {
-		return err
+		return false, err
 	}
 	c.setServiceHeaders(req)
-	req.Header.Set("Prefer", "resolution=ignore-duplicates,return=minimal")
+	// return=representation lets us detect new insert (non-empty array) vs. duplicate (empty array).
+	req.Header.Set("Prefer", "resolution=ignore-duplicates,return=representation")
 
 	resp, err := c.http.Do(req)
 	if err != nil {
-		return err
+		return false, err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode >= 400 {
-		return fmt.Errorf("supabase insert failed: %s", resp.Status)
+		return false, fmt.Errorf("supabase insert failed: %s", resp.Status)
 	}
-	return nil
+
+	// PostgREST returns [] for ON CONFLICT DO NOTHING (duplicate), [{...}] for a new insert.
+	var result []json.RawMessage
+	_ = json.NewDecoder(resp.Body).Decode(&result)
+	return len(result) > 0, nil
+}
+
+// XPResult holds the updated profile values returned by the add_xp RPC.
+type XPResult struct {
+	XP    int    `json:"xp"`
+	Level int    `json:"level"`
+	Rank  string `json:"rank"`
+}
+
+// AddXP calls the add_xp Postgres function which atomically increments profiles.xp
+// and recomputes level/rank in a single serialised UPDATE.
+// Returns an error (and nil result) if the user's profile does not exist yet.
+func (c *Client) AddXP(ctx context.Context, userID string, amount int) (*XPResult, error) {
+	body, err := json.Marshal(map[string]any{
+		"p_user_id": userID,
+		"p_amount":  amount,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.url+"/rest/v1/rpc/add_xp", bytes.NewReader(body))
+	if err != nil {
+		return nil, err
+	}
+	c.setServiceHeaders(req)
+
+	resp, err := c.http.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode >= 400 {
+		return nil, fmt.Errorf("add_xp rpc failed: %s", resp.Status)
+	}
+
+	// add_xp returns SETOF — PostgREST wraps it in a JSON array.
+	var results []XPResult
+	if err := json.NewDecoder(resp.Body).Decode(&results); err != nil {
+		return nil, err
+	}
+	if len(results) == 0 {
+		return nil, fmt.Errorf("add_xp: profile for user %s not found", userID)
+	}
+	return &results[0], nil
 }
 
 type LeaderboardEntry struct {
