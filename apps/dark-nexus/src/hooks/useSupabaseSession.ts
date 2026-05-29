@@ -3,10 +3,14 @@
 import { useCallback, useEffect, useState } from "react";
 import type { Session, User } from "@supabase/supabase-js";
 import { createBrowserSupabaseClient, hasSupabaseConfig } from "@dark/supabase-client";
+import { parseOrWarn, SupabaseProfileSchema } from "@/lib/api/schemas";
 
+// SupabaseProfile is kept as an explicit type for consumers that import it.
+// It mirrors the schema output — if the DB schema changes, the schema
+// validator will warn before this type becomes stale.
 export type SupabaseProfile = {
     id: string;
-    username: string | null;
+    username: string | null | undefined;
     xp: number;
     level: number;
     rank: string;
@@ -62,8 +66,14 @@ export function useSupabaseSession() {
             return null;
         }
 
-        setProfile((data as SupabaseProfile | null) || null);
-        return (data as SupabaseProfile | null) || null;
+        if (data === null) {
+            setProfile(null);
+            return null;
+        }
+
+        const profile = parseOrWarn(SupabaseProfileSchema, data, "profiles") as SupabaseProfile | null;
+        setProfile(profile);
+        return profile;
     }, []);
 
     const signOut = useCallback(async () => {

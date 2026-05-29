@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createBrowserSupabaseClient, hasSupabaseConfig } from "@dark/supabase-client";
+import { parseOrWarn, SubmitResponseSchema } from "@/lib/api/schemas";
 
 export type SubmitOutcome =
     | { status: "correct"; xp: number; message: string }
@@ -57,9 +58,11 @@ export function useSubmitChallenge() {
 
             if (!res.ok) return { status: "error" };
 
-            const body = await res.json() as { correct: boolean; xp: number; message: string };
+            const body = parseOrWarn(SubmitResponseSchema, await res.json(), "submit");
+            if (!body) return { status: "error" };
+
             return body.correct
-                ? { status: "correct", xp: body.xp, message: body.message }
+                ? { status: "correct", xp: body.xp ?? 0, message: body.message }
                 : { status: "incorrect", message: body.message };
         } catch {
             return { status: "error" };

@@ -7,16 +7,10 @@ import { createBrowserSupabaseClient, hasSupabaseConfig } from "@dark/supabase-c
 import NexusBackground from "@dark/ui/components/NexusBackground";
 import PanelCard from "@dark/ui/components/PanelCard";
 import NexusAIButton from "@/components/assistant/NexusAIButton";
+import { parseOrWarn, LeaderboardResponseSchema, type LeaderboardEntry } from "@/lib/api/schemas";
 
-type LeaderboardEntry = {
-    position: number;
-    id: string;
-    username: string;
-    xp: number;
-    level: number;
-    rank: string;
-    isYou?: boolean;
-};
+// Extend the validated type with the client-side isYou flag.
+type LeaderboardEntryWithYou = LeaderboardEntry & { isYou?: boolean };
 
 async function fetchLeaderboard(): Promise<LeaderboardEntry[] | null> {
     const apiUrl = process.env.NEXT_PUBLIC_DARK_API_URL;
@@ -27,7 +21,7 @@ async function fetchLeaderboard(): Promise<LeaderboardEntry[] | null> {
             cache: "no-store",
         });
         if (!res.ok) return null;
-        return (await res.json()) as LeaderboardEntry[];
+        return parseOrWarn(LeaderboardResponseSchema, await res.json(), "leaderboard");
     } catch {
         return null;
     }
@@ -42,7 +36,7 @@ async function getCurrentUserId(): Promise<string | null> {
 }
 
 export default function LeaderboardPage() {
-    const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
+    const [entries, setEntries] = useState<LeaderboardEntryWithYou[]>([]);
     const [isLive, setIsLive] = useState(false);
     const [loading, setLoading] = useState(true);
     const [apiError, setApiError] = useState(false);
@@ -179,7 +173,7 @@ export default function LeaderboardPage() {
     );
 }
 
-function LeaderboardRow({ operator }: { operator: LeaderboardEntry }) {
+function LeaderboardRow({ operator }: { operator: LeaderboardEntryWithYou }) {
     const { position } = operator;
     const isTopThree = position <= 3;
 
