@@ -2,7 +2,6 @@ import {
   DIFFICULTIES,
 } from "./learningModel";
 import { lessonExperience } from "./lessonExperience";
-import { bridgeTargets, darkRoutes } from "@dark/routes";
 
 function withExperience(lesson) {
   return {
@@ -86,7 +85,7 @@ export const lessons = [
         description:
           "Apply unsafe query concepts in a guided DarkChallenge mission.",
         difficulty: "Beginner",
-        to: darkRoutes.challenges.mission(bridgeTargets.sqlInjection.challengeMission),
+        to: "/challenges/sql-injection-login",
       },
       {
         type: "defend",
@@ -226,7 +225,7 @@ export const lessons = [
         description:
           "Apply rendering and escaping concepts in a guided DarkChallenge mission.",
         difficulty: "Beginner",
-        to: darkRoutes.challenges.mission(bridgeTargets.reflectedXss.challengeMission),
+        to: "/challenges/reflected-xss",
       },
       {
         type: "defend",
