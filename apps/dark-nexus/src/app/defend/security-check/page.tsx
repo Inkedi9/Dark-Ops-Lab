@@ -40,6 +40,7 @@ const categoryIcons = {
 };
 
 function safeLoadAnswers(): Record<string, AnswerOption> {
+    if (typeof window === "undefined") return {};
     try {
         const stored = localStorage.getItem(STORAGE_KEY);
         if (!stored) return {};

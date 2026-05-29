@@ -38,8 +38,11 @@ function getUserLevel(accuracy: number) {
 export default function Results() {
     const [profile, setProfile] = useState<DarkProfile | null>(null);
     type SimResult = { scenarioId: number; mode: string; score: number; isCorrect: boolean; confidence: string; analystReasoning?: string; escalatedToSoc?: boolean; incidentId?: string | null };
-    const storedResults: SimResult[] =
-        JSON.parse(localStorage.getItem("phishscope-results") || "[]") || [];
+    const [storedResults] = useState<SimResult[]>(() =>
+        typeof window !== "undefined"
+            ? JSON.parse(localStorage.getItem("phishscope-results") || "[]") || []
+            : []
+    );
 
     const stats = getFinalStats(storedResults);
     const analystCalls = storedResults.filter((result) => result.mode === "analyst").length;

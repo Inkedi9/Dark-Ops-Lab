@@ -48,6 +48,7 @@ const INBOX_FILTERS = [
 ];
 
 function safeParseArray(key: string) {
+    if (typeof window === "undefined") return [];
     try {
         const stored = localStorage.getItem(key);
         const parsed = stored ? JSON.parse(stored) : [];
@@ -58,6 +59,7 @@ function safeParseArray(key: string) {
 }
 
 function safeParseNumber(key: string, fallback = 0) {
+    if (typeof window === "undefined") return fallback;
     const value = Number(localStorage.getItem(key));
     return Number.isFinite(value) ? value : fallback;
 }
@@ -69,7 +71,7 @@ export default function Simulator() {
     const [currentResult, setCurrentResult] = useState<Record<string, unknown> | null>(null);
     const [profile, setProfile] = useState<DarkProfile | null>(null);
     const [lastXpAwarded, setLastXpAwarded] = useState(0);
-    const [mode, setMode] = useState(() => localStorage.getItem("darkdefend-mode") || "beginner");
+    const [mode, setMode] = useState(() => (typeof window !== "undefined" ? localStorage.getItem("darkdefend-mode") : null) || "beginner");
     const [streak, setStreak] = useState(0);
     const [bestStreak, setBestStreak] = useState(() =>
         safeParseNumber("darkdefend-best-streak", 0)

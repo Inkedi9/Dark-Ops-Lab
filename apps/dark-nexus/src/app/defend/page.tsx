@@ -1,6 +1,6 @@
 "use client";
 
-import { createElement, useEffect, useState } from "react";
+import { createElement, Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -27,10 +27,9 @@ import {
 } from "@/defend/lib/defend/defendProgressService";
 import PhishFooter from "@/defend/components/layout/PhishFooter";
 
-export default function DefendHome() {
+function IncidentRedirect() {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const [profile, setProfile] = useState<Record<string, unknown> | null>(null);
 
     useEffect(() => {
         const incidentId = searchParams?.get("incident");
@@ -38,6 +37,12 @@ export default function DefendHome() {
             router.replace(`/defend/simulator?incident=${incidentId}`);
         }
     }, [searchParams, router]);
+
+    return null;
+}
+
+export default function DefendHome() {
+    const [profile, setProfile] = useState<Record<string, unknown> | null>(null);
 
     useEffect(() => {
         getDarkProfile().then(setProfile);
@@ -50,6 +55,9 @@ export default function DefendHome() {
 
     return (
         <>
+            <Suspense>
+                <IncidentRedirect />
+            </Suspense>
             <Header />
 
             <main className="relative z-10 mx-auto max-w-7xl px-4 py-8 md:px-8 md:py-10">

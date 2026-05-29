@@ -6,6 +6,7 @@ import {
 const INCIDENTS_KEY = "darkdefend-incidents";
 
 export function getIncidents() {
+  if (typeof window === "undefined") return [];
   const stored = localStorage.getItem(INCIDENTS_KEY);
   return stored ? JSON.parse(stored) : [];
 }

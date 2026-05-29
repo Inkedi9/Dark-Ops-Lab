@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSubmitChallenge } from "@/hooks/useSubmitChallenge";
-import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
 import { TerminalPanel } from "@/components/dc-ui/TerminalPanel";
